@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace DiscordBot_Core.Image
+namespace DiscordBot_Core.ImageGenerator
 {
     /// <summary>
     /// Html Converter. Converts HTML string and URLs to image bytes

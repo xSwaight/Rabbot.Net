@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace DiscordBot_Core
+namespace DiscordBot_Core.ImageGenerator
 {
     public class HtmlTemplate
     {

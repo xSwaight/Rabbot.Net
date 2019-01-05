@@ -1,4 +1,4 @@
-﻿namespace DiscordBot_Core.Image
+﻿namespace DiscordBot_Core.ImageGenerator
 {
     /// <summary>
     /// Output image format

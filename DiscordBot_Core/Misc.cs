@@ -7,7 +7,7 @@ using Discord;
 using Discord.Commands;
 using DiscordBot_Core.API;
 using DiscordBot_Core.Models;
-using DiscordBot_Core.Image;
+using DiscordBot_Core.ImageGenerator;
 using System.Text;
 
 namespace DiscordBot_Core
