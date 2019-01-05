@@ -55,6 +55,15 @@ namespace DiscordBot_Core
                 var muted = guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
                 await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
+            using (discordbotContext db = new discordbotContext())
+            {
+                var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
+                if (Guild == null)
+                {
+                    await db.Guild.AddAsync(new Guild { ServerId = (long)guild.Id });
+                    await db.SaveChangesAsync();
+                }
+            }
         }
 
         private async void CheckBannedUsers()
@@ -255,9 +264,15 @@ namespace DiscordBot_Core
                 }
                 else
                 {
+                    var oldLevel = Helper.GetLevel(experience.Exp);
                     int textLenght = msg.Content.ToString().Count();
                     if (textLenght >= 50)
                         textLenght = 50;
+                    var newLevel = Helper.GetLevel(experience.Exp + textLenght);
+                    SocketGuild guild = ((SocketGuildChannel)msg.Channel).Guild;
+                    var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
+                    if (newLevel > oldLevel && Guild.Level == 1)
+                        await msg.Channel.SendMessageAsync($"{msg.Author.Mention} gz. Bist jetzt Level {newLevel}.");
                     experience.Exp = experience.Exp + textLenght;
                 }
                 await db.SaveChangesAsync();

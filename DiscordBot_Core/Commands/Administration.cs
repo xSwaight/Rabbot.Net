@@ -111,7 +111,7 @@ namespace DiscordBot_Core.Commands
                     string userRoles = "";
                     foreach (var role in mutedUser.Roles)
                     {
-                        if (!role.Name.Contains("everyone"))
+                        if (!role.IsEveryone && !role.IsManaged)
                             userRoles += role.Name + "|";
                     }
                     userRoles = userRoles.TrimEnd('|');
@@ -123,6 +123,12 @@ namespace DiscordBot_Core.Commands
                     ban.Duration = banUntil;
                 }
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                var embedPrivate = new EmbedBuilder();
+                embedPrivate.WithDescription($"Du wurdest auf **{Context.Guild.Name}** für **{duration}** gemuted.");
+                embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
+                embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {Context.Guild.Name} Server.");
+                embedPrivate.WithColor(new Color(255, 0, 0));
+                await user.SendMessageAsync(null, false, embedPrivate.Build());
                 if (guild.LogchannelId != null && guild.Log == 1)
                 {
                     var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
@@ -198,6 +204,7 @@ namespace DiscordBot_Core.Commands
                     var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     defaultChannel.LogchannelId = (long)Context.Channel.Id;
                 }
+                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 1;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -225,6 +232,7 @@ namespace DiscordBot_Core.Commands
                     var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     defaultChannel.NotificationchannelId = (long)Context.Channel.Id;
                 }
+                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 1;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -252,6 +260,7 @@ namespace DiscordBot_Core.Commands
                     var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     defaultChannel.NotificationchannelId = null;
                 }
+                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 0;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -279,6 +288,7 @@ namespace DiscordBot_Core.Commands
                     var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     defaultChannel.LogchannelId = null;
                 }
+                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 0;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -360,6 +370,36 @@ namespace DiscordBot_Core.Commands
                     await m.DeleteAsync();
                 }
             }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("createMuted")]
+        public async Task CreateMutedRole()
+        {
+            await Context.Message.DeleteAsync();
+            if (Context.Guild.Roles.Where(p => p.Name == "Muted").Count() == 0)
+            {
+                var mutedPermission = new GuildPermissions(false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
+                await Context.Guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
+            }
+            var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
+            foreach (var textChannel in Context.Guild.TextChannels)
+            {
+                var muted = Context.Guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                await textChannel.AddPermissionOverwriteAsync(muted, permission, null);
+            }
+            foreach (var voiceChannel in Context.Guild.VoiceChannels)
+            {
+                var muted = Context.Guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
+            }
+            const int delay = 2000;
+            var embed = new EmbedBuilder();
+            embed.WithDescription("Die Muted Rolle und die Berechtigungen wurden neu gesetzt.");
+            embed.WithColor(new Color(90, 92, 96));
+            IUserMessage m = await ReplyAsync("", false, embed.Build());
+            await Task.Delay(delay);
+            await m.DeleteAsync();
         }
 
     }

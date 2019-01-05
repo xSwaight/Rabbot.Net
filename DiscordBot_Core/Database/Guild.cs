@@ -10,5 +10,6 @@ namespace DiscordBot_Core.Database
         public long? NotificationchannelId { get; set; }
         public int Notify { get; set; }
         public int Log { get; set; }
+        public int Level { get; set; }
     }
 }

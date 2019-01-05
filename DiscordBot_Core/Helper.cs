@@ -25,5 +25,10 @@ namespace DiscordBot_Core
             return level;
         }
 
+        public static uint GetExp(uint level)
+        {
+            var exp = Math.Pow(level, 2) * 50;
+            return (uint)exp;
+        }
     }
 }

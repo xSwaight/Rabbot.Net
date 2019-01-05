@@ -8,7 +8,7 @@ namespace DiscordBot_Core.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "0.2";
+        private readonly string version = "0.3";
 
         [Command("help")]
         public async Task Help()
@@ -35,6 +35,7 @@ namespace DiscordBot_Core.Commands
             embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
             embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
             embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
+            embed.AddField(Config.bot.cmdPrefix + "levelNotification", "Aktiviert oder deaktiviert die Level Nofitications auf dem Server.");
             embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -111,6 +112,19 @@ namespace DiscordBot_Core.Commands
                         break;
                     default:
                         embed.AddField("Notification", "Unknown", true);
+                        break;
+                }
+
+                switch (guild.Level)
+                {
+                    case 0:
+                        embed.AddField("Level", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Level", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Level", "Unknown", true);
                         break;
                 }
 
