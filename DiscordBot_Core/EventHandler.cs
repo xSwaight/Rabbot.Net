@@ -14,6 +14,7 @@ using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core
 {
+#pragma warning disable CS1998
     class EventHandler
     {
         DiscordSocketClient _client;
@@ -227,13 +228,17 @@ namespace DiscordBot_Core
             {
                 if (msg.Author.IsBot)
                     return;
-                var user = db.User.Where(p => Convert.ToUInt64(p.Id) == msg.Author.Id).FirstOrDefault();
+                var user = db.User.Where(p => (ulong)p.Id == msg.Author.Id).FirstOrDefault();
                 if (user == null)
                 {
-                    await db.User.AddAsync(new User { Id = Convert.ToInt64(msg.Author.Id), Name = msg.Author.Username });
-                    user = db.User.Where(p => Convert.ToUInt64(p.Id) == msg.Author.Id).FirstOrDefault();
+                    await db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator });
+                    user = db.User.Where(p => (ulong)p.Id == msg.Author.Id).FirstOrDefault();
                 }
-                var experience = db.Experience.Where(p => Convert.ToUInt64(p.UserId) == msg.Author.Id).FirstOrDefault();
+                else
+                {
+                    user.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
+                }
+                var experience = db.Experience.Where(p => (ulong)p.UserId == msg.Author.Id).FirstOrDefault();
                 if (experience == null)
                 {
                     int id;
@@ -246,7 +251,7 @@ namespace DiscordBot_Core
                     {
                         id = 1;
                     }
-                    await db.Experience.AddAsync(new Experience { Id = id, Exp = 0, UserId = Convert.ToInt64(msg.Author.Id) });
+                    await db.Experience.AddAsync(new Experience { Id = id, Exp = 0, UserId = (long)msg.Author.Id });
                 }
                 else
                 {

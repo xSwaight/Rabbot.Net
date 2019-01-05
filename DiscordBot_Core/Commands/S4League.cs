@@ -14,7 +14,8 @@ namespace DiscordBot_Core.Commands
 {
     public class S4League : ModuleBase<SocketCommandContext>
     {
-        [Command("player")]
+
+        [Command("player", RunMode = RunMode.Async)]
         public async Task Player([Remainder]string arg)
         {
             if (!String.IsNullOrWhiteSpace(arg))
@@ -63,7 +64,44 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("server")]
+        [Command("clan", RunMode = RunMode.Async)]
+        public async Task Clan([Remainder]string name)
+        {
+            if (!String.IsNullOrWhiteSpace(name))
+            {
+                Clan clan = new Clan();
+                ApiRequest DB = new ApiRequest();
+                clan = await DB.GetClan(name);
+                if (clan == null)
+                {
+                    var embed = new EmbedBuilder();
+                    embed.WithTitle("Fehler");
+                    embed.WithDescription("Clan nicht gefunden ¯\\_(ツ)_/¯");
+                    embed.WithColor(new Color(255, 0, 0));
+                    await Context.Channel.SendMessageAsync("", false, embed.Build());
+                }
+                else
+                {
+                    var embedInfo = new EmbedBuilder();
+                    embedInfo.WithColor(new Color(42, 46, 53));
+                    embedInfo.AddField("Name", clan.Name, true);
+                    embedInfo.AddField("Master", clan.Master, true);
+                    embedInfo.AddField("Member Count", clan.Member_count.ToString(), true);
+                    if (!String.IsNullOrWhiteSpace(clan.Announcement))
+                        embedInfo.AddField("Announcement", clan.Announcement, true);
+                    if (!String.IsNullOrWhiteSpace(clan.Description))
+                        embedInfo.AddField("Description", clan.Description, true);
+                    embedInfo.AddField("Views", clan.Views.ToString("N0"), true);
+                    embedInfo.AddField("Favorites", clan.Favorites.ToString(), true);
+                    embedInfo.AddField("Fame", clan.Fame.ToString() + "%", true);
+                    embedInfo.AddField("Hate", clan.Hate.ToString() + "%", true);
+                    embedInfo.ThumbnailUrl = "https://s4db.net/assets/img/icon192.png";
+                    await Context.Channel.SendMessageAsync("", false, embedInfo.Build());
+                }
+            }
+        }
+
+        [Command("server", RunMode = RunMode.Async)]
         public async Task Server()
         {
             List<Server> server = new List<Server>();
@@ -78,7 +116,7 @@ namespace DiscordBot_Core.Commands
             await Context.Channel.SendMessageAsync($"Es sind {onlinecount} Spieler online!");
         }
 
-        [Command("playercard")]
+        [Command("playercard", RunMode = RunMode.Async)]
         public async Task Playercard([Remainder]string arg)
         {
             Player player = new Player();
@@ -113,7 +151,7 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("s4dbcard")]
+        [Command("s4dbcard", RunMode = RunMode.Async)]
         public async Task S4dbcard([Remainder]string arg)
         {
             Player player = new Player();
@@ -164,10 +202,10 @@ namespace DiscordBot_Core.Commands
                     return;
 
                 await user.AddRoleAsync(s4Role.FirstOrDefault());
-                var logchannelId = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().LogchannelId;
-                if (logchannelId != null)
+                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                if (guild.LogchannelId != null && guild.Log == 1)
                 {
-                    var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)logchannelId).FirstOrDefault();
+                    var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{Context.User.Mention} hat sich die S4 League Rolle gegeben.");
                     embed.WithColor(new Color(0, 255, 0));

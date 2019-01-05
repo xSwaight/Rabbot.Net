@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot_Core
 {
+#pragma warning disable CS1998
     class Program
     {
         DiscordSocketClient _client;

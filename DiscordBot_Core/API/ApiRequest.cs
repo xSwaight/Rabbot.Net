@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DiscordBot_Core.API.Models;
@@ -10,38 +8,20 @@ namespace DiscordBot_Core.API
 {
     class ApiRequest
     {
-        private HttpClient _httpClient = new HttpClient();
-
-        private static string APIRequest(string url)
-        {
-            HttpWebResponse response = null;
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-            request.Method = "GET";
-            request.Headers.Add("X-S4DB-API-Key", Config.bot.apiToken);
-            response = (HttpWebResponse)request.GetResponse();
-            using (Stream s = response.GetResponseStream())
-            {
-                using (StreamReader sr1 = new StreamReader(s))
-                {
-                    var jsonResponse = sr1.ReadToEnd();
-                    return jsonResponse;
-                }
-            }
-        }
 
         public async Task<string> APIRequestAsync(string url)
         {
+            HttpClient _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("X-S4DB-API-Key", Config.bot.apiToken);
             var task = await _httpClient.GetAsync(url).ConfigureAwait(false);
             task.EnsureSuccessStatusCode();
-            var payload = task.Content.ReadAsStringAsync();
-            return payload.Result;
+            var payload = await task.Content.ReadAsStringAsync();
+            return payload;
         }
 
 
         public async Task<Player> GetPlayer(string name)
         {
-            if (name.Contains('<')) return null;
             string URL = "https://api.s4db.net/player/" + name;
             var jsonResponse = await APIRequestAsync(URL);
             var player = JsonConvert.DeserializeObject<Player>(jsonResponse);
@@ -49,6 +29,17 @@ namespace DiscordBot_Core.API
                 return null;
             else
                 return player;
+        }
+
+        public async Task<Clan> GetClan(string name)
+        {
+            string URL = "https://api.s4db.net/clan/" + name;
+            var jsonResponse = await APIRequestAsync(URL);
+            var clan = JsonConvert.DeserializeObject<Clan>(jsonResponse);
+            if (clan.Name == null)
+                return null;
+            else
+                return clan;
         }
 
         public async Task<List<Server>> GetServer()

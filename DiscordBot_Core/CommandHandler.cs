@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DiscordBot_Core.Commands;
 
 namespace DiscordBot_Core
 {

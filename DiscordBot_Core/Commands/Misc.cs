@@ -17,6 +17,7 @@ namespace DiscordBot_Core.Commands
             embed.Description = "Commandlist:";
             embed.AddField("Legende:", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
             embed.AddField("*Normal:* \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
+            embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
             embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
             embed.AddField(Config.bot.cmdPrefix + "s4dbcard [S4 Username]", "Erstellt eine Playercard Grafik im S4DB Style.");
             embed.AddField(Config.bot.cmdPrefix + "server", "Gibt die aktuelle Spielerzahl aus.");
@@ -31,6 +32,7 @@ namespace DiscordBot_Core.Commands
             embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
             embed.AddField(Config.bot.cmdPrefix + "setLog", "Setzt den aktuellen Channel als Log Channel.");
             embed.AddField(Config.bot.cmdPrefix + "delLog", "Löscht den aktuell gesetzten Log Channel.");
+            embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
             embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
             embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
             embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
@@ -56,7 +58,7 @@ namespace DiscordBot_Core.Commands
             embed.AddField("Online Users", (memberCount - offlineCount).ToString(), true);
             embed.AddField("Total Servers", Context.Client.Guilds.Count.ToString(), true);
             embed.ThumbnailUrl = "https://cdn.discordapp.com/attachments/210496271000141825/529839617113980929/robo2.png";
-            embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.ToString(), false);
+            embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToShortDateString(), false);
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
@@ -67,11 +69,11 @@ namespace DiscordBot_Core.Commands
         {
             using (discordbotContext db = new discordbotContext())
             {
-                var channel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                if (channel == null)
+                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                if (guild == null)
                     return;
-                var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == channel.LogchannelId).FirstOrDefault();
-                var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == channel.NotificationchannelId).FirstOrDefault();
+                var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.LogchannelId).FirstOrDefault();
+                var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.NotificationchannelId).FirstOrDefault();
 
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"**Settings**");
@@ -86,18 +88,32 @@ namespace DiscordBot_Core.Commands
                 else
                     embed.AddField("Notification Channel", "Nicht gesetzt.", true);
 
-                switch (channel.Notify)
+                switch (guild.Log)
                 {
                     case 0:
-                        embed.AddField("Notification", "Disabled");
+                        embed.AddField("Log", "Disabled", true);
                         break;
                     case 1:
-                        embed.AddField("Notification", "Enabled");
+                        embed.AddField("Log", "Enabled", true);
                         break;
                     default:
-                        embed.AddField("Notification", "Unknown");
+                        embed.AddField("Log", "Unknown", true);
                         break;
                 }
+
+                switch (guild.Notify)
+                {
+                    case 0:
+                        embed.AddField("Notification", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Notification", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Notification", "Unknown", true);
+                        break;
+                }
+
 
                 embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";
                 embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
@@ -108,8 +124,6 @@ namespace DiscordBot_Core.Commands
         [Command("ping")]
         public async Task Ping()
         {
-            var dbContext = new discordbotContext();
-            var users = dbContext.User.ToList();
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
     }

@@ -27,7 +27,7 @@ namespace DiscordBot_Core.Commands
             await m.DeleteAsync();
         }
 
-        [RequireUserPermission(GuildPermission.MuteMembers)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("mute")]
         public async Task Mute(IUser user, string duration)
         {
@@ -122,10 +122,10 @@ namespace DiscordBot_Core.Commands
                     var ban = db.Muteduser.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
                     ban.Duration = banUntil;
                 }
-                var logchannelId = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().LogchannelId;
-                if (logchannelId != null)
+                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                if (guild.LogchannelId != null && guild.Log == 1)
                 {
-                    var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)logchannelId).FirstOrDefault();
+                    var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{Context.User.Username} hat {user.Mention} für {duration} gemuted.");
                     embed.WithColor(new Color(255, 0, 0));
@@ -136,7 +136,7 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [RequireUserPermission(GuildPermission.MuteMembers)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("unmute")]
         public async Task Unmute(IUser user)
         {
@@ -156,12 +156,12 @@ namespace DiscordBot_Core.Commands
                 }
                 else
                 {
-                    var logchannelId = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().LogchannelId;
+                    var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     var User = Context.Guild.Users.Where(p => p.Id == user.Id).FirstOrDefault();
                     var MutedRole = User.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
                     if (MutedRole != null)
                         await User.RemoveRoleAsync(MutedRole);
-                    if (logchannelId != null)
+                    if (guild.LogchannelId != null && guild.Log == 1)
                     {
                         db.Muteduser.Remove(ban.FirstOrDefault());
                         var oldRoles = ban.FirstOrDefault().Roles.Split('|');
@@ -172,7 +172,7 @@ namespace DiscordBot_Core.Commands
                                 await User.AddRoleAsync(role);
                         }
                         await db.SaveChangesAsync();
-                        var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)logchannelId).FirstOrDefault();
+                        var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
                         var embed = new EmbedBuilder();
                         embed.WithDescription($"{user.Mention} wurde unmuted.");
                         embed.WithColor(new Color(0, 255, 0));
@@ -325,5 +325,42 @@ namespace DiscordBot_Core.Commands
                 }
             }
         }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("log")]
+        public async Task Log()
+        {
+            using (discordbotContext db = new discordbotContext())
+            {
+                await Context.Message.DeleteAsync();
+
+                var currentLog = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log;
+                if (currentLog == 0)
+                {
+                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 1;
+                    await db.SaveChangesAsync();
+                    const int delay = 2000;
+                    var embed = new EmbedBuilder();
+                    embed.WithDescription("Logs wurden aktiviert.");
+                    embed.WithColor(new Color(90, 92, 96));
+                    IUserMessage m = await ReplyAsync("", false, embed.Build());
+                    await Task.Delay(delay);
+                    await m.DeleteAsync();
+                }
+                else
+                {
+                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 0;
+                    await db.SaveChangesAsync();
+                    const int delay = 2000;
+                    var embed = new EmbedBuilder();
+                    embed.WithDescription("Logs wurden deaktiviert.");
+                    embed.WithColor(new Color(90, 92, 96));
+                    IUserMessage m = await ReplyAsync("", false, embed.Build());
+                    await Task.Delay(delay);
+                    await m.DeleteAsync();
+                }
+            }
+        }
+
     }
 }

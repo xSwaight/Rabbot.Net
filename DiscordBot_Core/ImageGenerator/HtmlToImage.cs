@@ -10,7 +10,6 @@ namespace DiscordBot_Core.ImageGenerator
         public static string Generate(string name, string html)
         {
             var converter = new HtmlConverter();
-            //var html = "Hello <string>World</strong>";
             var bytes = converter.FromHtmlString(html, 300, 170, ImageFormat.Jpg, 90);
             File.WriteAllBytes($"{name}.jpg", bytes);
             return Directory.GetCurrentDirectory() + $"/{name}.jpg";
