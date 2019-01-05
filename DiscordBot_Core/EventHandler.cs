@@ -8,8 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using DiscordBot_Core.Models;
 using System.Collections.Generic;
+using DiscordBot_Core.Database;
+using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core
 {
@@ -156,7 +157,7 @@ namespace DiscordBot_Core
             while (true)
             {
                 List<Server> server = new List<Server>();
-                S4DB DB = new S4DB();
+                ApiRequest DB = new ApiRequest();
                 server = await DB.GetServer();
                 int onlinecount = 0;
                 foreach (var item in server)

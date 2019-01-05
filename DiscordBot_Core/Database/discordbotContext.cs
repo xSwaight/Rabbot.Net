@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace DiscordBot_Core.Models
+namespace DiscordBot_Core.Database
 {
     public partial class discordbotContext : DbContext
     {

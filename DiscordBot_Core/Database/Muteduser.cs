@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DiscordBot_Core.Models
+namespace DiscordBot_Core.Database
 {
     public partial class Muteduser
     {

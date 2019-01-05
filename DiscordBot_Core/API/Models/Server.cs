@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DiscordBot_Core.API
+﻿namespace DiscordBot_Core.API.Models
 {
     public class Server
     {

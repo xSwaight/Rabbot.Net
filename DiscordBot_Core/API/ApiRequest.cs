@@ -1,16 +1,14 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core.API
 {
-    class S4DB
+    class ApiRequest
     {
         private HttpClient _httpClient = new HttpClient();
 
