@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.Commands" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.Core" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.Rest" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.Rpc" Version="1.0.2" />
+    <PackageReference Include="Discord.Net.Webhook" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="2.1.4" />
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" version="2.1.0-preview1-final" />
+  </ItemGroup>
+
+</Project>
