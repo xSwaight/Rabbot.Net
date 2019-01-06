@@ -166,68 +166,75 @@ namespace DiscordBot_Core
             DateTime time = DateTime.Now;
             while (true)
             {
-                List<Server> server = new List<Server>();
-                ApiRequest DB = new ApiRequest();
-                server = await DB.GetServer();
-                int onlinecount = 0;
-                foreach (var item in server)
+                try
                 {
-                    if (item.Player_online >= 0)
-                        onlinecount += item.Player_online;
-                }
-                var percent = (Convert.ToDouble(onlinecount) / Convert.ToDouble(onlineUsers)) * 100;
-                if ((percent < 80) && onlineUsers != -1 && onlinecount != 0)
-                {
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"***Server Liste:***");
-                    embed.WithColor(new Color(111, 116, 124));
-                    using (discordbotContext db = new discordbotContext())
+                    List<Server> server = new List<Server>();
+                    ApiRequest DB = new ApiRequest();
+                    server = await DB.GetServer();
+                    int onlinecount = 0;
+                    foreach (var item in server)
                     {
-                        string crashedServer = "";
-                        foreach (var item in server)
+                        if (item.Player_online >= 0)
+                            onlinecount += item.Player_online;
+                    }
+                    var percent = (Convert.ToDouble(onlinecount) / Convert.ToDouble(onlineUsers)) * 100;
+                    if ((percent < 80) && onlineUsers != -1 && onlinecount != 0)
+                    {
+                        var embed = new EmbedBuilder();
+                        embed.WithDescription($"***Server Liste:***");
+                        embed.WithColor(new Color(111, 116, 124));
+                        using (discordbotContext db = new discordbotContext())
                         {
-                            if (item.Player_online >= 0)
+                            string crashedServer = "";
+                            foreach (var item in server)
                             {
-                                string status = "";
-                                switch (item.State)
+                                if (item.Player_online >= 0)
                                 {
-                                    case 0:
-                                        status = "Offline";
-                                        crashedServer = item.Name;
-                                        break;
-                                    case 1:
-                                        status = "Slow";
-                                        break;
-                                    case 2:
-                                        status = "Online";
-                                        break;
-                                    default:
-                                        status = "Unknown";
-                                        break;
+                                    string status = "";
+                                    switch (item.State)
+                                    {
+                                        case 0:
+                                            status = "Offline";
+                                            crashedServer = item.Name;
+                                            break;
+                                        case 1:
+                                            status = "Slow";
+                                            break;
+                                        case 2:
+                                            status = "Online";
+                                            break;
+                                        default:
+                                            status = "Unknown";
+                                            break;
+                                    }
+                                    embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString() + "**", false);
                                 }
-                                embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString() + "**", false);
                             }
-                        }
-                        crashCounter++;
-                        TimeSpan span = DateTime.Now - time;
-                        if (db.Guild.Count() > 0)
-                        {
-                            foreach (var item in db.Guild)
+                            crashCounter++;
+                            TimeSpan span = DateTime.Now - time;
+                            if (db.Guild.Count() > 0)
                             {
-                                if (item.NotificationchannelId != null && item.Notify == 1 && !String.IsNullOrWhiteSpace(crashedServer))
-                                    await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"**{crashedServer}** ist gecrashed! Das ist der **{crashCounter}.** Crash in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M!**", false, embed.Build());
-                                else if (item.NotificationchannelId != null && item.Notify == 1)
-                                    await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"Die Spieleranzahl ist in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M** schon **{crashCounter} mal** eingebrochen!", false, embed.Build());
+                                foreach (var item in db.Guild)
+                                {
+                                    if (item.NotificationchannelId != null && item.Notify == 1 && !String.IsNullOrWhiteSpace(crashedServer))
+                                        await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"**{crashedServer}** ist gecrashed! Das ist der **{crashCounter}.** Crash in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M!**", false, embed.Build());
+                                    else if (item.NotificationchannelId != null && item.Notify == 1)
+                                        await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"Die Spieleranzahl ist in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M** schon **{crashCounter} mal** eingebrochen!", false, embed.Build());
+                                }
                             }
                         }
                     }
+                    onlineUsers = onlinecount;
+                    if (onlinecount > 0)
+                        await _client.SetGameAsync($"{onlinecount} Players online!", null, ActivityType.Watching);
+                    else
+                        await _client.SetGameAsync($"Auth Server is down!!", null, ActivityType.Watching);
+                    await Task.Delay(10000);
                 }
-                onlineUsers = onlinecount;
-                if (onlinecount > 0)
-                    await _client.SetGameAsync($"{onlinecount} Players online!", null, ActivityType.Watching);
-                else
-                    await _client.SetGameAsync($"Auth Server is down!!", null, ActivityType.Watching);
-                await Task.Delay(10000);
+                catch (Exception e)
+                {
+                    Console.WriteLine("Fehler: " + e.Message + "\n" + e.StackTrace);
+                }
             }
         }
 

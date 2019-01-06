@@ -11,20 +11,37 @@ namespace DiscordBot_Core.Commands
     public class Administration : ModuleBase<SocketCommandContext>
     {
 
-        [Command("delete", RunMode = RunMode.Async)]
+        [Command("del", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
-        public async Task Delete(uint amount)
+        public async Task Delete(uint amount, IUser user = null)
         {
-            IEnumerable<IMessage> messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
-            await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
-            const int delay = 3000;
-            var embed = new EmbedBuilder();
-            embed.WithDescription($"Die letzten {amount} Nachrichten wurden gelöscht.");
-            embed.WithColor(new Color(90, 92, 96));
-            IUserMessage m = await ReplyAsync("", false, embed.Build());
-            await Task.Delay(delay);
-            await m.DeleteAsync();
+            if (user == null)
+            {
+                IEnumerable<IMessage> messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
+                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
+                const int delay = 3000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"Die letzten {amount} Nachrichten wurden gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+            else
+            {
+                await Context.Message.DeleteAsync();
+                var msgs = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
+                msgs = msgs.Where(x => x.Author.Id == user.Id).Take((int)amount);
+                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
+                const int delay = 3000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"Die letzten {amount} Nachrichten von {user.Username} wurden gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]

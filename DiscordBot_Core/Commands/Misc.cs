@@ -14,9 +14,9 @@ namespace DiscordBot_Core.Commands
         public async Task Help()
         {
             var embed = new EmbedBuilder();
-            embed.Description = "Commandlist:";
-            embed.AddField("Legende:", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
-            embed.AddField("*Normal:* \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
+            embed.Description = "Hier eine Liste mit all meinen Commands:";
+            embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
+            embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
             embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
             embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
             embed.AddField(Config.bot.cmdPrefix + "s4dbcard [S4 Username]", "Erstellt eine Playercard Grafik im S4DB Style.");
@@ -26,7 +26,7 @@ namespace DiscordBot_Core.Commands
             embed.AddField(Config.bot.cmdPrefix + "level (User Mention)", "Ohne Argument gibt es das eigene Level aus, mit Argument das Level des Markierten Users.");
             if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
                 embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
-            embed.AddField("\n*Administration:* \n" + Config.bot.cmdPrefix + "delete [anzahl]", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
+            embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
             embed.AddField(Config.bot.cmdPrefix + "mute [User Mention] [duration]", "Muted den User für angegebene Zeit (Zeitindikatoren: s = sekunden, m = minuten, h = stunden, d = tage).");
             embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
             embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
