@@ -28,8 +28,8 @@ namespace DiscordBot_Core
             services = new ServiceCollection().BuildServiceProvider();
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
             CancellationTokenSource _cancelationTokenSource = new CancellationTokenSource();
-            new Task(() => CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
-            new Task(() => CheckBannedUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckBannedUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
@@ -66,7 +66,7 @@ namespace DiscordBot_Core
             }
         }
 
-        private async void CheckBannedUsers()
+        private async Task CheckBannedUsers()
         {
             while (true)
             {
@@ -159,7 +159,7 @@ namespace DiscordBot_Core
             }
         }
 
-        private async void CheckOnlineUsers()
+        private async Task CheckOnlineUsers()
         {
             int onlineUsers = -1;
             int crashCounter = 0;

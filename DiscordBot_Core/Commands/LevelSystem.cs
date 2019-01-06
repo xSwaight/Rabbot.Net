@@ -24,7 +24,10 @@ namespace DiscordBot_Core.Commands
                         var neededExp1 = Helper.GetExp(level);
                         var neededExp2 = Helper.GetExp(level + 1);
                         var currentExp = exp.Exp - Helper.GetExp(level);
-                        await Context.Channel.SendMessageAsync($"{user.Username} ist **Level {level}** und hat **{exp.Exp} EXP** und braucht noch **{currentExp}/{neededExp2 - neededExp1} EXP** fürs Level up!!");
+                        int totalExp = (int)exp.Exp;
+                        int currentLevelExp = (int)currentExp;
+                        int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                        await Context.Channel.SendMessageAsync($"{user.Username} ist **Level {level}** mit **{totalExp.ToString("N0")} EXP** und braucht noch **{currentLevelExp.ToString("N0")}/{neededLevelExp.ToString("N0")} EXP** fürs Level up!!");
                     }
                     else
                     {
@@ -40,7 +43,10 @@ namespace DiscordBot_Core.Commands
                         var neededExp1 = Helper.GetExp(level);
                         var neededExp2 = Helper.GetExp(level + 1);
                         var currentExp = exp.Exp - Helper.GetExp(level);
-                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} du bist **Level {level}** und hast **{exp.Exp} EXP** und brauchst noch **{currentExp}/{neededExp2 - neededExp1} EXP** fürs Level up!");
+                        int totalExp = (int)exp.Exp;
+                        int currentLevelExp = (int)currentExp;
+                        int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} du bist **Level {level}** mit **{totalExp.ToString("N0")} EXP** und brauchst noch **{currentLevelExp.ToString("N0")}/{neededLevelExp.ToString("N0")} EXP** fürs Level up!");
                     }
                     else
                     {
