@@ -21,13 +21,13 @@ namespace DiscordBot_Core
 
         public static uint GetLevel(int? exp)
         {
-            uint level = (uint)Math.Sqrt((uint)exp / 50);
+            uint level = (uint)Math.Sqrt((uint)exp / Config.level.expTableValue);
             return level;
         }
 
         public static uint GetExp(uint level)
         {
-            var exp = Math.Pow(level, 2) * 50;
+            var exp = Math.Pow(level, 2) * Config.level.expTableValue;
             return (uint)exp;
         }
     }

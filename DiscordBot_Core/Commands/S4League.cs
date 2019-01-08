@@ -101,20 +101,45 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("server", RunMode = RunMode.Async)]
-        public async Task Server()
-        {
-            List<Server> server = new List<Server>();
-            ApiRequest DB = new ApiRequest();
-            server = await DB.GetServer();
-            int onlinecount = 0;
-            foreach (var item in server)
-            {
-                if (item.Player_online >= 0)
-                    onlinecount += item.Player_online;
-            }
-            await Context.Channel.SendMessageAsync($"Es sind {onlinecount} Spieler online!");
-        }
+        //[Command("server", RunMode = RunMode.Async)]
+        //public async Task Server()
+        //{
+        //    List<Server> server = new List<Server>();
+        //    ApiRequest DB = new ApiRequest();
+        //    server = await DB.GetServer();
+        //    var embed = new EmbedBuilder();
+        //    embed.WithDescription($"***Server Liste:***");
+        //    embed.WithColor(new Color(111, 116, 124));
+        //    using (discordbotContext db = new discordbotContext())
+        //    {
+        //        string crashedServer = "";
+        //        foreach (var item in server)
+        //        {
+        //            if (item.Player_online >= 0)
+        //            {
+        //                string status = "";
+        //                switch (item.State)
+        //                {
+        //                    case 0:
+        //                        status = "Offline";
+        //                        crashedServer = item.Name;
+        //                        break;
+        //                    case 1:
+        //                        status = "Slow";
+        //                        break;
+        //                    case 2:
+        //                        status = "Online";
+        //                        break;
+        //                    default:
+        //                        status = "Unknown";
+        //                        break;
+        //                }
+        //                embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString("N0") + "**", false);
+        //            }
+        //        }
+        //        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+        //    }
+        //}
 
         [Command("playercard", RunMode = RunMode.Async)]
         public async Task Playercard([Remainder]string arg)

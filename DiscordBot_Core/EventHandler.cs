@@ -28,7 +28,7 @@ namespace DiscordBot_Core
             services = new ServiceCollection().BuildServiceProvider();
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
             CancellationTokenSource _cancelationTokenSource = new CancellationTokenSource();
-            new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckBannedUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
@@ -111,13 +111,13 @@ namespace DiscordBot_Core
                                                 await user.AddRoleAsync(role);
                                         }
 
-                                        var logchannelId = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault().LogchannelId;
-                                        if (logchannelId != null)
+                                        var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
+                                        if (Guild.LogchannelId != null && Guild.Log == 1)
                                         {
                                             var embed = new EmbedBuilder();
                                             embed.WithDescription($"{user.Mention} wurde entmuted.");
                                             embed.WithColor(new Color(0, 255, 0));
-                                            var logchannel = guild.TextChannels.Where(p => p.Id == (ulong)logchannelId).FirstOrDefault();
+                                            var logchannel = guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
                                             await logchannel.SendMessageAsync("", false, embed.Build());
                                         }
                                     }
@@ -159,85 +159,87 @@ namespace DiscordBot_Core
             }
         }
 
-        private async Task CheckOnlineUsers()
-        {
-            int onlineUsers = -1;
-            int crashCounter = 0;
-            DateTime time = DateTime.Now;
-            while (true)
-            {
-                try
-                {
-                    List<Server> server = new List<Server>();
-                    ApiRequest DB = new ApiRequest();
-                    server = await DB.GetServer();
-                    int onlinecount = 0;
-                    foreach (var item in server)
-                    {
-                        if (item.Player_online >= 0)
-                            onlinecount += item.Player_online;
-                    }
-                    var percent = (Convert.ToDouble(onlinecount) / Convert.ToDouble(onlineUsers)) * 100;
-                    if ((percent < 80) && onlineUsers != -1 && onlinecount != 0)
-                    {
-                        var embed = new EmbedBuilder();
-                        embed.WithDescription($"***Server Liste:***");
-                        embed.WithColor(new Color(111, 116, 124));
-                        using (discordbotContext db = new discordbotContext())
-                        {
-                            string crashedServer = "";
-                            foreach (var item in server)
-                            {
-                                if (item.Player_online >= 0)
-                                {
-                                    string status = "";
-                                    switch (item.State)
-                                    {
-                                        case 0:
-                                            status = "Offline";
-                                            crashedServer = item.Name;
-                                            break;
-                                        case 1:
-                                            status = "Slow";
-                                            break;
-                                        case 2:
-                                            status = "Online";
-                                            break;
-                                        default:
-                                            status = "Unknown";
-                                            break;
-                                    }
-                                    embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString() + "**", false);
-                                }
-                            }
-                            crashCounter++;
-                            TimeSpan span = DateTime.Now - time;
-                            if (db.Guild.Count() > 0)
-                            {
-                                foreach (var item in db.Guild)
-                                {
-                                    if (item.NotificationchannelId != null && item.Notify == 1 && !String.IsNullOrWhiteSpace(crashedServer))
-                                        await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"**{crashedServer}** ist gecrashed! Das ist der **{crashCounter}.** Crash in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M!**", false, embed.Build());
-                                    else if (item.NotificationchannelId != null && item.Notify == 1)
-                                        await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"Die Spieleranzahl ist in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M** schon **{crashCounter} mal** eingebrochen!", false, embed.Build());
-                                }
-                            }
-                        }
-                    }
-                    onlineUsers = onlinecount;
-                    if (onlinecount > 0)
-                        await _client.SetGameAsync($"{onlinecount} Players online!", null, ActivityType.Watching);
-                    else
-                        await _client.SetGameAsync($"Auth Server is down!!", null, ActivityType.Watching);
-                    await Task.Delay(10000);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Fehler: " + e.Message + "\n" + e.StackTrace);
-                }
-            }
-        }
-
+        #region OnlineUser
+        //private async Task CheckOnlineUsers()
+        //{
+        //    int onlineUsers = -1;
+        //    int crashCounter = 0;
+        //    DateTime time = DateTime.Now;
+        //    while (true)
+        //    {
+        //        try
+        //        {
+        //            List<Server> server = new List<Server>();
+        //            ApiRequest DB = new ApiRequest();
+        //            server = await DB.GetServer();
+        //            int onlinecount = 0;
+        //            foreach (var item in server)
+        //            {
+        //                if (item.Player_online >= 0)
+        //                    onlinecount += item.Player_online;
+        //            }
+        //            var percent = (Convert.ToDouble(onlinecount) / Convert.ToDouble(onlineUsers)) * 100;
+        //            if ((percent < 80) && onlineUsers != -1 && onlinecount != 0)
+        //            {
+        //                var embed = new EmbedBuilder();
+        //                embed.WithDescription($"***Server Liste:***");
+        //                embed.WithColor(new Color(111, 116, 124));
+        //                using (discordbotContext db = new discordbotContext())
+        //                {
+        //                    string crashedServer = "";
+        //                    foreach (var item in server)
+        //                    {
+        //                        if (item.Player_online >= 0)
+        //                        {
+        //                            string status = "";
+        //                            switch (item.State)
+        //                            {
+        //                                case 0:
+        //                                    status = "Offline";
+        //                                    crashedServer = item.Name;
+        //                                    break;
+        //                                case 1:
+        //                                    status = "Slow";
+        //                                    break;
+        //                                case 2:
+        //                                    status = "Online";
+        //                                    break;
+        //                                default:
+        //                                    status = "Unknown";
+        //                                    break;
+        //                            }
+        //                            embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString() + "**", false);
+        //                        }
+        //                    }
+        //                    crashCounter++;
+        //                    TimeSpan span = DateTime.Now - time;
+        //                    if (db.Guild.Count() > 0)
+        //                    {
+        //                        foreach (var item in db.Guild)
+        //                        {
+        //                            if (item.NotificationchannelId != null && item.Notify == 1 && !String.IsNullOrWhiteSpace(crashedServer))
+        //                                await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"**{crashedServer}** ist gecrashed! Das ist der **{crashCounter}.** Crash in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M!**", false, embed.Build());
+        //                            else if (item.NotificationchannelId != null && item.Notify == 1)
+        //                                await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"Die Spieleranzahl ist in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M** schon **{crashCounter} mal** eingebrochen!", false, embed.Build());
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            onlineUsers = onlinecount;
+        //            if (onlinecount > 0)
+        //                await _client.SetGameAsync($"{onlinecount} Players online!", null, ActivityType.Watching);
+        //            else
+        //                await _client.SetGameAsync($"Auth Server is down!", null, ActivityType.Watching);
+        //            await Task.Delay(10000);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine("Fehler: " + e.Message + "\n" + e.StackTrace);
+        //        }
+        //    }
+        //}
+        #endregion
+            
         private async Task MessageReceived(SocketMessage msg)
         {
             using (discordbotContext db = new discordbotContext())
@@ -275,12 +277,174 @@ namespace DiscordBot_Core
                     int textLenght = msg.Content.ToString().Count();
                     if (textLenght >= 50)
                         textLenght = 50;
-                    var newLevel = Helper.GetLevel(experience.Exp + textLenght);
+                    experience.Exp += textLenght * Config.bot.expMultiplier;
+                    var newLevel = Helper.GetLevel(experience.Exp);
                     SocketGuild guild = ((SocketGuildChannel)msg.Channel).Guild;
                     var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
                     if (newLevel > oldLevel && Guild.Level == 1)
-                        await msg.Channel.SendMessageAsync($"{msg.Author.Mention} gz. Bist jetzt Level {newLevel}.");
-                    experience.Exp = experience.Exp + textLenght;
+                    {
+                        await msg.Channel.SendMessageAsync($"{msg.Author.Mention} Glückwnsch nya~ ≧◡≦! uwu Du bist level up- (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ **Level {newLevel}** mach weiter so OwO (づ｡◕‿‿◕｡)づ");
+
+                    }
+                    if (newLevel > oldLevel)
+                    {
+                        foreach (var mutualGuild in msg.Author.MutualGuilds)
+                        {
+                            var roleS4 = mutualGuild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
+                            var rolePro = mutualGuild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
+                            var roleSemi = mutualGuild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
+                            var roleAmateur = mutualGuild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
+                            var roleRookie = mutualGuild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
+
+                            if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
+                            {
+                                var myUser = mutualGuild.Users.Where(p => p.Id == msg.Author.Id).FirstOrDefault();
+                                if (newLevel >= 1 && newLevel <= 19)
+                                {
+                                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)
+                                    {
+                                        await myUser.RemoveRoleAsync(roleS4);
+                                        await myUser.RemoveRoleAsync(rolePro);
+                                        await myUser.RemoveRoleAsync(roleSemi);
+                                        await myUser.RemoveRoleAsync(roleAmateur);
+                                    }
+                                    if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() == null)
+                                        await myUser.AddRoleAsync(roleRookie);
+                                }
+                                if (newLevel >= 20 && newLevel <= 39)
+                                {
+                                    if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() != null)
+                                        await myUser.RemoveRoleAsync(roleRookie);
+                                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi").FirstOrDefault() != null)
+                                    {
+                                        await myUser.RemoveRoleAsync(roleS4);
+                                        await myUser.RemoveRoleAsync(rolePro);
+                                        await myUser.RemoveRoleAsync(roleSemi);
+                                    }
+                                    if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() == null)
+                                        await myUser.AddRoleAsync(roleAmateur);
+                                }
+                                if (newLevel >= 40 && newLevel <= 59)
+                                {
+                                    if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() != null)
+                                        await myUser.RemoveRoleAsync(roleAmateur);
+                                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Rookie").FirstOrDefault() != null)
+                                    {
+                                        await myUser.RemoveRoleAsync(roleS4);
+                                        await myUser.RemoveRoleAsync(rolePro);
+                                        await myUser.RemoveRoleAsync(roleRookie);
+                                    }
+                                    if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() == null)
+                                        await myUser.AddRoleAsync(roleSemi);
+                                }
+                                if (newLevel >= 60 && newLevel <= 79)
+                                {
+                                    if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() != null)
+                                        await myUser.RemoveRoleAsync(roleSemi);
+                                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                                    {
+                                        await myUser.RemoveRoleAsync(roleS4);
+                                        await myUser.RemoveRoleAsync(roleAmateur);
+                                        await myUser.RemoveRoleAsync(roleRookie);
+                                    }
+                                    if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() == null)
+                                        await myUser.AddRoleAsync(rolePro);
+                                }
+                                if (newLevel >= 80)
+                                {
+                                    if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() != null)
+                                        await myUser.RemoveRoleAsync(rolePro);
+                                    if (myUser.Roles.Where(p => p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                                    {
+                                        await myUser.RemoveRoleAsync(roleSemi);
+                                        await myUser.RemoveRoleAsync(roleAmateur);
+                                        await myUser.RemoveRoleAsync(roleRookie);
+                                    }
+                                    if (myUser.Roles.Where(p => p.Name == "S4").FirstOrDefault() == null)
+                                        await myUser.AddRoleAsync(roleS4);
+                                }
+                            }
+                        }
+                    }
+
+
+                    
+
+                    var myGuild = ((SocketGuildChannel)msg.Channel).Guild;
+                    var RoleS4 = myGuild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
+                    var RolePro = myGuild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
+                    var RoleSemi = myGuild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
+                    var RoleAmateur = myGuild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
+                    var RoleRookie = myGuild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
+
+                    if (RoleS4 != null && RolePro != null && RoleSemi != null && RoleAmateur != null && RoleRookie != null)
+                    {
+                        var myUser = myGuild.Users.Where(p => p.Id == msg.Author.Id).FirstOrDefault();
+                        if (newLevel >= 1 && newLevel <= 19)
+                        {
+                            if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)
+                            {
+                                await myUser.RemoveRoleAsync(RoleS4);
+                                await myUser.RemoveRoleAsync(RolePro);
+                                await myUser.RemoveRoleAsync(RoleSemi);
+                                await myUser.RemoveRoleAsync(RoleAmateur);
+                            }
+                            if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() == null)
+                                await myUser.AddRoleAsync(RoleRookie);
+                        }
+                        if (newLevel >= 20 && newLevel <= 39)
+                        {
+                            if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() != null)
+                                await myUser.RemoveRoleAsync(RoleRookie);
+                            if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi").FirstOrDefault() != null)
+                            {
+                                await myUser.RemoveRoleAsync(RoleS4);
+                                await myUser.RemoveRoleAsync(RolePro);
+                                await myUser.RemoveRoleAsync(RoleSemi);
+                            }
+                            if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() == null)
+                                await myUser.AddRoleAsync(RoleAmateur);
+                        }
+                        if (newLevel >= 40 && newLevel <= 59)
+                        {
+                            if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() != null)
+                                await myUser.RemoveRoleAsync(RoleAmateur);
+                            if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Rookie").FirstOrDefault() != null)
+                            {
+                                await myUser.RemoveRoleAsync(RoleS4);
+                                await myUser.RemoveRoleAsync(RolePro);
+                                await myUser.RemoveRoleAsync(RoleRookie);
+                            }
+                            if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() == null)
+                                await myUser.AddRoleAsync(RoleSemi);
+                        }
+                        if (newLevel >= 60 && newLevel <= 79)
+                        {
+                            if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() != null)
+                                await myUser.RemoveRoleAsync(RoleSemi);
+                            if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                            {
+                                await myUser.RemoveRoleAsync(RoleS4);
+                                await myUser.RemoveRoleAsync(RoleAmateur);
+                                await myUser.RemoveRoleAsync(RoleRookie);
+                            }
+                            if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() == null)
+                                await myUser.AddRoleAsync(RolePro);
+                        }
+                        if (newLevel >= 80)
+                        {
+                            if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() != null)
+                                await myUser.RemoveRoleAsync(RolePro);
+                            if (myUser.Roles.Where(p => p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                            {
+                                await myUser.RemoveRoleAsync(RoleSemi);
+                                await myUser.RemoveRoleAsync(RoleAmateur);
+                                await myUser.RemoveRoleAsync(RoleRookie);
+                            }
+                            if (myUser.Roles.Where(p => p.Name == "S4").FirstOrDefault() == null)
+                                await myUser.AddRoleAsync(RoleS4);
+                        }
+                    }
                 }
                 await db.SaveChangesAsync();
 

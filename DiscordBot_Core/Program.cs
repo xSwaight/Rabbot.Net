@@ -27,6 +27,7 @@ namespace DiscordBot_Core
             await _client.LoginAsync(TokenType.Bot, Config.bot.token);
             await _client.StartAsync();
             await _client.SetStatusAsync(UserStatus.Online);
+            await _client.SetGameAsync($"euer Herz <3", null, ActivityType.Listening);
             _handler = new CommandHandler();
             _event = new EventHandler();
             await _handler.InitializeAsync(_client);

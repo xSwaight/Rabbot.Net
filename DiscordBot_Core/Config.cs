@@ -7,8 +7,10 @@ namespace DiscordBot_Core
     {
         private const string configFolder = "Resources";
         private const string configFile = "config.json";
+        private const string levelFile = "level.json";
 
         public static BotConfig bot;
+        public static LevelConfig level;
 
         static Config()
         {
@@ -26,6 +28,18 @@ namespace DiscordBot_Core
                 string json = File.ReadAllText(configFolder + "/" + configFile);
                 bot = JsonConvert.DeserializeObject<BotConfig>(json);
             }
+
+            if (!File.Exists(configFolder + "/" + levelFile))
+            {
+                level = new LevelConfig();
+                string json = JsonConvert.SerializeObject(level, Formatting.Indented);
+                File.WriteAllText(configFolder + "/" + levelFile, json);
+            }
+            else
+            {
+                string json = File.ReadAllText(configFolder + "/" + levelFile);
+                level = JsonConvert.DeserializeObject<LevelConfig>(json);
+            }
         }
     }
 
@@ -35,6 +49,13 @@ namespace DiscordBot_Core
         public string apiToken;
         public string connectionString;
         public string cmdPrefix;
+        public int expMultiplier;
+    }
+
+    public struct LevelConfig
+    {
+        public int expTableValue;
+        public int expMultiplier;
     }
 
 }
