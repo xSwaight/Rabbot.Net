@@ -9,6 +9,8 @@ using DiscordBot_Core.API;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.ImageGenerator;
 using DiscordBot_Core.API.Models;
+using Discord.WebSocket;
+using DiscordBot_Core.Preconditions;
 
 namespace DiscordBot_Core.Commands
 {
@@ -16,8 +18,10 @@ namespace DiscordBot_Core.Commands
     {
 
         [Command("player", RunMode = RunMode.Async)]
+        [Cooldown(5)]
         public async Task Player([Remainder]string arg)
         {
+
             if (!String.IsNullOrWhiteSpace(arg))
             {
                 Player player = new Player();
@@ -65,8 +69,10 @@ namespace DiscordBot_Core.Commands
         }
 
         [Command("clan", RunMode = RunMode.Async)]
+        [Cooldown(5)]
         public async Task Clan([Remainder]string name)
         {
+
             if (!String.IsNullOrWhiteSpace(name))
             {
                 Clan clan = new Clan();
@@ -142,8 +148,10 @@ namespace DiscordBot_Core.Commands
         //}
 
         [Command("playercard", RunMode = RunMode.Async)]
+        [Cooldown(5)]
         public async Task Playercard([Remainder]string arg)
         {
+
             Player player = new Player();
             ApiRequest DB = new ApiRequest();
             player = await DB.GetPlayer(arg);
@@ -170,15 +178,17 @@ namespace DiscordBot_Core.Commands
                     DEATHMATCH = player.Kdrate.ToString()
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html);
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html, 300, 170);
                 await Context.Channel.SendFileAsync(path);
                 File.Delete(path);
             }
         }
 
         [Command("s4dbcard", RunMode = RunMode.Async)]
+        [Cooldown(5)]
         public async Task S4dbcard([Remainder]string arg)
         {
+
             Player player = new Player();
             ApiRequest DB = new ApiRequest();
             player = await DB.GetPlayer(arg);
@@ -205,7 +215,7 @@ namespace DiscordBot_Core.Commands
                     DEATHMATCH = player.Kdrate.ToString()
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html);
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html, 300, 170);
                 await Context.Channel.SendFileAsync(path);
                 File.Delete(path);
             }

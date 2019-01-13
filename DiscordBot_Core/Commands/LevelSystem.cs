@@ -1,17 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.ImageGenerator;
 using Microsoft.EntityFrameworkCore;
+using DiscordBot_Core.Preconditions;
 
 namespace DiscordBot_Core.Commands
 {
     public class LevelSystem : ModuleBase<SocketCommandContext>
     {
 
-        [Command("level")]
+        [Command("level", RunMode = RunMode.Async)]
+        [Cooldown(5)]
         public async Task Level(IGuildUser user = null)
         {
             using (discordbotContext db = new discordbotContext())
@@ -49,7 +54,7 @@ namespace DiscordBot_Core.Commands
                         int totalExp = (int)exp.Exp;
                         int currentLevelExp = (int)currentExp;
                         int neededLevelExp = (int)neededExp2 - (int)neededExp1;
-                        double dblPercent =  ((double)currentLevelExp / (double)neededLevelExp) * 100;
+                        double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                         int percent = (int)dblPercent;
                         await Context.Channel.SendMessageAsync($"{Context.User.Mention} du bist **Level {level}** mit **{totalExp.ToString("N0")} EXP** und hast bereits **{currentLevelExp.ToString("N0")} | {neededLevelExp.ToString("N0")} EXP ({percent}%)**");
                     }
@@ -61,7 +66,9 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("ranking")]
+        [Command("ranking", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        [BotCommand]
         public async Task Ranking()
         {
             using (discordbotContext db = new discordbotContext())
@@ -84,7 +91,7 @@ namespace DiscordBot_Core.Commands
         }
 
 
-        [Command("setupLevels")]
+        [Command("setupLevels", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageRoles)]
         public async Task SetupLevel()
         {
@@ -107,7 +114,7 @@ namespace DiscordBot_Core.Commands
                 await Context.Guild.CreateRoleAsync("Rookie", null, new Color(219, 199, 164), true);
         }
 
-        [Command("levelNotification")]
+        [Command("levelNotification", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageMessages)]
         public async Task LevelNotification()
         {
@@ -141,21 +148,32 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("addEXP")]
-        public async Task AddExp(int exp)
+        [RequireOwner]
+        [Command("addEXP", RunMode = RunMode.Async)]
+        public async Task AddExp(int exp, IUser user = null)
         {
             await Context.Message.DeleteAsync();
-            if (Context.User.Id != 128914972829941761)
-                return;
+            const int delay = 2000;
             using (discordbotContext db = new discordbotContext())
             {
+                if (user != null)
+                {
+                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    userEXP.Exp += exp;
+                    await db.SaveChangesAsync();
+                    var embedUser = new EmbedBuilder();
+                    embedUser.WithDescription($"{user.Username} wurden erfolgreich {exp} EXP hinzugefügt.");
+                    embedUser.WithColor(new Color(90, 92, 96));
+                    IUserMessage msg = await ReplyAsync("", false, embedUser.Build());
+                    await Task.Delay(delay);
+                    await msg.DeleteAsync();
+                    return;
+                }
                 var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
                 experience.Exp += exp;
                 await db.SaveChangesAsync();
-                const int delay = 2000;
                 var embed = new EmbedBuilder();
-                embed.WithDescription("Experience erfolgreich hinzugefügt.");
+                embed.WithDescription($"{exp} EXP wurden erfolgreich hinzugefügt.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
                 await Task.Delay(delay);
@@ -163,25 +181,117 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("removeEXP")]
-        public async Task RemoveExp(int exp)
+        [RequireOwner]
+        [Command("removeEXP", RunMode = RunMode.Async)]
+        public async Task RemoveExp(int exp, IUser user = null)
         {
             await Context.Message.DeleteAsync();
-            if (Context.User.Id != 128914972829941761)
-                return;
             using (discordbotContext db = new discordbotContext())
             {
+                const int delay = 2000;
+                if (user != null)
+                {
+                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    userEXP.Exp -= exp;
+                    await db.SaveChangesAsync();
+                    var embedUser = new EmbedBuilder();
+                    embedUser.WithDescription($"{user.Username} wurden erfolgreich {exp} EXP entfernt.");
+                    embedUser.WithColor(new Color(90, 92, 96));
+                    IUserMessage msg = await ReplyAsync("", false, embedUser.Build());
+                    await Task.Delay(delay);
+                    await msg.DeleteAsync();
+                    return;
+                }
                 var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
                 experience.Exp -= exp;
                 await db.SaveChangesAsync();
-                const int delay = 2000;
-                var embed = new EmbedBuilder();
-                embed.WithDescription("Experience erfolgreich entfernt.");
-                embed.WithColor(new Color(90, 92, 96));
-                IUserMessage m = await ReplyAsync("", false, embed.Build());
-                await Task.Delay(delay);
-                await m.DeleteAsync();
+
+            }
+        }
+
+        [Command("profile", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        public async Task Profile(IUser user = null)
+        {
+
+            using (discordbotContext db = new discordbotContext())
+            {
+                if (user == null)
+                {
+                    string name = Context.User.Username;
+                    int exp = (int)db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault().Exp;
+                    var level = Helper.GetLevel(exp);
+                    var neededExp1 = Helper.GetExp(level);
+                    var neededExp2 = Helper.GetExp(level + 1);
+                    var currentExp = exp - Helper.GetExp(level);
+                    int totalExp = (int)exp;
+                    int currentLevelExp = (int)currentExp;
+                    int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                    double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
+                    int percent = (int)dblPercent;
+                    var ranks = db.Experience.OrderByDescending(p => p.Exp);
+                    int rank = 1;
+                    foreach (var Rank in ranks)
+                    {
+                        if (Rank.UserId == (long)Context.User.Id)
+                            break;
+                        rank++;
+                    }
+
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Profile/Profile.html");
+                    var html = template.Render(new
+                    {
+                        AVATAR = Context.User.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
+                        NAME = name,
+                        LEVEL = level.ToString(),
+                        RANK = rank.ToString(),
+                        EXP = exp.ToString("N0"),
+                        PROGRESS = $"{currentLevelExp.ToString("N0")} | {neededLevelExp.ToString("N0")}",
+                        PERCENT = percent.ToString()
+                    });
+
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(Context.User.Username), html, 300, 150);
+                    await Context.Channel.SendFileAsync(path);
+                    File.Delete(path);
+                }
+                else
+                {
+                    string name = user.Username;
+                    int exp = (int)db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault().Exp;
+                    var level = Helper.GetLevel(exp);
+                    var neededExp1 = Helper.GetExp(level);
+                    var neededExp2 = Helper.GetExp(level + 1);
+                    var currentExp = exp - Helper.GetExp(level);
+                    int totalExp = (int)exp;
+                    int currentLevelExp = (int)currentExp;
+                    int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                    double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
+                    int percent = (int)dblPercent;
+                    var ranks = db.Experience.OrderByDescending(p => p.Exp);
+                    int rank = 1;
+                    foreach (var Rank in ranks)
+                    {
+                        if (Rank.UserId == (long)user.Id)
+                            break;
+                        rank++;
+                    }
+
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Profile/Profile.html");
+                    var html = template.Render(new
+                    {
+                        AVATAR = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
+                        NAME = name,
+                        LEVEL = level.ToString(),
+                        RANK = rank.ToString(),
+                        EXP = exp.ToString("N0"),
+                        PROGRESS = $"{currentLevelExp.ToString("N0")} | {neededLevelExp.ToString("N0")}",
+                        PERCENT = percent.ToString()
+                    });
+
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username), html, 300, 150);
+                    await Context.Channel.SendFileAsync(path);
+                    File.Delete(path);
+                }
             }
         }
     }

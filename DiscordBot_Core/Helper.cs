@@ -1,6 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Discord.Commands;
+using Discord.WebSocket;
+using DiscordBot_Core.Database;
+using System;
 using System.Text;
+using System.Linq;
 
 namespace DiscordBot_Core
 {
@@ -16,7 +19,10 @@ namespace DiscordBot_Core
                     sb.Append(c);
                 }
             }
-            return sb.ToString();
+            if (!String.IsNullOrWhiteSpace(sb.ToString()))
+                return sb.ToString();
+            else
+                return "picture";
         }
 
         public static uint GetLevel(int? exp)
@@ -29,6 +35,21 @@ namespace DiscordBot_Core
         {
             var exp = Math.Pow(level, 2) * Config.level.expTableValue;
             return (uint)exp;
+        }
+
+        public static ulong? GetBotChannel(ICommandContext context)
+        {
+            using (discordbotContext db = new discordbotContext())
+            {
+                if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Count() != 0)
+                {
+                    return (ulong?)db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault().Botchannelid;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
 }

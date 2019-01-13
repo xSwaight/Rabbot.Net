@@ -45,7 +45,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("mute")]
+        [Command("mute", RunMode = RunMode.Async)]
         public async Task Mute(IUser user, string duration)
         {
             using (discordbotContext db = new discordbotContext())
@@ -160,7 +160,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("unmute")]
+        [Command("unmute", RunMode = RunMode.Async)]
         public async Task Unmute(IUser user)
         {
             using (discordbotContext db = new discordbotContext())
@@ -206,7 +206,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("setLog")]
+        [Command("setLog", RunMode = RunMode.Async)]
         public async Task SetLog()
         {
             using (discordbotContext db = new discordbotContext())
@@ -234,7 +234,34 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("setNotification")]
+        [Command("setBot", RunMode = RunMode.Async)]
+        public async Task SetBot()
+        {
+            using (discordbotContext db = new discordbotContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                {
+                    await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, Botchannelid = (long)Context.Channel.Id });
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    defaultChannel.Botchannelid = (long)Context.Channel.Id;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Bot Channel wurde erfolgreich gesetzt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("setNotification", RunMode = RunMode.Async)]
         public async Task SetNotification()
         {
             using (discordbotContext db = new discordbotContext())
@@ -262,7 +289,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("delNotification")]
+        [Command("delNotification", RunMode = RunMode.Async)]
         public async Task DelNotification()
         {
             using (discordbotContext db = new discordbotContext())
@@ -290,7 +317,34 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("delLog")]
+        [Command("delBot", RunMode = RunMode.Async)]
+        public async Task DelBot()
+        {
+            using (discordbotContext db = new discordbotContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                {
+                    return;
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    defaultChannel.Botchannelid = null;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Bot Channel wurde erfolgreich gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delLog", RunMode = RunMode.Async)]
         public async Task DelLog()
         {
             using (discordbotContext db = new discordbotContext())
@@ -318,7 +372,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("notification")]
+        [Command("notification", RunMode = RunMode.Async)]
         public async Task Notification()
         {
             using (discordbotContext db = new discordbotContext())
@@ -354,7 +408,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("log")]
+        [Command("log", RunMode = RunMode.Async)]
         public async Task Log()
         {
             using (discordbotContext db = new discordbotContext())
@@ -390,7 +444,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("createMuted")]
+        [Command("createMuted", RunMode = RunMode.Async)]
         public async Task CreateMutedRole()
         {
             await Context.Message.DeleteAsync();

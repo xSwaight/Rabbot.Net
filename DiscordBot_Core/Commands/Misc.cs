@@ -1,19 +1,25 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using DiscordBot_Core.Database;
+using DiscordBot_Core.Preconditions;
 
 namespace DiscordBot_Core.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "0.4";
+        private readonly string version = "0.6";
 
-        [Command("help")]
+        [Command("help", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        [BotCommand]
         public async Task Help()
         {
             var embed = new EmbedBuilder();
+            embed.WithColor(new Color(241, 242, 222));
             embed.Description = "Hier eine Liste mit all meinen Commands:";
             embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
             embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
@@ -23,7 +29,7 @@ namespace DiscordBot_Core.Commands
             embed.AddField(Config.bot.cmdPrefix + "server", "Gibt die aktuelle Spielerzahl aus.");
             embed.AddField(Config.bot.cmdPrefix + "about", "Gibt Statistiken zum Bot aus.");
             embed.AddField(Config.bot.cmdPrefix + "ping", "Gibt die Verzögerung zum Bot aus.");
-            embed.AddField(Config.bot.cmdPrefix + "level (User Mention)", "Ohne Argument gibt es das eigene Level aus, mit Argument das Level des Markierten Users.");
+            embed.AddField(Config.bot.cmdPrefix + "profile (User Mention)", "Ohne Argument gibt er das eigene Profil aus, mit Argument das Profil des markierten Users.");
             if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
                 embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
             embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
@@ -32,6 +38,8 @@ namespace DiscordBot_Core.Commands
             embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
             embed.AddField(Config.bot.cmdPrefix + "setLog", "Setzt den aktuellen Channel als Log Channel.");
             embed.AddField(Config.bot.cmdPrefix + "delLog", "Löscht den aktuell gesetzten Log Channel.");
+            embed.AddField(Config.bot.cmdPrefix + "setBot", "Setzt den aktuellen Channel als Bot Channel.");
+            embed.AddField(Config.bot.cmdPrefix + "delBot", "Löscht den aktuell gesetzten Bot Channel.");
             embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
             embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
             embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
@@ -42,7 +50,9 @@ namespace DiscordBot_Core.Commands
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
-        [Command("about")]
+        [Command("about", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        [BotCommand]
         public async Task About()
         {
             int memberCount = 0;
@@ -55,18 +65,20 @@ namespace DiscordBot_Core.Commands
 
             var embed = new EmbedBuilder();
             embed.WithDescription($"**Statistiken**");
-            embed.WithColor(new Color(197, 122, 255));
+            embed.WithColor(new Color(241, 242, 222));
             embed.AddField("Total Users", memberCount.ToString(), true);
             embed.AddField("Online Users", (memberCount - offlineCount).ToString(), true);
             embed.AddField("Total Servers", Context.Client.Guilds.Count.ToString(), true);
-            embed.ThumbnailUrl = "https://cdn.discordapp.com/attachments/210496271000141825/529839617113980929/robo2.png";
+            embed.ThumbnailUrl = "https://cdn.discordapp.com/attachments/210496271000141825/533052805582290972/hasi.png";
             embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToShortDateString(), false);
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("settings")]
+        [Command("settings", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        [BotCommand]
         public async Task Settings()
         {
             using (discordbotContext db = new discordbotContext())
@@ -76,10 +88,11 @@ namespace DiscordBot_Core.Commands
                     return;
                 var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.LogchannelId).FirstOrDefault();
                 var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.NotificationchannelId).FirstOrDefault();
+                var botcChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.Botchannelid).FirstOrDefault();
 
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"**Settings**");
-                embed.WithColor(new Color(197, 122, 255));
+                embed.WithColor(new Color(241, 242, 222));
                 if (logChannel != null)
                     embed.AddField("Log Channel", logChannel.Mention, true);
                 else
@@ -89,6 +102,7 @@ namespace DiscordBot_Core.Commands
                     embed.AddField("Notification Channel", notificationChannel.Mention, true);
                 else
                     embed.AddField("Notification Channel", "Nicht gesetzt.", true);
+
 
                 switch (guild.Log)
                 {
@@ -129,6 +143,10 @@ namespace DiscordBot_Core.Commands
                         break;
                 }
 
+                if (botcChannel != null)
+                    embed.AddField("Bot Channel", botcChannel.Mention, true);
+                else
+                    embed.AddField("Bot Channel", "Nicht gesetzt.", true);
 
                 embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";
                 embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
@@ -136,10 +154,38 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("ping")]
+        [Command("ping", RunMode = RunMode.Async)]
+        [Cooldown(5)]
+        [BotCommand]
         public async Task Ping()
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
+        }
+
+        [Command("setStatus", RunMode = RunMode.Async)]
+        [RequireOwner]
+        public async Task SetStatus(int type, [Remainder]string msg)
+        {
+            await Context.Message.DeleteAsync();
+            ActivityType action;
+            switch (type)
+            {
+                case 0:
+                    action = ActivityType.Playing;
+                    break;
+                case 1:
+                    action = ActivityType.Watching;
+                    break;
+                case 2:
+                    action = ActivityType.Listening;
+                    break;
+                case 3:
+                    action = ActivityType.Streaming;
+                    break;
+                default:
+                    return;
+            }
+            await Context.Client.SetGameAsync(msg, null, action);
         }
     }
 }

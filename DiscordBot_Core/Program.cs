@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DiscordBot_Core
@@ -27,7 +28,7 @@ namespace DiscordBot_Core
             await _client.LoginAsync(TokenType.Bot, Config.bot.token);
             await _client.StartAsync();
             await _client.SetStatusAsync(UserStatus.Online);
-            await _client.SetGameAsync($"euer Herz <3", null, ActivityType.Listening);
+            //await _client.SetGameAsync($"200% EXP Weekend", null, ActivityType.Playing);
             _handler = new CommandHandler();
             _event = new EventHandler();
             await _handler.InitializeAsync(_client);

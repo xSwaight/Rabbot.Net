@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.API.Models;
+using DiscordBot_Core.ImageGenerator;
+using System.IO;
+using ImageFormat = Discord.ImageFormat;
 
 namespace DiscordBot_Core
 {
@@ -274,17 +277,27 @@ namespace DiscordBot_Core
                 else
                 {
                     var oldLevel = Helper.GetLevel(experience.Exp);
-                    int textLenght = msg.Content.ToString().Count();
+                    int textLenght = msg.Content.ToString().Replace("*", string.Empty).Count();
                     if (textLenght >= 50)
                         textLenght = 50;
-                    experience.Exp += textLenght * Config.bot.expMultiplier;
+                    experience.Exp += textLenght * Config.level.expMultiplier;
                     var newLevel = Helper.GetLevel(experience.Exp);
                     SocketGuild guild = ((SocketGuildChannel)msg.Channel).Guild;
                     var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
                     if (newLevel > oldLevel && Guild.Level == 1)
                     {
-                        await msg.Channel.SendMessageAsync($"{msg.Author.Mention} Glückwnsch nya~ ≧◡≦! uwu Du bist level up- (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ **Level {newLevel}** mach weiter so OwO (づ｡◕‿‿◕｡)づ");
+                        //await msg.Channel.SendMessageAsync($"{msg.Author.Mention} Glückwnsch nya~ ≧◡≦! uwu Du bist level up- (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ **Level {newLevel}** mach weiter so OwO (づ｡◕‿‿◕｡)づ");
 
+                        var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/LevelUp/levelup.html");
+                        var html = template.Render(new
+                        {
+                            NAME = msg.Author.Username,
+                            LEVEL = newLevel.ToString()
+                        });
+
+                        var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(msg.Author.Username), html, 300, 100);
+                        await msg.Channel.SendFileAsync(path);
+                        File.Delete(path);
                     }
                     if (newLevel > oldLevel)
                     {

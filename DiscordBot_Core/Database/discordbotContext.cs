@@ -58,6 +58,10 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("serverId")
                     .HasColumnType("bigint(20)");
 
+                entity.Property(e => e.Botchannelid)
+                    .HasColumnName("botchannelid")
+                    .HasColumnType("bigint(20)");
+
                 entity.Property(e => e.Level)
                     .HasColumnName("level")
                     .HasColumnType("int(1)")
