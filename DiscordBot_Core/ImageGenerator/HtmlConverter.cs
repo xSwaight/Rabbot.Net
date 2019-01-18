@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace DiscordBot_Core.ImageGenerator
 {
@@ -44,7 +45,7 @@ namespace DiscordBot_Core.ImageGenerator
         public byte[] FromHtmlString(string html, int width = 1024, int height = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
-            File.WriteAllText(filename, html);
+            File.WriteAllText(filename, html, Encoding.GetEncoding(12000));
             var bytes = FromUrl(filename, width, height, format, quality);
             File.Delete(filename);
             return bytes;

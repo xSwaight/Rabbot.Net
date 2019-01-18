@@ -18,7 +18,7 @@ namespace DiscordBot_Core.Commands
     {
 
         [Command("player", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Cooldown(10)]
         public async Task Player([Remainder]string arg)
         {
 
@@ -69,7 +69,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [Command("clan", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Cooldown(10)]
         public async Task Clan([Remainder]string name)
         {
 
@@ -148,7 +148,7 @@ namespace DiscordBot_Core.Commands
         //}
 
         [Command("playercard", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Cooldown(10)]
         public async Task Playercard([Remainder]string arg)
         {
 
@@ -185,7 +185,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [Command("s4dbcard", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Cooldown(10)]
         public async Task S4dbcard([Remainder]string arg)
         {
 

@@ -12,6 +12,7 @@ namespace DiscordBot_Core.Commands
     {
 
         [Command("del", RunMode = RunMode.Async)]
+        [Summary("Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).")]
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         public async Task Delete(uint amount, IUser user = null)

@@ -12,14 +12,19 @@ namespace DiscordBot_Core.Preconditions
 {
     class BotCommand : PreconditionAttribute
     {
-        public BotCommand()
+        bool AdminsAreLimited { get; set; }
+
+        public BotCommand(bool adminsAreLimited = false)
         {
 
         }
 
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            using(discordbotContext db = new discordbotContext())
+            if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.Administrator)
+                return Task.FromResult(PreconditionResult.FromSuccess());
+
+            using (discordbotContext db = new discordbotContext())
             {
                 if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Count() != 0)
                 {

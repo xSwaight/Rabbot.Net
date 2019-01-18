@@ -9,15 +9,16 @@ using DiscordBot_Core.Database;
 using DiscordBot_Core.ImageGenerator;
 using Microsoft.EntityFrameworkCore;
 using DiscordBot_Core.Preconditions;
+using System.Text;
 
 namespace DiscordBot_Core.Commands
 {
-    public class LevelSystem : ModuleBase<SocketCommandContext>
+    public class Level : ModuleBase<SocketCommandContext>
     {
 
         [Command("level", RunMode = RunMode.Async)]
-        [Cooldown(5)]
-        public async Task Level(IGuildUser user = null)
+        [Cooldown(60)]
+        public async Task level(IGuildUser user = null)
         {
             using (discordbotContext db = new discordbotContext())
             {
@@ -26,10 +27,10 @@ namespace DiscordBot_Core.Commands
                     var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
                     if (exp != null)
                     {
-                        uint level = Helper.GetLevel(exp.Exp);
-                        var neededExp1 = Helper.GetExp(level);
-                        var neededExp2 = Helper.GetExp(level + 1);
-                        var currentExp = exp.Exp - Helper.GetExp(level);
+                        uint level = Helper.GetS4Level(exp.Exp);
+                        var neededExp1 = Helper.GetS4EXP((int)level);
+                        var neededExp2 = Helper.GetS4EXP((int)level + 1);
+                        var currentExp = exp.Exp - Helper.GetS4EXP((int)level);
                         int totalExp = (int)exp.Exp;
                         int currentLevelExp = (int)currentExp;
                         int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -47,10 +48,10 @@ namespace DiscordBot_Core.Commands
                     var exp = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
                     if (exp != null)
                     {
-                        uint level = Helper.GetLevel(exp.Exp);
-                        var neededExp1 = Helper.GetExp(level);
-                        var neededExp2 = Helper.GetExp(level + 1);
-                        var currentExp = exp.Exp - Helper.GetExp(level);
+                        uint level = Helper.GetS4Level(exp.Exp);
+                        var neededExp1 = Helper.GetS4EXP((int)level);
+                        var neededExp2 = Helper.GetS4EXP((int)level + 1);
+                        var currentExp = exp.Exp - Helper.GetS4EXP((int)level);
                         int totalExp = (int)exp.Exp;
                         int currentLevelExp = (int)currentExp;
                         int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -66,9 +67,9 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("ranking", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]
+        [Cooldown(60)]
         public async Task Ranking()
         {
             using (discordbotContext db = new discordbotContext())
@@ -80,11 +81,19 @@ namespace DiscordBot_Core.Commands
                 int i = 1;
                 foreach (var top in top10)
                 {
-                    uint level = Helper.GetLevel(top.Exp);
-                    var user = db.User.Where(p => p.Id == top.UserId).FirstOrDefault();
-                    int exp = (int)top.Exp;
-                    embed.AddField("Platz " + i, $"**{user.Name}** \nLevel {level} ({exp.ToString("N0")} EXP)");
-                    i++;
+                    try
+                    {
+                        uint level = Helper.GetS4Level(top.Exp);
+                        var user = db.User.Where(p => p.Id == top.UserId).FirstOrDefault();
+                        int exp = (int)top.Exp;
+                        embed.AddField("Platz " + i, $"**{user.Name}** \nLevel {level} ({exp.ToString("N0")} EXP)");
+                        i++;
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                    }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
             }
@@ -209,8 +218,8 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-        [Command("profile", RunMode = RunMode.Async)]
-        [Cooldown(5)]
+        [Command("profile", RunMode = RunMode.Async), Alias("rank")]
+        [Cooldown(60)]
         public async Task Profile(IUser user = null)
         {
 
@@ -218,12 +227,12 @@ namespace DiscordBot_Core.Commands
             {
                 if (user == null)
                 {
-                    string name = Context.User.Username;
+                    string name = (Context.User as IGuildUser).Nickname ?? Context.User.Username;
                     int exp = (int)db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault().Exp;
-                    var level = Helper.GetLevel(exp);
-                    var neededExp1 = Helper.GetExp(level);
-                    var neededExp2 = Helper.GetExp(level + 1);
-                    var currentExp = exp - Helper.GetExp(level);
+                    var level = Helper.GetS4Level(exp);
+                    var neededExp1 = Helper.GetS4EXP((int)level);
+                    var neededExp2 = Helper.GetS4EXP((int)level + 1);
+                    var currentExp = exp - Helper.GetS4EXP((int)level);
                     int totalExp = (int)exp;
                     int currentLevelExp = (int)currentExp;
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -250,18 +259,18 @@ namespace DiscordBot_Core.Commands
                         PERCENT = percent.ToString()
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(Context.User.Username), html, 300, 150);
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 150);
                     await Context.Channel.SendFileAsync(path);
                     File.Delete(path);
                 }
                 else
                 {
-                    string name = user.Username;
+                    string name = (user as IGuildUser).Nickname ?? user.Username;
                     int exp = (int)db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault().Exp;
-                    var level = Helper.GetLevel(exp);
-                    var neededExp1 = Helper.GetExp(level);
-                    var neededExp2 = Helper.GetExp(level + 1);
-                    var currentExp = exp - Helper.GetExp(level);
+                    var level = Helper.GetS4Level(exp);
+                    var neededExp1 = Helper.GetS4EXP((int)level);
+                    var neededExp2 = Helper.GetS4EXP((int)level + 1);
+                    var currentExp = exp - Helper.GetS4EXP((int)level);
                     int totalExp = (int)exp;
                     int currentLevelExp = (int)currentExp;
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -288,7 +297,7 @@ namespace DiscordBot_Core.Commands
                         PERCENT = percent.ToString()
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username), html, 300, 150);
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 150);
                     await Context.Channel.SendFileAsync(path);
                     File.Delete(path);
                 }

@@ -14,8 +14,8 @@ namespace DiscordBot_Core.Commands
         private readonly string version = "0.6";
 
         [Command("help", RunMode = RunMode.Async)]
-        [Cooldown(5)]
         [BotCommand]
+        [Cooldown(60)]
         public async Task Help()
         {
             var embed = new EmbedBuilder();
@@ -51,8 +51,8 @@ namespace DiscordBot_Core.Commands
         }
 
         [Command("about", RunMode = RunMode.Async)]
-        [Cooldown(5)]
         [BotCommand]
+        [Cooldown(60)]
         public async Task About()
         {
             int memberCount = 0;
@@ -77,8 +77,8 @@ namespace DiscordBot_Core.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("settings", RunMode = RunMode.Async)]
-        [Cooldown(5)]
         [BotCommand]
+        [Cooldown(60)]
         public async Task Settings()
         {
             using (discordbotContext db = new discordbotContext())
@@ -155,8 +155,8 @@ namespace DiscordBot_Core.Commands
         }
 
         [Command("ping", RunMode = RunMode.Async)]
-        [Cooldown(5)]
         [BotCommand]
+        [Cooldown(60)]
         public async Task Ping()
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
@@ -187,5 +187,21 @@ namespace DiscordBot_Core.Commands
             }
             await Context.Client.SetGameAsync(msg, null, action);
         }
+        [Command("uptime")]
+        [RequireOwner]
+        public async Task Uptime()
+        {
+            TimeSpan span = DateTime.Now - Program.startTime;
+            await Context.Channel.SendMessageAsync($"`Uptime: {span.Days}D {span.Hours}H {span.Minutes}M`");
+        }
+
+        //[Command("test")]
+        //[RequireOwner]
+        //public async Task test(int exp)
+        //{
+        //    var mytest = Helper.GetS4Level(exp);
+        //    var myexp = Helper.GetS4EXP(mytest);
+        //    await Context.Channel.SendMessageAsync($"`Level {mytest} braucht {myexp} EXP!`");
+        //}
     }
 }

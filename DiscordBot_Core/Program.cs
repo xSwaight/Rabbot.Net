@@ -12,6 +12,7 @@ namespace DiscordBot_Core
         DiscordSocketClient _client;
         CommandHandler _handler;
         EventHandler _event;
+        public static DateTime startTime = DateTime.Now;
 
         static void Main(string[] args)
         => new Program().StartAsync().GetAwaiter().GetResult();
