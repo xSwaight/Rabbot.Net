@@ -42,6 +42,10 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("exp")
                     .HasColumnType("int(11)");
 
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(11)");

@@ -24,7 +24,7 @@ namespace DiscordBot_Core.Commands
             {
                 if (user != null)
                 {
-                    var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    var exp = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     if (exp != null)
                     {
                         uint level = Helper.GetLevel(exp.Exp);
@@ -45,7 +45,7 @@ namespace DiscordBot_Core.Commands
                 }
                 else
                 {
-                    var exp = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
+                    var exp = db.Experience.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     if (exp != null)
                     {
                         uint level = Helper.GetLevel(exp.Exp);
@@ -74,7 +74,7 @@ namespace DiscordBot_Core.Commands
         {
             using (swaightContext db = new swaightContext())
             {
-                var top10 = db.Experience.OrderByDescending(p => p.Exp).Take(10);
+                var top10 = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp).Take(10);
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.Description = "Level Ranking";
                 embed.WithColor(new Color(239, 220, 7));
@@ -167,7 +167,7 @@ namespace DiscordBot_Core.Commands
             {
                 if (user != null)
                 {
-                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience {Exp = 0, ServerId = (long)Context.Guild.Id, UserId = (long)user.Id }).Result.Entity;
                     userEXP.Exp += exp;
                     await db.SaveChangesAsync();
                     var embedUser = new EmbedBuilder();
@@ -178,7 +178,7 @@ namespace DiscordBot_Core.Commands
                     await msg.DeleteAsync();
                     return;
                 }
-                var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
+                var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                 experience.Exp += exp;
                 await db.SaveChangesAsync();
                 var embed = new EmbedBuilder();
@@ -200,7 +200,7 @@ namespace DiscordBot_Core.Commands
                 const int delay = 2000;
                 if (user != null)
                 {
-                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    var userEXP = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     userEXP.Exp -= exp;
                     await db.SaveChangesAsync();
                     var embedUser = new EmbedBuilder();
@@ -211,7 +211,7 @@ namespace DiscordBot_Core.Commands
                     await msg.DeleteAsync();
                     return;
                 }
-                var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
+                var experience = db.Experience.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                 experience.Exp -= exp;
                 await db.SaveChangesAsync();
 
@@ -228,7 +228,7 @@ namespace DiscordBot_Core.Commands
                 if (user == null)
                 {
                     string name = (Context.User as IGuildUser).Nickname ?? Context.User.Username;
-                    int exp = (int)db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault().Exp;
+                    int exp = db.Experience.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Exp ?? 0;
                     var level = Helper.GetLevel(exp);
                     var neededExp1 = Helper.GetEXP((int)level);
                     var neededExp2 = Helper.GetEXP((int)level + 1);
@@ -238,7 +238,7 @@ namespace DiscordBot_Core.Commands
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
-                    var ranks = db.Experience.OrderByDescending(p => p.Exp);
+                    var ranks = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
                     {
@@ -266,7 +266,7 @@ namespace DiscordBot_Core.Commands
                 else
                 {
                     string name = (user as IGuildUser).Nickname ?? user.Username;
-                    int exp = (int)db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault().Exp;
+                    int exp = (int)db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Exp;
                     var level = Helper.GetLevel(exp);
                     var neededExp1 = Helper.GetEXP((int)level);
                     var neededExp2 = Helper.GetEXP((int)level + 1);
@@ -276,7 +276,7 @@ namespace DiscordBot_Core.Commands
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
-                    var ranks = db.Experience.OrderByDescending(p => p.Exp);
+                    var ranks = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
                     {
