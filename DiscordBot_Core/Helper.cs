@@ -111,23 +111,9 @@ namespace DiscordBot_Core
                 return "picture";
         }
 
-        public static uint GetLevel(int? exp)
-        {
-            //double level = Math.Log((double)exp) * Math.Sqrt((double)(exp / 16000));
-            uint level = (uint)Math.Sqrt((uint)exp / Config.level.expTableValue);
-            return (uint)level;
-        }
-
-        public static uint GetExp(uint level)
-        {
-            var exp = Math.Pow(level, 2) * Config.level.expTableValue;
-            //double exp = Math.Pow(Math.E, (level / Math.Sqrt(16000)));
-            return (uint)exp;
-        }
-
         public static ulong? GetBotChannel(ICommandContext context)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Count() != 0)
                 {
@@ -140,13 +126,13 @@ namespace DiscordBot_Core
             }
         }
 
-        public static uint GetS4Level(int? myExp)
+        public static uint GetLevel(int? myExp)
         {
             var level = exp.Where(y => y.Value <= myExp).Max(x => x.Key);
             return (uint)level;
         }
 
-        public static uint GetS4EXP(int? level)
+        public static uint GetEXP(int? level)
         {
             var myExp = exp.Where(y => y.Key <= level).Max(x => x.Value);
             return (uint)myExp;

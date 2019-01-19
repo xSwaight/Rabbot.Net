@@ -24,7 +24,7 @@ namespace DiscordBot_Core.Preconditions
             if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.Administrator)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Count() != 0)
                 {

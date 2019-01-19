@@ -25,18 +25,18 @@ namespace DiscordBot_Core.Systems
         {
             dcMessage = msg;
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 User = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
                 User.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild {ServerId = (long)dcGuild.Id }).Result.Entity;
                 EXP = db.Experience.Where(p => (ulong)p.UserId == msg.Author.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience { Exp = 0, UserId = (long)msg.Author.Id }).Result.Entity;
-                OldLevel = Helper.GetS4Level(EXP.Exp);
+                OldLevel = Helper.GetLevel(EXP.Exp);
                 int textLenght = msg.Content.ToString().Replace("*", string.Empty).Count();
                 if (textLenght >= 50)
                     textLenght = 50;
                 EXP.Exp += textLenght * Config.level.expMultiplier;
-                NewLevel = Helper.GetS4Level(EXP.Exp);
+                NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
             }
         }
@@ -80,6 +80,17 @@ namespace DiscordBot_Core.Systems
                 if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {
                     var myUser = mutualGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
+                    if (NewLevel < 1)
+                    {
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                    }
                     if (NewLevel >= 1 && NewLevel <= 19)
                     {
                         if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)

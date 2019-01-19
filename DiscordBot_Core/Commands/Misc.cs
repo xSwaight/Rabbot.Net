@@ -81,7 +81,7 @@ namespace DiscordBot_Core.Commands
         [Cooldown(60)]
         public async Task Settings()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                 if (guild == null)

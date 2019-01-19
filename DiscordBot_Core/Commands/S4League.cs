@@ -116,7 +116,7 @@ namespace DiscordBot_Core.Commands
         //    var embed = new EmbedBuilder();
         //    embed.WithDescription($"***Server Liste:***");
         //    embed.WithColor(new Color(111, 116, 124));
-        //    using (discordbotContext db = new discordbotContext())
+        //    using (swaightContext db = new swaightContext())
         //    {
         //        string crashedServer = "";
         //        foreach (var item in server)
@@ -225,7 +225,7 @@ namespace DiscordBot_Core.Commands
         [Command("s4")]
         public async Task S4()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");

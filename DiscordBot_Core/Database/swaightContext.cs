@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DiscordBot_Core.Database
 {
-    public partial class discordbotContext : DbContext
+    public partial class swaightContext : DbContext
     {
-        public discordbotContext()
+        public swaightContext()
         {
         }
 
-        public discordbotContext(DbContextOptions<discordbotContext> options)
+        public swaightContext(DbContextOptions<swaightContext> options)
             : base(options)
         {
         }

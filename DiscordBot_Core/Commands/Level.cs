@@ -20,17 +20,17 @@ namespace DiscordBot_Core.Commands
         [Cooldown(60)]
         public async Task level(IGuildUser user = null)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (user != null)
                 {
                     var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
                     if (exp != null)
                     {
-                        uint level = Helper.GetS4Level(exp.Exp);
-                        var neededExp1 = Helper.GetS4EXP((int)level);
-                        var neededExp2 = Helper.GetS4EXP((int)level + 1);
-                        var currentExp = exp.Exp - Helper.GetS4EXP((int)level);
+                        uint level = Helper.GetLevel(exp.Exp);
+                        var neededExp1 = Helper.GetEXP((int)level);
+                        var neededExp2 = Helper.GetEXP((int)level + 1);
+                        var currentExp = exp.Exp - Helper.GetEXP((int)level);
                         int totalExp = (int)exp.Exp;
                         int currentLevelExp = (int)currentExp;
                         int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -48,10 +48,10 @@ namespace DiscordBot_Core.Commands
                     var exp = db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault();
                     if (exp != null)
                     {
-                        uint level = Helper.GetS4Level(exp.Exp);
-                        var neededExp1 = Helper.GetS4EXP((int)level);
-                        var neededExp2 = Helper.GetS4EXP((int)level + 1);
-                        var currentExp = exp.Exp - Helper.GetS4EXP((int)level);
+                        uint level = Helper.GetLevel(exp.Exp);
+                        var neededExp1 = Helper.GetEXP((int)level);
+                        var neededExp2 = Helper.GetEXP((int)level + 1);
+                        var currentExp = exp.Exp - Helper.GetEXP((int)level);
                         int totalExp = (int)exp.Exp;
                         int currentLevelExp = (int)currentExp;
                         int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -72,7 +72,7 @@ namespace DiscordBot_Core.Commands
         [Cooldown(60)]
         public async Task Ranking()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 var top10 = db.Experience.OrderByDescending(p => p.Exp).Take(10);
                 EmbedBuilder embed = new EmbedBuilder();
@@ -83,7 +83,7 @@ namespace DiscordBot_Core.Commands
                 {
                     try
                     {
-                        uint level = Helper.GetS4Level(top.Exp);
+                        uint level = Helper.GetLevel(top.Exp);
                         var user = db.User.Where(p => p.Id == top.UserId).FirstOrDefault();
                         int exp = (int)top.Exp;
                         embed.AddField("Platz " + i, $"**{user.Name}** \nLevel {level} ({exp.ToString("N0")} EXP)");
@@ -128,7 +128,7 @@ namespace DiscordBot_Core.Commands
         public async Task LevelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                 if (guild.Level == 1)
@@ -163,7 +163,7 @@ namespace DiscordBot_Core.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (user != null)
                 {
@@ -195,7 +195,7 @@ namespace DiscordBot_Core.Commands
         public async Task RemoveExp(int exp, IUser user = null)
         {
             await Context.Message.DeleteAsync();
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 const int delay = 2000;
                 if (user != null)
@@ -223,16 +223,16 @@ namespace DiscordBot_Core.Commands
         public async Task Profile(IUser user = null)
         {
 
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (user == null)
                 {
                     string name = (Context.User as IGuildUser).Nickname ?? Context.User.Username;
                     int exp = (int)db.Experience.Where(p => p.UserId == (long)Context.User.Id).FirstOrDefault().Exp;
-                    var level = Helper.GetS4Level(exp);
-                    var neededExp1 = Helper.GetS4EXP((int)level);
-                    var neededExp2 = Helper.GetS4EXP((int)level + 1);
-                    var currentExp = exp - Helper.GetS4EXP((int)level);
+                    var level = Helper.GetLevel(exp);
+                    var neededExp1 = Helper.GetEXP((int)level);
+                    var neededExp2 = Helper.GetEXP((int)level + 1);
+                    var currentExp = exp - Helper.GetEXP((int)level);
                     int totalExp = (int)exp;
                     int currentLevelExp = (int)currentExp;
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
@@ -267,10 +267,10 @@ namespace DiscordBot_Core.Commands
                 {
                     string name = (user as IGuildUser).Nickname ?? user.Username;
                     int exp = (int)db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault().Exp;
-                    var level = Helper.GetS4Level(exp);
-                    var neededExp1 = Helper.GetS4EXP((int)level);
-                    var neededExp2 = Helper.GetS4EXP((int)level + 1);
-                    var currentExp = exp - Helper.GetS4EXP((int)level);
+                    var level = Helper.GetLevel(exp);
+                    var neededExp1 = Helper.GetEXP((int)level);
+                    var neededExp2 = Helper.GetEXP((int)level + 1);
+                    var currentExp = exp - Helper.GetEXP((int)level);
                     int totalExp = (int)exp;
                     int currentLevelExp = (int)currentExp;
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;

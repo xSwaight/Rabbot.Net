@@ -59,7 +59,7 @@ namespace DiscordBot_Core
                 var muted = guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
                 await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
                 if (Guild == null)
@@ -74,7 +74,7 @@ namespace DiscordBot_Core
         {
             while (true)
             {
-                using (discordbotContext db = new discordbotContext())
+                using (swaightContext db = new swaightContext())
                 {
                     if (!(db.Muteduser.Count() == 0) && _client.Guilds.Count() > 0)
                     {
@@ -188,7 +188,7 @@ namespace DiscordBot_Core
         //                var embed = new EmbedBuilder();
         //                embed.WithDescription($"***Server Liste:***");
         //                embed.WithColor(new Color(111, 116, 124));
-        //                using (discordbotContext db = new discordbotContext())
+        //                using (swaightContext db = new swaightContext())
         //                {
         //                    string crashedServer = "";
         //                    foreach (var item in server)
@@ -246,6 +246,8 @@ namespace DiscordBot_Core
 
         private async Task MessageReceived(SocketMessage msg)
         {
+            if (msg.Author.IsBot)
+                return;
             Userlevel User = new Userlevel(msg);
             await User.SendLevelUp();
             await User.SetRoles();
@@ -258,7 +260,7 @@ namespace DiscordBot_Core
 
         private async Task UserLeft(SocketGuildUser user)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
                     return;
@@ -281,7 +283,7 @@ namespace DiscordBot_Core
 
         private async Task UserJoined(SocketGuildUser user)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
                     return;

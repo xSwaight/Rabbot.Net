@@ -35,6 +35,13 @@ namespace DiscordBot_Core.Commands
                 var msgs = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
                 msgs = msgs.Where(x => x.Author.Id == user.Id).Take((int)amount);
                 await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
+                using (swaightContext db = new swaightContext())
+                {
+                    var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    if (exp.Exp > (100 * amount))
+                        exp.Exp -= (int)(100 * amount);
+                    await db.SaveChangesAsync();
+                }
                 const int delay = 3000;
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"Die letzten {amount} Nachrichten von {user.Username} wurden gelöscht.");
@@ -49,7 +56,7 @@ namespace DiscordBot_Core.Commands
         [Command("mute", RunMode = RunMode.Async)]
         public async Task Mute(IUser user, string duration)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (user.Id == Context.Guild.CurrentUser.Id)
@@ -164,7 +171,7 @@ namespace DiscordBot_Core.Commands
         [Command("unmute", RunMode = RunMode.Async)]
         public async Task Unmute(IUser user)
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 var ban = db.Muteduser.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id);
@@ -184,18 +191,20 @@ namespace DiscordBot_Core.Commands
                     var User = Context.Guild.Users.Where(p => p.Id == user.Id).FirstOrDefault();
                     var MutedRole = User.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
                     if (MutedRole != null)
-                        await User.RemoveRoleAsync(MutedRole);
-                    if (guild.LogchannelId != null && guild.Log == 1)
                     {
                         db.Muteduser.Remove(ban.FirstOrDefault());
+                        await User.RemoveRoleAsync(MutedRole);
                         var oldRoles = ban.FirstOrDefault().Roles.Split('|');
+                        await db.SaveChangesAsync();
                         foreach (var oldRole in oldRoles)
                         {
                             var role = Context.Guild.Roles.Where(p => p.Name == oldRole).FirstOrDefault();
                             if (role != null)
                                 await User.AddRoleAsync(role);
                         }
-                        await db.SaveChangesAsync();
+                    }
+                    if (guild.LogchannelId != null && guild.Log == 1)
+                    {
                         var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
                         var embed = new EmbedBuilder();
                         embed.WithDescription($"{user.Mention} wurde unmuted.");
@@ -210,7 +219,7 @@ namespace DiscordBot_Core.Commands
         [Command("setLog", RunMode = RunMode.Async)]
         public async Task SetLog()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -238,7 +247,7 @@ namespace DiscordBot_Core.Commands
         [Command("setBot", RunMode = RunMode.Async)]
         public async Task SetBot()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -265,7 +274,7 @@ namespace DiscordBot_Core.Commands
         [Command("setNotification", RunMode = RunMode.Async)]
         public async Task SetNotification()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -293,7 +302,7 @@ namespace DiscordBot_Core.Commands
         [Command("delNotification", RunMode = RunMode.Async)]
         public async Task DelNotification()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -321,7 +330,7 @@ namespace DiscordBot_Core.Commands
         [Command("delBot", RunMode = RunMode.Async)]
         public async Task DelBot()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -348,7 +357,7 @@ namespace DiscordBot_Core.Commands
         [Command("delLog", RunMode = RunMode.Async)]
         public async Task DelLog()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
                 if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
@@ -376,7 +385,7 @@ namespace DiscordBot_Core.Commands
         [Command("notification", RunMode = RunMode.Async)]
         public async Task Notification()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
 
@@ -412,7 +421,7 @@ namespace DiscordBot_Core.Commands
         [Command("log", RunMode = RunMode.Async)]
         public async Task Log()
         {
-            using (discordbotContext db = new discordbotContext())
+            using (swaightContext db = new swaightContext())
             {
                 await Context.Message.DeleteAsync();
 

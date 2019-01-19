@@ -6,4 +6,4 @@
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Stil", "IDE0017:Initialisierung von Objekten vereinfachen", Justification = "<Ausstehend>", Scope = "member", Target = "~M:DiscordBot_Core.Misc.Help~System.Threading.Tasks.Task")]
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Stil", "IDE1006:Benennungsstile", Justification = "<Ausstehend>", Scope = "type", Target = "~T:DiscordBot_Core.Models.discordbotContext")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Stil", "IDE1006:Benennungsstile", Justification = "<Ausstehend>", Scope = "type", Target = "~T:DiscordBot_Core.Models.swaightContext")]
