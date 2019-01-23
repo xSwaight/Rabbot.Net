@@ -15,10 +15,12 @@ namespace DiscordBot_Core.Database
         {
         }
 
+        public virtual DbSet<Badwords> Badwords { get; set; }
         public virtual DbSet<Experience> Experience { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<Warning> Warning { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -30,6 +32,18 @@ namespace DiscordBot_Core.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Badwords>(entity =>
+            {
+                entity.ToTable("badwords");
+
+                entity.Property(e => e.Id).HasColumnType("int(11)");
+
+                entity.Property(e => e.BadWord)
+                    .IsRequired()
+                    .HasColumnName("badWord")
+                    .HasColumnType("varchar(50)");
+            });
+
             modelBuilder.Entity<Experience>(entity =>
             {
                 entity.ToTable("experience");
@@ -129,6 +143,29 @@ namespace DiscordBot_Core.Database
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasColumnType("varchar(45)");
+            });
+
+            modelBuilder.Entity<Warning>(entity =>
+            {
+                entity.ToTable("warning");
+
+                entity.Property(e => e.Id).HasColumnType("int(11)");
+
+                entity.Property(e => e.ActiveUntil)
+                    .HasColumnName("activeUntil")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Counter)
+                    .HasColumnName("counter")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnName("userId")
+                    .HasColumnType("bigint(20)");
             });
         }
     }

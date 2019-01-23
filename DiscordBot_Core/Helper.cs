@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace DiscordBot_Core
 {
@@ -136,6 +137,44 @@ namespace DiscordBot_Core
         {
             var myExp = exp.Where(y => y.Key <= level).Max(x => x.Value);
             return (uint)myExp;
+        }
+
+        public static string replaceCharacter(string myString)
+        {
+            myString = new Regex("[.?!,\"'+@#$%^&*(){}][/-_|=§‘’`„°•—–¿¡₩€¢¥£​]").Replace(myString, "");
+            myString = new Regex("[ÀÁÂÃÅÆàáâãåæĀāĂăΑАаӒӓä]").Replace(myString, "a");
+            myString = new Regex("[Ąą]").Replace(myString, "ah");
+            myString = new Regex("[ΒВЬ]").Replace(myString, "b");
+            myString = new Regex("[ĆćĈĉĊċČčϹСⅭϲсⅽ]").Replace(myString, "c");
+            myString = new Regex("[çÇ]").Replace(myString, "ch");
+            myString = new Regex("[ÐĎďĐđƉƊԁⅾ]").Replace(myString, "d");
+            myString = new Regex("[3ÈÉÊËèéêëĚěĒēĔĕĖėΕЕе]").Replace(myString, "e");
+            myString = new Regex("[Ęę]").Replace(myString, "eh");
+            myString = new Regex("[Ϝf​]").Replace(myString, "f");
+            myString = new Regex("[ĜĝĞğĠġģԌ]").Replace(myString, "g");
+            myString = new Regex("[Ģ]").Replace(myString, "gh");
+            myString = new Regex("[ĤĥĦħΗНһ]").Replace(myString, "h");
+            myString = new Regex("[1ĨĩĪīĬĭĮįİıĲĳÌÍÎÏìíîïÌÍÎÏ¡!ΙІⅠіⅰ]").Replace(myString, "i");
+            myString = new Regex("[ĴĵЈј]").Replace(myString, "j");
+            myString = new Regex("[ĶķĸΚКK]").Replace(myString, "k");
+            myString = new Regex("[ĹĺĻļĽľĿŀŁł]").Replace(myString, "l");
+            myString = new Regex("[ΜМⅯⅿ]").Replace(myString, "m");
+            myString = new Regex("[ŃńŅņŇňŉŊŋñΝn​]").Replace(myString, "n");
+            myString = new Regex("[0ŌōŎŏŐőŒœòóôõΟОοоӦӧö]").Replace(myString, "o");
+            myString = new Regex("[ΡРр₽]").Replace(myString, "p");
+            myString = new Regex("[ŔŕŖŗŘř]").Replace(myString, "r");
+            myString = new Regex("[ŚśŜŝŠšЅѕ]").Replace(myString, "s");
+            myString = new Regex("[Şş]").Replace(myString, "sh");
+            myString = new Regex("[ŢţŤťŦŧΤТ]").Replace(myString, "t");
+            myString = new Regex("[ŨũŪūŬŭŮůŰűÙÚÛùúûµü]").Replace(myString, "u");
+            myString = new Regex("[Ųų]").Replace(myString, "uh");
+            myString = new Regex("[ѴⅤνѵⅴ]").Replace(myString, "v");
+            myString = new Regex("[Ŵŵѡ]").Replace(myString, "w");
+            myString = new Regex("[ΧХⅩхⅹ]").Replace(myString, "x");
+            myString = new Regex("[ŶŷŸÝýÿΥҮу]").Replace(myString, "y");
+            myString = new Regex("[ŹźŻżŽžΖ]").Replace(myString, "z");
+
+            return myString;
         }
     }
 }

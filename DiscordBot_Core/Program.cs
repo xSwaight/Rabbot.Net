@@ -12,7 +12,8 @@ namespace DiscordBot_Core
         DiscordSocketClient _client;
         CommandHandler _handler;
         EventHandler _event;
-        public static DateTime startTime = DateTime.Now;
+        public static DateTime startTime;
+
 
         static void Main(string[] args)
         => new Program().StartAsync().GetAwaiter().GetResult();
@@ -25,11 +26,10 @@ namespace DiscordBot_Core
                 LogLevel = LogSeverity.Verbose
             });
             _client.Log += Log;
-
+            startTime = DateTime.Now;
             await _client.LoginAsync(TokenType.Bot, Config.bot.token);
             await _client.StartAsync();
             await _client.SetStatusAsync(UserStatus.Online);
-            //await _client.SetGameAsync($"200% EXP Weekend", null, ActivityType.Playing);
             _handler = new CommandHandler();
             _event = new EventHandler();
             await _handler.InitializeAsync(_client);

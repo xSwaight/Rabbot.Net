@@ -26,6 +26,18 @@ namespace DiscordBot_Core.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
+                using (swaightContext db = new swaightContext())
+                {
+                    var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    if (guild.LogchannelId != null && guild.Log == 1)
+                    {
+                        var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
+                        var logEmbed = new EmbedBuilder();
+                        logEmbed.WithDescription($"{Context.User.Username} hat die letzten {amount} Nachrichten in {(Context.Channel as ITextChannel).Mention} gelöscht.");
+                        logEmbed.WithColor(new Color(255, 0, 0));
+                        await logchannel.SendMessageAsync("", false, logEmbed.Build());
+                    }
+                }
                 await Task.Delay(delay);
                 await m.DeleteAsync();
             }
@@ -40,6 +52,11 @@ namespace DiscordBot_Core.Commands
                     var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
                     if (exp.Exp > (100 * amount))
                         exp.Exp -= (int)(100 * amount);
+                    else
+                    {
+                        amount = (uint)exp.Exp;
+                        exp.Exp = 0;
+                    }
                     await db.SaveChangesAsync();
                 }
                 const int delay = 3000;
@@ -47,8 +64,21 @@ namespace DiscordBot_Core.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten von {user.Username} wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
+                using (swaightContext db = new swaightContext())
+                {
+                    var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    if (guild.LogchannelId != null && guild.Log == 1)
+                    {
+                        var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
+                        var logEmbed = new EmbedBuilder();
+                        logEmbed.WithDescription($"{Context.User.Username} hat die letzten {amount} Nachrichten von {user.Mention} in {(Context.Channel as ITextChannel).Mention} gelöscht und {100 * amount} EXP abgezogen.");
+                        logEmbed.WithColor(new Color(255, 0, 0));
+                        await logchannel.SendMessageAsync("", false, logEmbed.Build());
+                    }
+                }
                 await Task.Delay(delay);
                 await m.DeleteAsync();
+
             }
         }
 
@@ -213,6 +243,70 @@ namespace DiscordBot_Core.Commands
                     }
                 }
             }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("warn", RunMode = RunMode.Async)]
+        public async Task Warn(IUser user)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (!db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).Any())
+                {
+                    await db.Warning.AddAsync(new Warning { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
+                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
+                }
+                else
+                {
+                    var warn = db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    warn.Counter++;
+                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
+        [Command("setStatus", RunMode = RunMode.Async)]
+        [RequireOwner]
+        public async Task SetStatus(int type, [Remainder]string msg)
+        {
+            await Context.Message.DeleteAsync();
+            ActivityType action;
+            switch (type)
+            {
+                case 0:
+                    action = ActivityType.Playing;
+                    break;
+                case 1:
+                    action = ActivityType.Watching;
+                    break;
+                case 2:
+                    action = ActivityType.Listening;
+                    break;
+                case 3:
+                    action = ActivityType.Streaming;
+                    break;
+                default:
+                    return;
+            }
+            await Context.Client.SetGameAsync(msg, null, action);
+        }
+
+        [Command("stream", RunMode = RunMode.Async)]
+        [RequireOwner]
+        public async Task Stream()
+        {
+            await Context.Message.DeleteAsync();
+            await Context.Client.SetGameAsync("Swaight is live!", "https://www.twitch.tv/swaight", ActivityType.Streaming);
+        }
+
+        [Command("uptime")]
+        [RequireOwner]
+        public async Task Uptime()
+        {
+            TimeSpan span = DateTime.Now - Program.startTime;
+            await Context.Channel.SendMessageAsync($"`Uptime: {span.Days}D {span.Hours}H {span.Minutes}M`");
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
@@ -481,6 +575,69 @@ namespace DiscordBot_Core.Commands
             IUserMessage m = await ReplyAsync("", false, embed.Build());
             await Task.Delay(delay);
             await m.DeleteAsync();
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("addBadword")]
+        public async Task AddBadword(string word)
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                await db.Badwords.AddAsync(new Badwords { BadWord = word });
+                await db.SaveChangesAsync();
+            }
+
+            const int delay = 2000;
+            var embed = new EmbedBuilder();
+            embed.WithDescription($"{word} wurde erfolgreich zum Wortfilter hinzugefügt.");
+            embed.WithColor(new Color(90, 92, 96));
+            IUserMessage m = await ReplyAsync("", false, embed.Build());
+            await Task.Delay(delay);
+            await m.DeleteAsync();
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delBadword")]
+        public async Task DelBadword(string word)
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                var badword = db.Badwords.Where(p => p.BadWord == word).FirstOrDefault();
+                if (badword == null)
+                    return;
+
+                db.Badwords.Remove(badword);
+                await db.SaveChangesAsync();
+            }
+
+            const int delay = 2000;
+            var embed = new EmbedBuilder();
+            embed.WithDescription($"{word} wurde erfolgreich vom Wortfilter gelöscht.");
+            embed.WithColor(new Color(90, 92, 96));
+            IUserMessage m = await ReplyAsync("", false, embed.Build());
+            await Task.Delay(delay);
+            await m.DeleteAsync();
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("badwords")]
+        public async Task Badwords()
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                var badwords = db.Badwords.ToList();
+                var eb = new EmbedBuilder();
+                eb.WithDescription($"Alle Badwords: ");
+                eb.Color = new Color(90, 92, 96);
+                foreach (var badword in badwords)
+                {
+                    eb.AddField("ID: " + badword.Id.ToString(), badword.BadWord);
+                }
+                await Context.Channel.SendMessageAsync(null, false, eb.Build());
+            }
         }
 
     }

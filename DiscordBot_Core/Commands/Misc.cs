@@ -16,36 +16,47 @@ namespace DiscordBot_Core.Commands
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(60)]
-        public async Task Help()
+        public async Task Help(int page = 1)
         {
             var embed = new EmbedBuilder();
             embed.WithColor(new Color(241, 242, 222));
-            embed.Description = "Hier eine Liste mit all meinen Commands:";
-            embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
-            embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
-            embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
-            embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
-            embed.AddField(Config.bot.cmdPrefix + "s4dbcard [S4 Username]", "Erstellt eine Playercard Grafik im S4DB Style.");
-            embed.AddField(Config.bot.cmdPrefix + "server", "Gibt die aktuelle Spielerzahl aus.");
-            embed.AddField(Config.bot.cmdPrefix + "about", "Gibt Statistiken zum Bot aus.");
-            embed.AddField(Config.bot.cmdPrefix + "ping", "Gibt die Verzögerung zum Bot aus.");
-            embed.AddField(Config.bot.cmdPrefix + "profile (User Mention)", "Ohne Argument gibt er das eigene Profil aus, mit Argument das Profil des markierten Users.");
-            if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
-                embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
-            embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
-            embed.AddField(Config.bot.cmdPrefix + "mute [User Mention] [duration]", "Muted den User für angegebene Zeit (Zeitindikatoren: s = sekunden, m = minuten, h = stunden, d = tage).");
-            embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
-            embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
-            embed.AddField(Config.bot.cmdPrefix + "setLog", "Setzt den aktuellen Channel als Log Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "delLog", "Löscht den aktuell gesetzten Log Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "setBot", "Setzt den aktuellen Channel als Bot Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "delBot", "Löscht den aktuell gesetzten Bot Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
-            embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
-            embed.AddField(Config.bot.cmdPrefix + "setupLevels", "Erstellt S4 League Level Gruppen die automatisch beim erreichen des jeweiligen Levels gesetzt werden.");
-            embed.AddField(Config.bot.cmdPrefix + "levelNotification", "Aktiviert oder deaktiviert die Level Nofitications auf dem Server.");
-            embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
+            if (page == 1)
+            {
+                embed.Description = "Commandliste Seite 1:";
+                embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
+                embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
+                embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
+                embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
+                embed.AddField(Config.bot.cmdPrefix + "s4dbcard [S4 Username]", "Erstellt eine Playercard Grafik im S4DB Style.");
+                embed.AddField(Config.bot.cmdPrefix + "server", "Gibt die aktuelle Spielerzahl aus.");
+                embed.AddField(Config.bot.cmdPrefix + "about", "Gibt Statistiken zum Bot aus.");
+                embed.AddField(Config.bot.cmdPrefix + "ping", "Gibt die Verzögerung zum Bot aus.");
+                embed.AddField(Config.bot.cmdPrefix + "profile (User Mention)", "Ohne Argument gibt er das eigene Profil aus, mit Argument das Profil des markierten Users.");
+                if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
+                    embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
+            }
+            else if (page == 2)
+            {
+                embed.Description = "Commandliste Seite 2:";
+                embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
+                embed.AddField(Config.bot.cmdPrefix + "mute [User Mention] [duration]", "Muted den User für angegebene Zeit (Zeitindikatoren: s = sekunden, m = minuten, h = stunden, d = tage).");
+                embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
+                embed.AddField(Config.bot.cmdPrefix + "warn [User Mention]", "Warnt den User.");
+                embed.AddField(Config.bot.cmdPrefix + "addBadword [word]", "Fügt das Wort zum Wortfilter hinzu.");
+                embed.AddField(Config.bot.cmdPrefix + "delBadword [word]", "Löscht das Wort zum Wortfilter hinzu.");
+                embed.AddField(Config.bot.cmdPrefix + "badwords", "Listet alle Badwords auf.");
+                embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
+                embed.AddField(Config.bot.cmdPrefix + "setBot", "Setzt den aktuellen Channel als Bot Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "delBot", "Löscht den aktuell gesetzten Bot Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "setLog", "Setzt den aktuellen Channel als Log Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "delLog", "Löscht den aktuell gesetzten Log Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
+                embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
+                embed.AddField(Config.bot.cmdPrefix + "setupLevels", "Erstellt S4 League Level Gruppen die automatisch beim erreichen des jeweiligen Levels gesetzt werden.");
+                embed.AddField(Config.bot.cmdPrefix + "levelNotification", "Aktiviert oder deaktiviert die Level Nofitications auf dem Server.");
+                embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
+            }
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
@@ -161,47 +172,5 @@ namespace DiscordBot_Core.Commands
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
-
-        [Command("setStatus", RunMode = RunMode.Async)]
-        [RequireOwner]
-        public async Task SetStatus(int type, [Remainder]string msg)
-        {
-            await Context.Message.DeleteAsync();
-            ActivityType action;
-            switch (type)
-            {
-                case 0:
-                    action = ActivityType.Playing;
-                    break;
-                case 1:
-                    action = ActivityType.Watching;
-                    break;
-                case 2:
-                    action = ActivityType.Listening;
-                    break;
-                case 3:
-                    action = ActivityType.Streaming;
-                    break;
-                default:
-                    return;
-            }
-            await Context.Client.SetGameAsync(msg, null, action);
-        }
-        [Command("uptime")]
-        [RequireOwner]
-        public async Task Uptime()
-        {
-            TimeSpan span = DateTime.Now - Program.startTime;
-            await Context.Channel.SendMessageAsync($"`Uptime: {span.Days}D {span.Hours}H {span.Minutes}M`");
-        }
-
-        //[Command("test")]
-        //[RequireOwner]
-        //public async Task test(int exp)
-        //{
-        //    var mytest = Helper.GetS4Level(exp);
-        //    var myexp = Helper.GetS4EXP(mytest);
-        //    await Context.Channel.SendMessageAsync($"`Level {mytest} braucht {myexp} EXP!`");
-        //}
     }
 }

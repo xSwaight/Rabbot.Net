@@ -33,9 +33,24 @@ namespace DiscordBot_Core.Systems
                 EXP = db.Experience.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 int textLenght = msg.Content.ToString().Replace("*", string.Empty).Count();
-                if (textLenght >= 50)
-                    textLenght = 50;
-                EXP.Exp += textLenght * Config.level.expMultiplier;
+                Random rnd = new Random();
+                int random = rnd.Next(1, 11);
+                int exp = 0;
+                if (textLenght >= 1 && textLenght < 10 && random > 1)
+                    exp = rnd.Next(1, 11);
+                if (textLenght >= 10 && textLenght < 20 && random > 1)
+                    exp = rnd.Next(10, 21);
+                if (textLenght >= 20 && textLenght < 30 && random > 1)
+                    exp = rnd.Next(20, 31);
+                if (textLenght >= 30 && textLenght < 40 && random > 1)
+                    exp = rnd.Next(30, 41);
+                if (textLenght >= 40 && textLenght <= 50 && random > 1)
+                    exp = rnd.Next(40, 51);
+                if (textLenght >= 51 || random == 1)
+                    exp = rnd.Next(50, 100);
+
+                exp = exp * rnd.Next(1, 7);
+                EXP.Exp += exp * Config.level.expMultiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
             }
