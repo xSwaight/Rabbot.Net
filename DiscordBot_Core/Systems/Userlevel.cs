@@ -50,7 +50,8 @@ namespace DiscordBot_Core.Systems
                     exp = rnd.Next(50, 100);
 
                 exp = exp * rnd.Next(1, 7);
-                EXP.Exp += exp * Config.level.expMultiplier;
+                if (EXP.Gain == 1)
+                    EXP.Exp += exp * Config.level.expMultiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
             }

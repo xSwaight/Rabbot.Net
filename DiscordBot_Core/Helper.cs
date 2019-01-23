@@ -141,6 +141,7 @@ namespace DiscordBot_Core
 
         public static string replaceCharacter(string myString)
         {
+            myString = myString.Replace(" ", string.Empty);
             myString = new Regex("[.?!,\"'+@#$%^&*(){}][/-_|=§‘’`„°•—–¿¡₩€¢¥£​]").Replace(myString, "");
             myString = new Regex("[ÀÁÂÃÅÆàáâãåæĀāĂăΑАаӒӓä]").Replace(myString, "a");
             myString = new Regex("[Ąą]").Replace(myString, "ah");
@@ -153,20 +154,20 @@ namespace DiscordBot_Core
             myString = new Regex("[Ϝf​]").Replace(myString, "f");
             myString = new Regex("[ĜĝĞğĠġģԌ]").Replace(myString, "g");
             myString = new Regex("[Ģ]").Replace(myString, "gh");
-            myString = new Regex("[ĤĥĦħΗНһ]").Replace(myString, "h");
+            myString = new Regex("[ĤĥĦħΗНһн]").Replace(myString, "h");
             myString = new Regex("[1ĨĩĪīĬĭĮįİıĲĳÌÍÎÏìíîïÌÍÎÏ¡!ΙІⅠіⅰ]").Replace(myString, "i");
             myString = new Regex("[ĴĵЈј]").Replace(myString, "j");
             myString = new Regex("[ĶķĸΚКK]").Replace(myString, "k");
             myString = new Regex("[ĹĺĻļĽľĿŀŁł]").Replace(myString, "l");
             myString = new Regex("[ΜМⅯⅿ]").Replace(myString, "m");
-            myString = new Regex("[ŃńŅņŇňŉŊŋñΝn​]").Replace(myString, "n");
+            myString = new Regex("[ŃńŅņŇňŉŊŋñΝn​и]").Replace(myString, "n");
             myString = new Regex("[0ŌōŎŏŐőŒœòóôõΟОοоӦӧö]").Replace(myString, "o");
             myString = new Regex("[ΡРр₽]").Replace(myString, "p");
-            myString = new Regex("[ŔŕŖŗŘř]").Replace(myString, "r");
+            myString = new Regex("[ŔŕŖŗŘřя]").Replace(myString, "r");
             myString = new Regex("[ŚśŜŝŠšЅѕ]").Replace(myString, "s");
             myString = new Regex("[Şş]").Replace(myString, "sh");
             myString = new Regex("[ŢţŤťŦŧΤТ]").Replace(myString, "t");
-            myString = new Regex("[ŨũŪūŬŭŮůŰűÙÚÛùúûµü]").Replace(myString, "u");
+            myString = new Regex("[ŨũŪūŬŭŮůŰűÙÚÛùúûµüц]").Replace(myString, "u");
             myString = new Regex("[Ųų]").Replace(myString, "uh");
             myString = new Regex("[ѴⅤνѵⅴ]").Replace(myString, "v");
             myString = new Regex("[Ŵŵѡ]").Replace(myString, "w");

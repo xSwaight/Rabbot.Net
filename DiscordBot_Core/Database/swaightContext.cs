@@ -26,7 +26,8 @@ namespace DiscordBot_Core.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql(Config.bot.connectionString);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=localhost;database=swaight;user=swaight;pwd=eSmh9HqKWWjNibM1;");
             }
         }
 
@@ -55,6 +56,11 @@ namespace DiscordBot_Core.Database
                 entity.Property(e => e.Exp)
                     .HasColumnName("exp")
                     .HasColumnType("int(11)");
+
+                entity.Property(e => e.Gain)
+                    .HasColumnName("gain")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.ServerId)
                     .HasColumnName("serverId")

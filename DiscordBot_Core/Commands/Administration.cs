@@ -263,6 +263,22 @@ namespace DiscordBot_Core.Commands
                     warn.Counter++;
                     await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                 }
+
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
+                {
+                    if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify == 1)
+                    {
+                        var channelId = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().LogchannelId;
+                        var embed = new EmbedBuilder();
+                        embed.WithDescription($"{user.Mention} wurde von {Context.User.Username} verwarnt!");
+                        embed.WithColor(new Color(255, 0, 0));
+                        embed.AddField("Time", DateTime.Now.ToShortTimeString(), false);
+                        embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
+                        await Context.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    }
+                }
+
+
                 await db.SaveChangesAsync();
             }
         }
@@ -577,8 +593,35 @@ namespace DiscordBot_Core.Commands
             await m.DeleteAsync();
         }
 
+        [RequireOwner]
+        [Command("toggleEXP", RunMode = RunMode.Async)]
+        public async Task DisableExp(IUser user)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var Experience = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                if (Experience.Gain == 0)
+                {
+                    Experience.Gain = 1;
+                    embed.WithDescription($"{user.Mention} bekommt jetzt wieder EXP.");
+                }
+                else
+                {
+                    Experience.Gain = 0;
+                    embed.WithDescription($"{user.Mention} bekommt jetzt keine EXP mehr.");
+                }
+                await db.SaveChangesAsync();
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("addBadword")]
+        [Command("addBadword", RunMode = RunMode.Async)]
         public async Task AddBadword(string word)
         {
             await Context.Message.DeleteAsync();
@@ -598,7 +641,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("delBadword")]
+        [Command("delBadword", RunMode = RunMode.Async)]
         public async Task DelBadword(string word)
         {
             await Context.Message.DeleteAsync();
@@ -622,7 +665,7 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("badwords")]
+        [Command("badwords", RunMode = RunMode.Async)]
         public async Task Badwords()
         {
             await Context.Message.DeleteAsync();

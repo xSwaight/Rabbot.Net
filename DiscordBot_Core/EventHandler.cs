@@ -194,7 +194,7 @@ namespace DiscordBot_Core
                                     position = item.Position;
                             }
                             var user = guild.Users.Where(p => p.Id == (ulong)ban.UserId).FirstOrDefault();
-                            if(user == null)
+                            if (user == null)
                             {
                                 if (ban.Duration < DateTime.Now)
                                 {
@@ -368,6 +368,22 @@ namespace DiscordBot_Core
                         var warn = db.Warning.Where(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id).FirstOrDefault();
                         warn.Counter++;
                         await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+                    }
+                    var myUser = msg.Author as SocketGuildUser;
+
+                    if (db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).Any())
+                    {
+                        if (db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).FirstOrDefault().Notify == 1)
+                        {
+                            var channelId = db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).FirstOrDefault().LogchannelId;
+                            var embed = new EmbedBuilder();
+                            embed.WithDescription($"{myUser.Mention} wurde aufgrund folgender Nachricht verwarnt!");
+                            embed.WithColor(new Color(255, 0, 0));
+                            embed.AddField("Message", msg.Content.ToString(), false);
+                            embed.AddField("Time", msg.CreatedAt.DateTime.ToShortTimeString(), false);
+                            embed.ThumbnailUrl = myUser.GetAvatarUrl(ImageFormat.Auto, 1024);
+                            await _client.GetGuild(myUser.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                        }
                     }
                 }
                 await db.SaveChangesAsync();
