@@ -247,7 +247,7 @@ namespace DiscordBot_Core.Commands
                         rank++;
                     }
 
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Profile/Profile.html");
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/Profile.html");
                     var html = template.Render(new
                     {
                         AVATAR = Context.User.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
@@ -259,7 +259,7 @@ namespace DiscordBot_Core.Commands
                         PERCENT = percent.ToString()
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 150);
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 151);
                     await Context.Channel.SendFileAsync(path);
                     File.Delete(path);
                 }
@@ -285,7 +285,7 @@ namespace DiscordBot_Core.Commands
                         rank++;
                     }
 
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Profile/Profile.html");
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/Profile.html");
                     var html = template.Render(new
                     {
                         AVATAR = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
@@ -297,7 +297,7 @@ namespace DiscordBot_Core.Commands
                         PERCENT = percent.ToString()
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 150);
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 151);
                     await Context.Channel.SendFileAsync(path);
                     File.Delete(path);
                 }

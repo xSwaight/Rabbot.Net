@@ -140,22 +140,14 @@ namespace DiscordBot_Core
                                 var ban = db.Muteduser.Where(p => p.ServerId == (long)dcGuild.Id && p.UserId == (long)dcUser.Id).FirstOrDefault();
                                 ban.Duration = banUntil;
                             }
-
-                            var guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault();
+                            
                             var embedPrivate = new EmbedBuilder();
                             embedPrivate.WithDescription($"Du wurdest wegen zu vielen Warnungen auf **{dcGuild.Name}** für **1 Stunde** gemuted.");
                             embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
                             embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {dcGuild.Name} Server.");
                             embedPrivate.WithColor(new Color(255, 0, 0));
                             await dcUser.SendMessageAsync(null, false, embedPrivate.Build());
-                            if (guild.LogchannelId != null && guild.Log == 1)
-                            {
-                                var logchannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
-                                var embed = new EmbedBuilder();
-                                embed.WithDescription($"{dcUser.Mention} wurde aufgrund von 3 Warnings für 1 Stunde gemuted.");
-                                embed.WithColor(new Color(255, 0, 0));
-                                await logchannel.SendMessageAsync("", false, embed.Build());
-                            }
+                            await Helper.SendLogWarningMute(dcUser);
                             db.Warning.Remove(warn);
                         }
                     }
@@ -169,100 +161,8 @@ namespace DiscordBot_Core
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
-                {
-                    if (!(db.Muteduser.Count() == 0) && _client.Guilds.Count() > 0)
-                    {
-                        var mutes = db.Muteduser.ToList();
-                        foreach (var ban in mutes)
-                        {
-                            var guild = _client.Guilds.Where(p => p.Id == (ulong)ban.ServerId).FirstOrDefault();
-                            if (guild == null)
-                            {
-                                db.Muteduser.Remove(ban);
-                                await db.SaveChangesAsync();
-                                continue;
-                            }
-                            var mutedRole = guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
-                            if (guild.CurrentUser == null)
-                                continue;
-                            var roles = guild.CurrentUser.Roles;
-                            int position = 0;
-                            foreach (var item in roles)
-                            {
-                                if (item.Position > position)
-                                    position = item.Position;
-                            }
-                            var user = guild.Users.Where(p => p.Id == (ulong)ban.UserId).FirstOrDefault();
-                            if (user == null)
-                            {
-                                if (ban.Duration < DateTime.Now)
-                                {
-                                    db.Muteduser.Remove(ban);
-                                    await db.SaveChangesAsync();
-                                }
-                                continue;
-                            }
-                            if (guild.CurrentUser.GuildPermissions.ManageRoles == true && position > mutedRole.Position)
-                            {
-                                if (ban.Duration < DateTime.Now)
-                                {
-                                    db.Muteduser.Remove(ban);
-                                    try
-                                    {
-                                        await user.RemoveRoleAsync(mutedRole);
-                                        var oldRoles = ban.Roles.Split('|');
-                                        foreach (var oldRole in oldRoles)
-                                        {
-                                            var role = guild.Roles.Where(p => p.Name == oldRole).FirstOrDefault();
-                                            if (role != null)
-                                                await user.AddRoleAsync(role);
-                                        }
-
-                                        var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
-                                        if (Guild.LogchannelId != null && Guild.Log == 1)
-                                        {
-                                            var embed = new EmbedBuilder();
-                                            embed.WithDescription($"{user.Mention} wurde entmuted.");
-                                            embed.WithColor(new Color(0, 255, 0));
-                                            var logchannel = guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                                            await logchannel.SendMessageAsync("", false, embed.Build());
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.WriteLine(e.Message);
-                                    }
-                                }
-                                else
-                                {
-                                    if (user.Roles.Where(p => p.Id == mutedRole.Id).Count() == 0)
-                                    {
-                                        try
-                                        {
-                                            var oldRoles = ban.Roles.Split('|');
-                                            foreach (var oldRole in oldRoles)
-                                            {
-                                                if (!oldRole.Contains("everyone"))
-                                                {
-                                                    var role = guild.Roles.Where(p => p.Name == oldRole).FirstOrDefault();
-                                                    if (role != null)
-                                                        await user.RemoveRoleAsync(role);
-                                                }
-                                            }
-                                            await user.AddRoleAsync(mutedRole);
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Console.WriteLine(e.Message);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    await db.SaveChangesAsync();
-                }
+                Usermute mute = new Usermute(_client);
+                await mute.CheckMutes();
                 await Task.Delay(1000);
             }
         }
@@ -370,21 +270,7 @@ namespace DiscordBot_Core
                         await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
                     var myUser = msg.Author as SocketGuildUser;
-
-                    if (db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).Any())
-                    {
-                        if (db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).FirstOrDefault().Notify == 1)
-                        {
-                            var channelId = db.Guild.Where(p => p.ServerId == (long)myUser.Guild.Id).FirstOrDefault().LogchannelId;
-                            var embed = new EmbedBuilder();
-                            embed.WithDescription($"{myUser.Mention} wurde aufgrund folgender Nachricht verwarnt!");
-                            embed.WithColor(new Color(255, 0, 0));
-                            embed.AddField("Message", msg.Content.ToString(), false);
-                            embed.AddField("Time", msg.CreatedAt.DateTime.ToShortTimeString(), false);
-                            embed.ThumbnailUrl = myUser.GetAvatarUrl(ImageFormat.Auto, 1024);
-                            await _client.GetGuild(myUser.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
-                        }
-                    }
+                    await Helper.SendLogWarning(myUser, msg);
                 }
                 await db.SaveChangesAsync();
             }
@@ -405,7 +291,7 @@ namespace DiscordBot_Core
             {
                 if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
                     return;
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Notify == 0)
+                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Log == 0)
                     return;
                 else
                 {
@@ -428,7 +314,7 @@ namespace DiscordBot_Core
             {
                 if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
                     return;
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Notify == 0)
+                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Log == 0)
                     return;
 
                 var memberRole = _client.Guilds.Where(p => p.Id == user.Guild.Id).FirstOrDefault().Roles.Where(p => p.Name == "Mitglied").FirstOrDefault();

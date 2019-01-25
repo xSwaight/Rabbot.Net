@@ -83,6 +83,7 @@ namespace DiscordBot_Core.Preconditions
 
         private async Task sendPrivate(ICommandContext context, DateTime banUntil)
         {
+            await Helper.SendLogBotCommandMute(context);
             var embedPrivate = new EmbedBuilder();
             embedPrivate.WithDescription($"Du wurdest auf **{context.Guild.Name}** für **10 Minuten** gemuted.");
             embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());

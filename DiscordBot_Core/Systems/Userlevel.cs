@@ -49,7 +49,12 @@ namespace DiscordBot_Core.Systems
                 if (textLenght >= 51 || random == 1)
                     exp = rnd.Next(50, 100);
 
-                exp = exp * rnd.Next(1, 7);
+                var chance = rnd.Next(1, 11);
+                if (chance == 3)
+                {
+                    exp = exp * rnd.Next(1, 11);
+                }
+
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * Config.level.expMultiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
@@ -61,7 +66,7 @@ namespace DiscordBot_Core.Systems
         {
             if (NewLevel > OldLevel && Guild.Level == 1)
             {
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/LevelUp/levelup.html");
+                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/levelup.html");
                 var dcUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
                 string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
                 var html = template.Render(new
@@ -70,7 +75,7 @@ namespace DiscordBot_Core.Systems
                     LEVEL = NewLevel.ToString()
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 100);
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 103);
                 await dcMessage.Channel.SendFileAsync(path);
                 File.Delete(path);
             }

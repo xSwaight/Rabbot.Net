@@ -238,14 +238,7 @@ namespace DiscordBot_Core.Commands
 
                 await user.AddRoleAsync(s4Role.FirstOrDefault());
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                if (guild.LogchannelId != null && guild.Log == 1)
-                {
-                    var logchannel = Context.Guild.TextChannels.Where(p => p.Id == (ulong)guild.LogchannelId).FirstOrDefault();
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{Context.User.Mention} hat sich die S4 League Rolle gegeben.");
-                    embed.WithColor(new Color(0, 255, 0));
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
+                await Helper.SendLogS4Role(Context);
             }
         }
     }
