@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot_Core.Systems
 {
-    class Userlevel
+    class LevelService
     {
         public SocketMessage dcMessage { get; set; }
         public SocketGuild dcGuild { get; set; }
@@ -21,7 +21,7 @@ namespace DiscordBot_Core.Systems
         public uint OldLevel { get; set; }
         public uint NewLevel { get; set; }
 
-        public Userlevel(SocketMessage msg)
+        public LevelService(SocketMessage msg)
         {
             dcMessage = msg;
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
@@ -32,9 +32,12 @@ namespace DiscordBot_Core.Systems
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
                 EXP = db.Experience.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
-                int textLenght = msg.Content.ToString().Replace("*", string.Empty).Count();
+                string myMessage = Helper.MessageReplace(msg.Content);
+                int textLenght = myMessage.Replace("*", string.Empty).Count();
                 Random rnd = new Random();
                 int random = rnd.Next(1, 11);
+                if (textLenght == 0)
+                    random = 2;
                 int exp = 0;
                 if (textLenght >= 1 && textLenght < 10 && random > 1)
                     exp = rnd.Next(1, 11);

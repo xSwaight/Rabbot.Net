@@ -49,9 +49,14 @@ namespace DiscordBot_Core.Preconditions
                 {
                     Task.Run(() => sendMessage(context, command));
                     counter++;
-                    if (counter >= 5)
+                    using (swaightContext db = new swaightContext())
                     {
-                        using (swaightContext db = new swaightContext())
+                        var EXP = db.Experience.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
+                        if (EXP != null && EXP.Exp > 500)
+                        {
+                            EXP.Exp -= 100 * counter;
+                        }
+                        if (counter >= 5)
                         {
                             var mutedUser = context.User as SocketGuildUser;
                             string userRoles = "";
@@ -63,9 +68,9 @@ namespace DiscordBot_Core.Preconditions
                             userRoles = userRoles.TrimEnd('|');
                             DateTime banUntil = DateTime.Now.AddMinutes(10);
                             db.Muteduser.Add(new Muteduser { ServerId = (long)context.Guild.Id, UserId = (long)context.User.Id, Duration = banUntil, Roles = userRoles });
-                            db.SaveChanges();
                             Task.Run(() => sendPrivate(context, banUntil));
                         }
+                        db.SaveChanges();
                     }
                     return Task.FromResult(PreconditionResult.FromError($"Command spammer detected: {context.User.Id} on {context.Guild.Id}"));
                 }
@@ -98,7 +103,7 @@ namespace DiscordBot_Core.Preconditions
 
         private async Task sendPrivate(ICommandContext context, DateTime banUntil)
         {
-            await Helper.SendLogCooldownMute(context);
+            await Log.CooldownMute(context);
             var embedPrivate = new EmbedBuilder();
             embedPrivate.WithDescription($"Du wurdest auf **{context.Guild.Name}** für **10 Minuten** gemuted.");
             embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot_Core.Systems
 {
-    class Usermute
+    class MuteService
     {
         private SocketGuildUser DcTargetUser { get; set; }
         private SocketGuild DcGuild { get; set; }
@@ -20,7 +20,7 @@ namespace DiscordBot_Core.Systems
         private Muteduser MuteUser { get; set; }
         private SocketRole MutedRole { get; set; }
 
-        public Usermute(DiscordSocketClient client)
+        public MuteService(DiscordSocketClient client)
         {
             DcClient = client;
         }
@@ -74,7 +74,7 @@ namespace DiscordBot_Core.Systems
                                     if (role != null)
                                         await DcTargetUser.AddRoleAsync(role);
                                 }
-                                await Helper.SendLogUnmuted(DcTargetUser);
+                                await Log.Unmuted(DcTargetUser);
                             }
                             catch (Exception e)
                             {
@@ -172,8 +172,52 @@ namespace DiscordBot_Core.Systems
                     var ban = db.Muteduser.Where(p => p.ServerId == (long)context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
                     ban.Duration = banUntil;
                 }
-                await SendPrivate(context, banUntil, duration, user);
-                await Helper.SendLogMute(context, user, duration);
+                await SendPrivate(DcGuild, banUntil, duration, DcTargetUser);
+                await Log.Mute(context, user, duration);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        public async Task MuteWarnedUser(SocketGuildUser user, SocketGuild guild)
+        {
+            DcGuild = guild;
+            DcTargetUser = user;
+            MutedRole = DcGuild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+            if (MutedRole == null)
+                return;
+
+            var targetPosition = GetTargetRolePosition(DcTargetUser);
+            var botPosition = GetBotRolePosition(DcGuild.CurrentUser);
+
+            if (!(MutedRole.Position > targetPosition && DcGuild.CurrentUser.GuildPermissions.ManageRoles))
+                return;
+            if (targetPosition > botPosition)
+                return;
+
+            DateTime date = DateTime.Now;
+            DateTime banUntil = date.AddHours(1);
+
+
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Muteduser.Where(p => p.ServerId == (long)DcGuild.Id && p.UserId == (long)user.Id).Any())
+                {
+                    string userRoles = "";
+                    foreach (var role in DcTargetUser.Roles)
+                    {
+                        if (!role.IsEveryone && !role.IsManaged)
+                            userRoles += role.Name + "|";
+                    }
+                    userRoles = userRoles.TrimEnd('|');
+                    await db.Muteduser.AddAsync(new Muteduser { ServerId = (long)DcGuild.Id, UserId = (long)user.Id, Duration = banUntil, Roles = userRoles });
+                }
+                else
+                {
+                    var ban = db.Muteduser.Where(p => p.ServerId == (long)DcGuild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                    ban.Duration = banUntil;
+                }
+                await SendPrivate(DcGuild, banUntil, "1 Stunde", user);
+                await Log.WarningMute(DcTargetUser);
                 await db.SaveChangesAsync();
             }
         }
@@ -206,7 +250,7 @@ namespace DiscordBot_Core.Systems
                                 await DcTargetUser.AddRoleAsync(role);
                         }
                     }
-                    await Helper.SendLogUnmuted(context.Guild, user);
+                    await Log.Unmuted(context.Guild, user);
                 }
 
             }
@@ -222,12 +266,12 @@ namespace DiscordBot_Core.Systems
             await Message.DeleteAsync();
         }
 
-        private async Task SendPrivate(SocketCommandContext context, DateTime banUntil, string duration, IUser user)
+        private async Task SendPrivate(SocketGuild Guild, DateTime banUntil, string duration, SocketGuildUser user)
         {
             var embedPrivate = new EmbedBuilder();
-            embedPrivate.WithDescription($"Du wurdest auf **{context.Guild.Name}** für **{duration}** gemuted.");
+            embedPrivate.WithDescription($"Du wurdest auf **{Guild.Name}** für **{duration}** gemuted.");
             embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
-            embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {context.Guild.Name} Server.");
+            embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {Guild.Name} Server.");
             embedPrivate.WithColor(new Color(255, 0, 0));
             await user.SendMessageAsync(null, false, embedPrivate.Build());
         }

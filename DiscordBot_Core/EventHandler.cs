@@ -33,6 +33,7 @@ namespace DiscordBot_Core
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
             CancellationTokenSource _cancelationTokenSource = new CancellationTokenSource();
             //new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
+
             new Task(async () => await CheckBannedUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckWarnings(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
@@ -75,84 +76,8 @@ namespace DiscordBot_Core
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
-                {
-                    if (!db.Warning.Any())
-                        continue;
-
-                    var warnings = db.Warning.ToList();
-                    foreach (var warn in warnings)
-                    {
-                        if (warn.ActiveUntil < DateTime.Now)
-                            db.Warning.Remove(warn);
-                        if (warn.Counter >= 3)
-                        {
-                            var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)warn.ServerId).FirstOrDefault();
-                            var dcUser = dcGuild.Users.Where(p => p.Id == (ulong)warn.UserId).FirstOrDefault();
-                            var mutedRole = dcGuild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
-
-
-                            var roles = dcGuild.CurrentUser.Roles;
-                            var rolesTarget = dcGuild.Users.Where(p => p.Id == (ulong)warn.UserId).FirstOrDefault().Roles;
-                            int position = 0;
-                            int targetPosition = 0;
-                            foreach (var item in roles)
-                            {
-                                if (item.Position > position)
-                                    position = item.Position;
-                            }
-                            foreach (var item in rolesTarget)
-                            {
-                                if (item.Position > targetPosition)
-                                    targetPosition = item.Position;
-                            }
-                            if (!(mutedRole.Position < position) && dcGuild.CurrentUser.GuildPermissions.ManageRoles)
-                            {
-                                Console.WriteLine("Mindestens eine meiner Rollen muss in der Reihenfolge über der Muted Rolle stehen!");
-                                db.Warning.Remove(warn);
-                                await db.SaveChangesAsync();
-                                continue;
-                            }
-                            if (targetPosition > position)
-                            {
-                                Console.WriteLine("Es fehlen die Berechtigungen um den User zu muten!");
-                                db.Warning.Remove(warn);
-                                await db.SaveChangesAsync();
-                                continue;
-                            }
-                            DateTime date = DateTime.Now;
-                            DateTime banUntil;
-                            banUntil = date.AddHours(1);
-                            if (db.Muteduser.Where(p => p.ServerId == (long)dcGuild.Id && p.UserId == (long)dcUser.Id).Count() == 0)
-                            {
-                                var mutedUser = dcGuild.Users.Where(p => p.Id == dcUser.Id).FirstOrDefault();
-                                string userRoles = "";
-                                foreach (var role in mutedUser.Roles)
-                                {
-                                    if (!role.IsEveryone && !role.IsManaged)
-                                        userRoles += role.Name + "|";
-                                }
-                                userRoles = userRoles.TrimEnd('|');
-                                await db.Muteduser.AddAsync(new Muteduser { ServerId = (long)dcGuild.Id, UserId = (long)dcUser.Id, Duration = banUntil, Roles = userRoles });
-                            }
-                            else
-                            {
-                                var ban = db.Muteduser.Where(p => p.ServerId == (long)dcGuild.Id && p.UserId == (long)dcUser.Id).FirstOrDefault();
-                                ban.Duration = banUntil;
-                            }
-                            
-                            var embedPrivate = new EmbedBuilder();
-                            embedPrivate.WithDescription($"Du wurdest wegen zu vielen Warnungen auf **{dcGuild.Name}** für **1 Stunde** gemuted.");
-                            embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
-                            embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {dcGuild.Name} Server.");
-                            embedPrivate.WithColor(new Color(255, 0, 0));
-                            await dcUser.SendMessageAsync(null, false, embedPrivate.Build());
-                            await Helper.SendLogWarningMute(dcUser);
-                            db.Warning.Remove(warn);
-                        }
-                    }
-                    await db.SaveChangesAsync();
-                }
+                WarnService warn = new WarnService(_client);
+                await warn.CheckWarnings();
                 await Task.Delay(1000);
             }
         }
@@ -161,7 +86,7 @@ namespace DiscordBot_Core
         {
             while (true)
             {
-                Usermute mute = new Usermute(_client);
+                MuteService mute = new MuteService(_client);
                 await mute.CheckMutes();
                 await Task.Delay(1000);
             }
@@ -254,7 +179,7 @@ namespace DiscordBot_Core
                 return;
             using (swaightContext db = new swaightContext())
             {
-                if (db.Badwords.Any(p => Helper.replaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(msg.Author as SocketGuildUser).GuildPermissions.ManageMessages)
+                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(msg.Author as SocketGuildUser).GuildPermissions.ManageMessages)
                 {
                     await msg.DeleteAsync();
                     SocketGuild dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
@@ -270,12 +195,12 @@ namespace DiscordBot_Core
                         await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
                     var myUser = msg.Author as SocketGuildUser;
-                    await Helper.SendLogWarning(myUser, msg);
+                    await Log.Warning(myUser, msg);
                 }
                 await db.SaveChangesAsync();
             }
 
-            Userlevel User = new Userlevel(msg);
+            LevelService User = new LevelService(msg);
             await User.SendLevelUp();
             await User.SetRoles();
         }

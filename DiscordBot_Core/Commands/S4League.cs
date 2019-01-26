@@ -238,7 +238,7 @@ namespace DiscordBot_Core.Commands
 
                 await user.AddRoleAsync(s4Role.FirstOrDefault());
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                await Helper.SendLogS4Role(Context);
+                await Log.S4Role(Context);
             }
         }
     }

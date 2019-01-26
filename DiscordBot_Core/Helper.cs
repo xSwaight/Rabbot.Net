@@ -141,7 +141,17 @@ namespace DiscordBot_Core
             return (uint)myExp;
         }
 
-        public static string replaceCharacter(string myString)
+        public static string MessageReplace(string myMessage)
+        {
+            myMessage = new Regex("(https|http)[:\\/a-zA-Z0-9-Z.?!=#%&_+-;]*").Replace(myMessage, ""); //Edit Links
+            myMessage = new Regex("<:[a-zA-Z0-9]*:[0-9]{18,18}>").Replace(myMessage, ""); //Edit custom images
+            myMessage = new Regex("<a:[a-zA-Z0-9]*:[0-9]{18,18}>").Replace(myMessage, ""); //Edit custom animated images
+            myMessage = new Regex("<@[0-9!]{18,19}>").Replace(myMessage, ""); //Edit tags
+            myMessage = new Regex("[\\s]{2,}").Replace(myMessage, " "); //Edit every multiple whitespace type to a single whitespace
+            return myMessage;
+        }
+
+        public static string ReplaceCharacter(string myString)
         {
             myString = myString.Replace(" ", string.Empty);
             myString = new Regex("[.?!,\"'+@#$%^&*(){}][/-_|=§‘’`„°•—–¿¡₩€¢¥£​]").Replace(myString, "");
@@ -178,187 +188,6 @@ namespace DiscordBot_Core
             myString = new Regex("[ŹźŻżŽžΖ]").Replace(myString, "z");
 
             return myString;
-        }
-
-        public static async Task SendLogUnmuted(SocketGuild guild, IUser user)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde unmuted.");
-                    embed.WithColor(new Color(0, 255, 0));
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogUnmuted(SocketGuildUser user)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde entmuted.");
-                    embed.WithColor(new Color(0, 255, 0));
-                    var logchannel = user.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogMute(SocketCommandContext context, IUser user, string duration)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{context.User.Username} hat {user.Mention} für {duration} gemuted.");
-                    embed.WithColor(new Color(255, 0, 0));
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogDelete(SocketCommandContext context, int amount)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var logEmbed = new EmbedBuilder();
-                    logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten in {(context.Channel as ITextChannel).Mention} gelöscht.");
-                    logEmbed.WithColor(new Color(255, 0, 0));
-                    await logchannel.SendMessageAsync("", false, logEmbed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogDelete(IUser user, SocketCommandContext context, int amount)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var logEmbed = new EmbedBuilder();
-                    logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten von {user.Mention} in {(context.Channel as ITextChannel).Mention} gelöscht und {100 * amount} EXP abgezogen.");
-                    logEmbed.WithColor(new Color(255, 0, 0));
-                    await logchannel.SendMessageAsync("", false, logEmbed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogWarn(IUser user, SocketCommandContext context)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var channelId = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault().LogchannelId;
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde von {context.User.Username} verwarnt!");
-                    embed.WithColor(new Color(255, 0, 0));
-                    embed.AddField("Time", DateTime.Now.ToShortTimeString(), false);
-                    embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                    await context.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogS4Role(SocketCommandContext context)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{context.User.Mention} hat sich die S4 League Rolle gegeben.");
-                    embed.WithColor(new Color(0, 255, 0));
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogWarningMute(SocketGuildUser user)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var logchannel = user.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde aufgrund von 3 Warnings für 1 Stunde gemuted.");
-                    embed.WithColor(new Color(255, 0, 0));
-                    await logchannel.SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogWarning(SocketGuildUser user, SocketMessage msg)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var channelId = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().LogchannelId;
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde aufgrund folgender Nachricht verwarnt!");
-                    embed.WithColor(new Color(255, 0, 0));
-                    embed.AddField("Message", msg.Content.ToString(), false);
-                    embed.AddField("Time", msg.CreatedAt.DateTime.ToShortTimeString(), false);
-                    embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                    await user.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogCooldownMute(ICommandContext context)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var channelId = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault().LogchannelId;
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{context.User.Mention} wurde aufgrund von Cooldownspam für **10 Minuten** gemuted!");
-                    embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
-                }
-            }
-        }
-
-        public static async Task SendLogBotCommandMute(ICommandContext context)
-        {
-            using (swaightContext db = new swaightContext())
-            {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                if (Guild.LogchannelId != null && Guild.Log == 1)
-                {
-                    var channelId = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault().LogchannelId;
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{context.User.Mention} wurde aufgrund von Spam für **10 Minuten** gemuted!");
-                    embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
-                }
-            }
         }
     }
 }

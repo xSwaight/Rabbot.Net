@@ -27,7 +27,7 @@ namespace DiscordBot_Core.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
-                await Helper.SendLogDelete(Context, (int)amount);
+                await Log.Delete(Context, (int)amount);
                 await Task.Delay(delay);
                 await m.DeleteAsync();
             }
@@ -54,7 +54,7 @@ namespace DiscordBot_Core.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten von {user.Username} wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
-                await Helper.SendLogDelete(user, Context, (int)amount);
+                await Log.Delete(user, Context, (int)amount);
                 await Task.Delay(delay);
                 await m.DeleteAsync();
 
@@ -66,7 +66,7 @@ namespace DiscordBot_Core.Commands
         public async Task Mute(IUser user, string duration)
         {
             await Context.Message.DeleteAsync();
-            Usermute mute = new Usermute(Context.Client);
+            MuteService mute = new MuteService(Context.Client);
             await mute.MuteTargetUser(user, duration, Context);
         }
 
@@ -75,7 +75,7 @@ namespace DiscordBot_Core.Commands
         public async Task Unmute(IUser user)
         {
             await Context.Message.DeleteAsync();
-            Usermute mute = new Usermute(Context.Client);
+            MuteService mute = new MuteService(Context.Client);
             await mute.UnmuteTargetUser(user, Context);
         }
 
@@ -83,24 +83,11 @@ namespace DiscordBot_Core.Commands
         [Command("warn", RunMode = RunMode.Async)]
         public async Task Warn(IUser user)
         {
-            using (swaightContext db = new swaightContext())
-            {
-                await Context.Message.DeleteAsync();
-                if (!db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).Any())
-                {
-                    await db.Warning.AddAsync(new Warning { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
-                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
-                }
-                else
-                {
-                    var warn = db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    warn.Counter++;
-                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
-                }
-
-                await Helper.SendLogWarn(user, Context);
-                await db.SaveChangesAsync();
-            }
+            await Context.Message.DeleteAsync();
+            if (user == null)
+                return;
+            WarnService warn = new WarnService(Context.Client);
+            await warn.Warn(user, Context);
         }
 
         [Command("setStatus", RunMode = RunMode.Async)]
@@ -349,7 +336,7 @@ namespace DiscordBot_Core.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("log", RunMode = RunMode.Async)]
-        public async Task Log()
+        public async Task ToggleLog()
         {
             using (swaightContext db = new swaightContext())
             {
