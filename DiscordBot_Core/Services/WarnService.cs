@@ -3,12 +3,10 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot_Core.Database;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordBot_Core.Systems
+namespace DiscordBot_Core.Services
 {
     class WarnService
     {

@@ -41,7 +41,7 @@ namespace DiscordBot_Core.Preconditions
                         var EXP = db.Experience.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
                         if (EXP != null && EXP.Exp > 500)
                         {
-                            EXP.Exp -= 100 * counter;
+                            EXP.Exp -= 30 * counter;
                         }
                         if (counter >= 5)
                         {

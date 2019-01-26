@@ -3,13 +3,11 @@ using Discord.WebSocket;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.ImageGenerator;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordBot_Core.Systems
+namespace DiscordBot_Core.Services
 {
     class LevelService
     {
@@ -52,14 +50,19 @@ namespace DiscordBot_Core.Systems
                 if (textLenght >= 51 || random == 1)
                     exp = rnd.Next(50, 100);
 
-                var chance = rnd.Next(1, 11);
+                var chance = rnd.Next(1, 6);
                 if (chance == 3)
                 {
                     exp = exp * rnd.Next(1, 11);
                 }
 
+                int multiplier = 1;
+                var myEvent = db.Event.FirstOrDefault();
+                if (myEvent.Status == 1)
+                    multiplier = 2;
+
                 if (EXP.Gain == 1)
-                    EXP.Exp += exp * Config.level.expMultiplier;
+                    EXP.Exp += exp * multiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
             }

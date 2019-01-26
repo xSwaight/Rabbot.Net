@@ -1,19 +1,14 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot_Core.API;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using DiscordBot_Core.Database;
-using DiscordBot_Core.Systems;
-using DiscordBot_Core.API.Models;
-using DiscordBot_Core.ImageGenerator;
-using System.IO;
+using DiscordBot_Core.Services;
 using ImageFormat = Discord.ImageFormat;
 
 namespace DiscordBot_Core
@@ -41,6 +36,19 @@ namespace DiscordBot_Core
             _client.MessageReceived += MessageReceived;
             _client.MessageDeleted += MessageDeleted;
             _client.JoinedGuild += JoinedGuild;
+            _client.Connected += _client_Connected;
+        }
+
+        private async Task _client_Connected()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var myEvent = db.Event.FirstOrDefault();
+                if(myEvent.Status == 1)
+                {
+                    await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
+                }
+            }
         }
 
         private async Task JoinedGuild(SocketGuild guild)

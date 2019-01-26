@@ -172,5 +172,12 @@ namespace DiscordBot_Core.Commands
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
+
+        //[Command("join", RunMode = RunMode.Async)]
+        //[Cooldown(60)]
+        //public async Task Join()
+        //{
+        //    await (Context.User as SocketGuildUser).VoiceChannel.ConnectAsync();
+        //}
     }
 }

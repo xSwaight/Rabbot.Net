@@ -153,8 +153,6 @@ namespace DiscordBot_Core
                     embed.WithDescription($"{user.Mention} wurde aufgrund folgender Nachricht verwarnt!");
                     embed.WithColor(new Color(255, 0, 0));
                     embed.AddField("Message", msg.Content.ToString(), false);
-                    embed.AddField("Time", msg.CreatedAt.DateTime.ToShortTimeString(), false);
-                    embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
                     await user.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
                 }
             }

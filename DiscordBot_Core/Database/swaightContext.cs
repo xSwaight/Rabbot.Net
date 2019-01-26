@@ -16,6 +16,7 @@ namespace DiscordBot_Core.Database
         }
 
         public virtual DbSet<Badwords> Badwords { get; set; }
+        public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<Experience> Experience { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
@@ -42,6 +43,25 @@ namespace DiscordBot_Core.Database
                     .IsRequired()
                     .HasColumnName("badWord")
                     .HasColumnType("varchar(50)");
+            });
+
+            modelBuilder.Entity<Event>(entity =>
+            {
+                entity.ToTable("event");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<Experience>(entity =>

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using DiscordBot_Core.Database;
-using DiscordBot_Core.Systems;
+using DiscordBot_Core.Services;
 
 namespace DiscordBot_Core.Commands
 {
@@ -404,6 +404,7 @@ namespace DiscordBot_Core.Commands
         [Command("toggleEXP", RunMode = RunMode.Async)]
         public async Task DisableExp(IUser user)
         {
+            await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
                 var Experience = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
@@ -424,6 +425,28 @@ namespace DiscordBot_Core.Commands
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
                 await Task.Delay(delay);
                 await m.DeleteAsync();
+            }
+        }
+
+        [RequireOwner]
+        [Command("event", RunMode = RunMode.Async)]
+        public async Task Event()
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                var myEvent = db.Event.FirstOrDefault();
+                if (myEvent.Status == 0)
+                {
+                    myEvent.Status = 1;
+                    await Context.Client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
+                }
+                else
+                {
+                    myEvent.Status = 0;
+                    await Context.Client.SetGameAsync($">rank", null, ActivityType.Watching);
+                }
+                await db.SaveChangesAsync();
             }
         }
 

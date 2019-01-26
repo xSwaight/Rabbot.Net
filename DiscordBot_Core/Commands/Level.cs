@@ -246,11 +246,13 @@ namespace DiscordBot_Core.Commands
                             break;
                         rank++;
                     }
-
+                    string profilePicture = Context.User.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
+                    if (profilePicture == null)
+                        profilePicture = Context.User.GetDefaultAvatarUrl();
                     var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/Profile.html");
                     var html = template.Render(new
                     {
-                        AVATAR = Context.User.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
+                        AVATAR = profilePicture,
                         NAME = name,
                         LEVEL = level.ToString(),
                         RANK = rank.ToString(),
@@ -284,11 +286,13 @@ namespace DiscordBot_Core.Commands
                             break;
                         rank++;
                     }
-
+                    string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
+                    if (profilePicture == null)
+                        profilePicture = user.GetDefaultAvatarUrl();
                     var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/Profile.html");
                     var html = template.Render(new
                     {
-                        AVATAR = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128),
+                        AVATAR = profilePicture,
                         NAME = name,
                         LEVEL = level.ToString(),
                         RANK = rank.ToString(),
