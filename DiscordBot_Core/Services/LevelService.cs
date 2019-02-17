@@ -38,17 +38,17 @@ namespace DiscordBot_Core.Services
                     random = 2;
                 int exp = 0;
                 if (textLenght >= 1 && textLenght < 10 && random > 1)
-                    exp = rnd.Next(1, 11);
-                if (textLenght >= 10 && textLenght < 20 && random > 1)
                     exp = rnd.Next(10, 21);
-                if (textLenght >= 20 && textLenght < 30 && random > 1)
+                if (textLenght >= 10 && textLenght < 20 && random > 1)
                     exp = rnd.Next(20, 31);
-                if (textLenght >= 30 && textLenght < 40 && random > 1)
+                if (textLenght >= 20 && textLenght < 30 && random > 1)
                     exp = rnd.Next(30, 41);
-                if (textLenght >= 40 && textLenght <= 50 && random > 1)
+                if (textLenght >= 30 && textLenght < 40 && random > 1)
                     exp = rnd.Next(40, 51);
+                if (textLenght >= 40 && textLenght <= 50 && random > 1)
+                    exp = rnd.Next(40, 61);
                 if (textLenght >= 51 || random == 1)
-                    exp = rnd.Next(50, 100);
+                    exp = rnd.Next(60, 100);
 
                 var chance = rnd.Next(1, 6);
                 if (chance == 3)
@@ -61,9 +61,26 @@ namespace DiscordBot_Core.Services
                 if (myEvent.Status == 1)
                     multiplier = 2;
 
+                var ranks = db.Musicrank.Where(p => p.ServerId == (long)dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
+                int rank = 1;
+                foreach (var Rank in ranks)
+                {
+                    if (Rank.UserId == (long)msg.Author.Id)
+                        break;
+                    rank++;
+                }
+                double dblExp = exp;
+                if (rank == 1)
+                    exp = (int)(dblExp * 1.2);
+                if (rank == 2)
+                    exp = (int)(dblExp * 1.1);
+                if (rank == 3)
+                    exp = (int)(dblExp * 1.05);
+
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
+                EXP.Lastmessage = DateTime.Now;
                 db.SaveChanges();
             }
         }
@@ -72,7 +89,7 @@ namespace DiscordBot_Core.Services
         {
             if (NewLevel > OldLevel && Guild.Level == 1)
             {
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotTheme/levelup.html");
+                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
                 var dcUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
                 string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
                 var html = template.Render(new
@@ -81,7 +98,7 @@ namespace DiscordBot_Core.Services
                     LEVEL = NewLevel.ToString()
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name), html, 300, 103);
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
                 await dcMessage.Channel.SendFileAsync(path);
                 File.Delete(path);
             }

@@ -23,7 +23,8 @@ namespace DiscordBot_Core
             if (String.IsNullOrWhiteSpace(Config.bot.token)) return;
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Verbose
+                LogLevel = LogSeverity.Verbose,
+                MessageCacheSize = 1000
             });
             _client.Log += Log;
             startTime = DateTime.Now;

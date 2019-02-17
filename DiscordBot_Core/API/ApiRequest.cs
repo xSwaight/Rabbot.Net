@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DiscordBot_Core.API.Models;
+using Newtonsoft.Json.Linq;
 
 namespace DiscordBot_Core.API
 {

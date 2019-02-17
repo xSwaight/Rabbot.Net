@@ -15,7 +15,6 @@ namespace DiscordBot_Core.Preconditions
     {
         TimeSpan CooldownLength { get; set; }
         bool AdminsAreLimited { get; set; }
-        int counter { get; set; }
         readonly ConcurrentDictionary<CooldownInfo, DateTime> _cooldowns = new ConcurrentDictionary<CooldownInfo, DateTime>();
 
         public Cooldown(int seconds, bool adminsAreLimited = false)
@@ -48,27 +47,12 @@ namespace DiscordBot_Core.Preconditions
                 if (difference.Ticks > 0)
                 {
                     Task.Run(() => sendMessage(context, command));
-                    counter++;
                     using (swaightContext db = new swaightContext())
                     {
                         var EXP = db.Experience.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
                         if (EXP != null && EXP.Exp > 500)
                         {
-                            EXP.Exp -= 30 * counter;
-                        }
-                        if (counter >= 5)
-                        {
-                            var mutedUser = context.User as SocketGuildUser;
-                            string userRoles = "";
-                            foreach (var role in mutedUser.Roles)
-                            {
-                                if (!role.IsEveryone && !role.IsManaged)
-                                    userRoles += role.Name + "|";
-                            }
-                            userRoles = userRoles.TrimEnd('|');
-                            DateTime banUntil = DateTime.Now.AddMinutes(10);
-                            db.Muteduser.Add(new Muteduser { ServerId = (long)context.Guild.Id, UserId = (long)context.User.Id, Duration = banUntil, Roles = userRoles });
-                            Task.Run(() => sendPrivate(context, banUntil));
+                            EXP.Exp -= 100;
                         }
                         db.SaveChanges();
                     }
@@ -81,8 +65,6 @@ namespace DiscordBot_Core.Preconditions
             {
                 _cooldowns.TryAdd(key, DateTime.UtcNow.Add(CooldownLength));
             }
-
-            counter = 0;
             return Task.FromResult(PreconditionResult.FromSuccess());
         }
 
@@ -99,17 +81,6 @@ namespace DiscordBot_Core.Preconditions
             IUserMessage m = await context.Channel.SendMessageAsync("", false, embed.Build());
             await Task.Delay(delay);
             await m.DeleteAsync();
-        }
-
-        private async Task sendPrivate(ICommandContext context, DateTime banUntil)
-        {
-            await Log.CooldownMute(context);
-            var embedPrivate = new EmbedBuilder();
-            embedPrivate.WithDescription($"Du wurdest auf **{context.Guild.Name}** für **10 Minuten** gemuted.");
-            embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
-            embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {context.Guild.Name} Server.");
-            embedPrivate.WithColor(new Color(255, 0, 0));
-            await context.User.SendMessageAsync(null, false, embedPrivate.Build());
         }
     }
 }

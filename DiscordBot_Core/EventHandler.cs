@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.Services;
 using ImageFormat = Discord.ImageFormat;
+using System.Collections.Generic;
 
 namespace DiscordBot_Core
 {
@@ -26,11 +27,12 @@ namespace DiscordBot_Core
             _service = new CommandService();
             services = new ServiceCollection().BuildServiceProvider();
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
-            CancellationTokenSource _cancelationTokenSource = new CancellationTokenSource();
             //new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
 
-            new Task(async () => await CheckBannedUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckWarnings(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
@@ -39,12 +41,34 @@ namespace DiscordBot_Core
             _client.Connected += _client_Connected;
         }
 
+        private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        {
+            var timenow = DateTime.Now;
+            using (swaightContext db = new swaightContext())
+            {
+                var time = message.Value.Timestamp.DateTime.AddHours(1).AddSeconds(4);
+                if (time > timenow)
+                    return;
+                if (!(message.Value.Author is SocketGuildUser user))
+                    return;
+                if (db.Experience.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).Any())
+                {
+                    var exp = db.Experience.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                    if (exp.Exp > 100)
+                    {
+                        exp.Exp -= 200 + message.Value.Content.Count();
+                        await db.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+
         private async Task _client_Connected()
         {
             using (swaightContext db = new swaightContext())
             {
                 var myEvent = db.Event.FirstOrDefault();
-                if(myEvent.Status == 1)
+                if (myEvent.Status == 1)
                 {
                     await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
                 }
@@ -77,6 +101,157 @@ namespace DiscordBot_Core
                     await db.Guild.AddAsync(new Guild { ServerId = (long)guild.Id });
                     await db.SaveChangesAsync();
                 }
+            }
+        }
+
+        private async Task CheckDate()
+        {
+            while (true)
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    if (db.Currentday.Any())
+                    {
+                        if (db.Currentday.FirstOrDefault().Date.ToShortDateString() == DateTime.Now.ToShortDateString())
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
+                        else
+                        {
+                            db.Currentday.FirstOrDefault().Date = DateTime.Now;
+                            new Task(async () => await NewDay(), TaskCreationOptions.LongRunning).Start();
+                        }
+                    }
+                    else
+                        await db.Currentday.AddAsync(new Currentday { Date = DateTime.Now });
+
+                    await db.SaveChangesAsync();
+                }
+                await Task.Delay(1000);
+            }
+        }
+
+        private async Task NewDay()
+        {
+            await RipGoat();
+            using (swaightContext db = new swaightContext())
+            {
+                if (db.Songlist.Any())
+                {
+                    var songs = db.Songlist;
+                    Random rnd = new Random();
+                    int counter = 1;
+                    int random = rnd.Next(1, songs.Count() + 1);
+                    foreach (var song in songs)
+                    {
+                        song.Active = 0;
+                        if (counter == random)
+                        {
+                            song.Active = 1;
+                        }
+                        counter++;
+                    }
+                    var trades = db.Experience.Where(p => p.Trades > 0);
+                    foreach (var trade in trades)
+                    {
+                        trade.Trades = 0;
+                    }
+                    await db.SaveChangesAsync();
+                }
+            }
+        }
+
+        private async Task RipGoat()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                foreach (var guild in _client.Guilds)
+                {
+                    foreach (var user in guild.Users)
+                    {
+                        var dbUser = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault();
+                        if (dbUser == null)
+                            continue;
+                        if (dbUser.Goats == 0)
+                            continue;
+                        if (dbUser.Lastmessage == null)
+                            continue;
+
+                        if (dbUser.Lastmessage.Value.ToShortDateString() != DateTime.Now.AddDays(-1).ToShortDateString() && !(DateTime.Now.ToShortDateString() == dbUser.Lastmessage.Value.ToShortDateString()))
+                        {
+                            Random rnd = new Random();
+                            int deadGoats;
+                            if (dbUser.Goats > 4 && dbUser.Goats <= 15)
+                            {
+                                deadGoats = rnd.Next(5, dbUser.Goats + 1);
+                                dbUser.Goats -= deadGoats;
+                                await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                await db.SaveChangesAsync();
+                            }
+                            else if (dbUser.Goats > 15)
+                            {
+                                deadGoats = rnd.Next(5, 16);
+                                dbUser.Goats -= deadGoats;
+                                await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                await db.SaveChangesAsync();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task CheckSong()
+        {
+            while (true)
+            {
+                foreach (var guild in _client.Guilds)
+                {
+                    foreach (var user in guild.Users)
+                    {
+                        if (user.Activity is SpotifyGame song)
+                        {
+                            using (swaightContext db = new swaightContext())
+                            {
+                                if (!db.Songlist.Where(p => p.Active == 1).Any())
+                                    continue;
+
+                                if (song.TrackUrl == db.Songlist.Where(p => p.Active == 1).FirstOrDefault().Link)
+                                {
+                                    var musicrank = db.Musicrank.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault() ?? db.Musicrank.AddAsync(new Musicrank { UserId = (long)user.Id, ServerId = (long)guild.Id, Sekunden = 0, Date = DateTime.Now }).Result.Entity;
+                                    if (musicrank.Date.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
+                                    {
+                                        musicrank.Sekunden = 0;
+                                        musicrank.Date = DateTime.Now;
+                                    }
+                                    musicrank.Sekunden += 10;
+                                    await db.SaveChangesAsync();
+                                    if (musicrank.Sekunden == 300)
+                                    {
+                                        var channel = await user.GetOrCreateDMChannelAsync();
+                                        var msgs = channel.GetMessagesAsync(1).Flatten();
+                                        var exp = db.Experience.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                                        if (msgs != null)
+                                        {
+                                            var msg = await msgs.FirstOrDefault() as IMessage;
+                                            if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                            {
+                                                var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
+                                                if (exp != null)
+                                                    await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das hören von '**{songToday.Name}**' erhalten!");
+                                            }
+                                        }
+                                        if (exp != null)
+                                            exp.Goats += 10;
+                                        await db.SaveChangesAsync();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                await Task.Delay(10000);
             }
         }
 
@@ -213,10 +388,6 @@ namespace DiscordBot_Core
             await User.SetRoles();
         }
 
-        private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
-        {
-
-        }
 
         private async Task UserLeft(SocketGuildUser user)
         {

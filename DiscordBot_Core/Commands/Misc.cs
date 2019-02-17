@@ -11,11 +11,11 @@ namespace DiscordBot_Core.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "0.6";
+        private readonly string version = "0.7";
 
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task Help(int page = 1)
         {
             var embed = new EmbedBuilder();
@@ -43,7 +43,7 @@ namespace DiscordBot_Core.Commands
                 embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
                 embed.AddField(Config.bot.cmdPrefix + "warn [User Mention]", "Warnt den User.");
                 embed.AddField(Config.bot.cmdPrefix + "addBadword [word]", "Fügt das Wort zum Wortfilter hinzu.");
-                embed.AddField(Config.bot.cmdPrefix + "delBadword [word]", "Löscht das Wort zum Wortfilter hinzu.");
+                embed.AddField(Config.bot.cmdPrefix + "delBadword [word]", "Löscht das Wort aus dem Wortfilter.");
                 embed.AddField(Config.bot.cmdPrefix + "badwords", "Listet alle Badwords auf.");
                 embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
                 embed.AddField(Config.bot.cmdPrefix + "setBot", "Setzt den aktuellen Channel als Bot Channel.");
@@ -63,7 +63,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("about", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task About()
         {
             int memberCount = 0;
@@ -89,7 +89,7 @@ namespace DiscordBot_Core.Commands
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("settings", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task Settings()
         {
             using (swaightContext db = new swaightContext())
@@ -167,17 +167,10 @@ namespace DiscordBot_Core.Commands
 
         [Command("ping", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task Ping()
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
-
-        //[Command("join", RunMode = RunMode.Async)]
-        //[Cooldown(60)]
-        //public async Task Join()
-        //{
-        //    await (Context.User as SocketGuildUser).VoiceChannel.ConnectAsync();
-        //}
     }
 }

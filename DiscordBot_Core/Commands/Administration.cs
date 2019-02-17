@@ -40,8 +40,8 @@ namespace DiscordBot_Core.Commands
                 using (swaightContext db = new swaightContext())
                 {
                     var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
-                    if (exp.Exp > (100 * amount))
-                        exp.Exp -= (int)(100 * amount);
+                    if (exp.Exp > (50 * amount))
+                        exp.Exp -= (int)(50 * amount);
                     else
                     {
                         amount = (uint)exp.Exp;
@@ -130,6 +130,7 @@ namespace DiscordBot_Core.Commands
         {
             TimeSpan span = DateTime.Now - Program.startTime;
             await Context.Channel.SendMessageAsync($"`Uptime: {span.Days}D {span.Hours}H {span.Minutes}M`");
+            
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]

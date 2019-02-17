@@ -12,16 +12,16 @@ namespace DiscordBot_Core
 {
     public static class Log
     {
-        public static async Task Unmuted(SocketGuild guild, IUser user)
+        public static async Task Unmuted(SocketCommandContext context, IUser user)
         {
             using (swaightContext db = new swaightContext())
             {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
+                var Guild = db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).FirstOrDefault();
                 if (Guild.LogchannelId != null && Guild.Log == 1)
                 {
-                    var logchannel = guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
+                    var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
                     var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde unmuted.");
+                    embed.WithDescription($"{context.User.Username} hat {user.Mention} unmuted.");
                     embed.WithColor(new Color(0, 255, 0));
                     await logchannel.SendMessageAsync("", false, embed.Build());
                 }
@@ -36,7 +36,7 @@ namespace DiscordBot_Core
                 if (Guild.LogchannelId != null && Guild.Log == 1)
                 {
                     var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} wurde entmuted.");
+                    embed.WithDescription($"{user.Mention} wurde automatisch entmuted.");
                     embed.WithColor(new Color(0, 255, 0));
                     var logchannel = user.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
                     await logchannel.SendMessageAsync("", false, embed.Build());
@@ -86,7 +86,7 @@ namespace DiscordBot_Core
                 {
                     var logchannel = context.Guild.TextChannels.Where(p => p.Id == (ulong)Guild.LogchannelId).FirstOrDefault();
                     var logEmbed = new EmbedBuilder();
-                    logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten von {user.Mention} in {(context.Channel as ITextChannel).Mention} gelöscht und {100 * amount} EXP abgezogen.");
+                    logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten von {user.Mention} in {(context.Channel as ITextChannel).Mention} gelöscht und {150 * amount} EXP abgezogen.");
                     logEmbed.WithColor(new Color(255, 0, 0));
                     await logchannel.SendMessageAsync("", false, logEmbed.Build());
                 }

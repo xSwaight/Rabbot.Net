@@ -248,7 +248,7 @@ namespace DiscordBot_Core.Services
                                 await DcTargetUser.AddRoleAsync(role);
                         }
                     }
-                    await Log.Unmuted(context.Guild, user);
+                    await Log.Unmuted(context, user);
                 }
 
             }
