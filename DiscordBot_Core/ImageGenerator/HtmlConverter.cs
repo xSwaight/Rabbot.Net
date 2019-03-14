@@ -45,7 +45,7 @@ namespace DiscordBot_Core.ImageGenerator
         public byte[] FromHtmlString(string html, int width = 1024, int height = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
-            File.WriteAllText(filename, html, Encoding.GetEncoding(12000));
+            File.WriteAllText(filename, html, Encoding.UTF8);
             var bytes = FromUrl(filename, width, height, format, quality);
             File.Delete(filename);
             return bytes;
@@ -63,7 +63,7 @@ namespace DiscordBot_Core.ImageGenerator
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --width {width} --height {height} -f {imageFormat} \"{url}\" \"{filename}\"")
+            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --encoding unicode --width {width} --height {height} -f {imageFormat} \"{url}\" \"{filename}\"")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,

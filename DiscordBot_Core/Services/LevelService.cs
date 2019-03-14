@@ -15,7 +15,7 @@ namespace DiscordBot_Core.Services
         public SocketGuild dcGuild { get; set; }
         public User User { get; set; }
         public Guild Guild { get; set; }
-        public Experience EXP { get; set; }
+        public Userfeatures EXP { get; set; }
         public uint OldLevel { get; set; }
         public uint NewLevel { get; set; }
 
@@ -28,7 +28,7 @@ namespace DiscordBot_Core.Services
                 User = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
                 User.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
-                EXP = db.Experience.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
+                EXP = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 string myMessage = Helper.MessageReplace(msg.Content);
                 int textLenght = myMessage.Replace("*", string.Empty).Count();
@@ -71,11 +71,11 @@ namespace DiscordBot_Core.Services
                 }
                 double dblExp = exp;
                 if (rank == 1)
-                    exp = (int)(dblExp * 1.2);
+                    exp = (int)(dblExp * 1.8);
                 if (rank == 2)
-                    exp = (int)(dblExp * 1.1);
+                    exp = (int)(dblExp * 1.5);
                 if (rank == 3)
-                    exp = (int)(dblExp * 1.05);
+                    exp = (int)(dblExp * 1.3);
 
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;

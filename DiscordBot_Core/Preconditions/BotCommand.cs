@@ -35,7 +35,7 @@ namespace DiscordBot_Core.Preconditions
                     else
                     {
                         Task.Run(() => sendMessage(context, botChannel));
-                        var EXP = db.Experience.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
+                        var EXP = db.Userfeatures.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
                         if (EXP != null && EXP.Exp > 500)
                         {
                             EXP.Exp -= 100;

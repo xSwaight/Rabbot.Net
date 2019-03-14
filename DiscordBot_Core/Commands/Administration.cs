@@ -18,6 +18,9 @@ namespace DiscordBot_Core.Commands
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         public async Task Delete(uint amount, IUser user = null)
         {
+            if (amount < 1)
+                return;
+
             if (user == null)
             {
                 IEnumerable<IMessage> messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
@@ -39,7 +42,7 @@ namespace DiscordBot_Core.Commands
                 await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
                 using (swaightContext db = new swaightContext())
                 {
-                    var exp = db.Experience.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    var exp = db.Userfeatures.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
                     if (exp.Exp > (50 * amount))
                         exp.Exp -= (int)(50 * amount);
                     else
@@ -65,6 +68,9 @@ namespace DiscordBot_Core.Commands
         [Command("mute", RunMode = RunMode.Async)]
         public async Task Mute(IUser user, string duration)
         {
+            if (duration.Contains('-'))
+                return;
+
             await Context.Message.DeleteAsync();
             MuteService mute = new MuteService(Context.Client);
             await mute.MuteTargetUser(user, duration, Context);
@@ -408,7 +414,7 @@ namespace DiscordBot_Core.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var Experience = db.Experience.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                var Experience = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
                 if (Experience.Gain == 0)

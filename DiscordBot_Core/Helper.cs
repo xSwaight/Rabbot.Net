@@ -8,11 +8,40 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
+using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core
 {
     public static class Helper
     {
+        public static Dictionary<int, Stall> stall = new Dictionary<int, Stall> {
+            { 0, new Stall{Level = 1, Name = "Wiese Lv. 1", Capacity = 300, Attack = 1, Defense = 1, Jackpot = 150, MaxOutput = 40 } },
+            { 2, new Stall{Level = 2, Name = "Wiese Lv. 2", Capacity = 500, Attack = 1, Defense = 1, Jackpot = 200, MaxOutput = 45  } },
+            { 5, new Stall{Level = 3, Name = "Wiese Lv. 3", Capacity = 700, Attack = 2, Defense = 2, Jackpot = 250, MaxOutput = 50  } },
+            { 10, new Stall{Level = 4, Name = "Wiese Lv. 4", Capacity = 900, Attack = 2, Defense = 2, Jackpot = 300, MaxOutput = 55  } },
+            { 15, new Stall{Level = 5, Name = "Wiese Lv. 5", Capacity = 1100, Attack = 3, Defense = 3, Jackpot = 350, MaxOutput = 60  } },
+            { 20, new Stall{Level = 6, Name = "Unterstand Lv. 1", Capacity = 1300, Attack = 3, Defense = 3, Jackpot = 400, MaxOutput = 70  } },
+            { 25, new Stall{Level = 7, Name = "Unterstand Lv. 2", Capacity = 1500, Attack = 4, Defense = 4, Jackpot = 450, MaxOutput = 80  } },
+            { 30, new Stall{Level = 8, Name = "Unterstand Lv. 3", Capacity = 1700, Attack = 4, Defense = 4, Jackpot = 500, MaxOutput = 90  } },
+            { 35, new Stall{Level = 9, Name = "Unterstand Lv. 4", Capacity = 1900, Attack = 5, Defense = 5, Jackpot = 550, MaxOutput = 100  } },
+            { 40, new Stall{Level = 10, Name = "Unterstand Lv. 5", Capacity = 2100, Attack = 5, Defense = 5, Jackpot = 600, MaxOutput = 110  } },
+            { 50, new Stall{Level = 11, Name = "Schuppen Lv. 1", Capacity = 2300, Attack = 6, Defense = 6, Jackpot = 650, MaxOutput = 130  } },
+            { 60, new Stall{Level = 12, Name = "Schuppen Lv. 2", Capacity = 2500, Attack = 6, Defense = 6, Jackpot = 700, MaxOutput = 150  } },
+            { 70, new Stall{Level = 13, Name = "Schuppen Lv. 3", Capacity = 2700, Attack = 7, Defense = 7, Jackpot = 750, MaxOutput = 170  } },
+            { 80, new Stall{Level = 14, Name = "Schuppen Lv. 4", Capacity = 2900, Attack = 7, Defense = 7, Jackpot = 800, MaxOutput = 190  } },
+            { 90, new Stall{Level = 15, Name = "Schuppen Lv. 5", Capacity = 3100, Attack = 8, Defense = 8, Jackpot = 850, MaxOutput = 210  } },
+            { 100, new Stall{Level = 16, Name = "Kleiner Stall Lv. 1", Capacity = 3300, Attack = 8, Defense = 8, Jackpot = 900, MaxOutput = 240  } },
+            { 120, new Stall{Level = 17, Name = "Kleiner Stall Lv. 2", Capacity = 3500, Attack = 9, Defense = 9, Jackpot = 950, MaxOutput = 270  } },
+            { 140, new Stall{Level = 18, Name = "Kleiner Stall Lv. 3", Capacity = 3700, Attack = 9, Defense = 9, Jackpot = 1000, MaxOutput = 300  } },
+            { 160, new Stall{Level = 19, Name = "Kleiner Stall Lv. 4", Capacity = 3900, Attack = 10, Defense = 10, Jackpot = 1050, MaxOutput = 330  } },
+            { 180, new Stall{Level = 20, Name = "Kleiner Stall Lv. 5", Capacity = 4100, Attack = 10, Defense = 10, Jackpot = 1100, MaxOutput = 360  } },
+            { 200, new Stall{Level = 21, Name = "Großer Stall Lv. 1", Capacity = 4300, Attack = 11, Defense = 11, Jackpot = 1150, MaxOutput = 400 } },
+            { 240, new Stall{Level = 22, Name = "Großer Stall Lv. 2", Capacity = 4500, Attack = 11, Defense = 11, Jackpot = 1200, MaxOutput = 440  } },
+            { 280, new Stall{Level = 23, Name = "Großer Stall Lv. 3", Capacity = 4700, Attack = 12, Defense = 12, Jackpot = 1250, MaxOutput = 480  } },
+            { 320, new Stall{Level = 24, Name = "Großer Stall Lv. 4", Capacity = 4900, Attack = 12, Defense = 12, Jackpot = 1300, MaxOutput = 520  } },
+            { 360, new Stall{Level = 25, Name = "Großer Stall Lv. 5", Capacity = 5100, Attack = 13, Defense = 13, Jackpot = 1350, MaxOutput = 560  } },
+            { 400, new Stall{Level = 26, Name = "Ziegenhof", Capacity = 15000, Attack = 15, Defense = 15, Jackpot = 1500, MaxOutput = 600  } }
+        };
 
         public static Dictionary<int, int> exp = new Dictionary<int, int> {
             { 0, 0 },
@@ -127,6 +156,20 @@ namespace DiscordBot_Core
                     return null;
                 }
             }
+        }
+
+        public static Stall GetStall(int wins)
+        {
+            var myStall = stall.Where(y => y.Key <= wins).OrderByDescending(x => x.Key).FirstOrDefault().Value;
+            return myStall;
+        }
+
+        public static bool IsFull (int goats, int wins)
+        {
+            var stall = GetStall(wins);
+            if (stall.Capacity < goats)
+                return true;
+            return false;
         }
 
         public static uint GetLevel(int? myExp)

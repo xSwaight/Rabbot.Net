@@ -11,7 +11,7 @@ namespace DiscordBot_Core.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "0.7";
+        private readonly string version = "0.8";
 
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
@@ -22,22 +22,27 @@ namespace DiscordBot_Core.Commands
             embed.WithColor(new Color(241, 242, 222));
             if (page == 1)
             {
-                embed.Description = "Commandliste Seite 1:";
+                embed.Description = "Commandlist Seite 1:";
                 embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
                 embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
                 embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
                 embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
                 embed.AddField(Config.bot.cmdPrefix + "s4dbcard [S4 Username]", "Erstellt eine Playercard Grafik im S4DB Style.");
-                embed.AddField(Config.bot.cmdPrefix + "server", "Gibt die aktuelle Spielerzahl aus.");
                 embed.AddField(Config.bot.cmdPrefix + "about", "Gibt Statistiken zum Bot aus.");
                 embed.AddField(Config.bot.cmdPrefix + "ping", "Gibt die Verzögerung zum Bot aus.");
                 embed.AddField(Config.bot.cmdPrefix + "profile (User Mention)", "Ohne Argument gibt er das eigene Profil aus, mit Argument das Profil des markierten Users.");
+                embed.AddField(Config.bot.cmdPrefix + "daily", "Du hast die tägliche Chance deinen Stall mit Ziegen zu füllen, mit denen du handeln kannst.");
+                embed.AddField(Config.bot.cmdPrefix + "shop", "Zeigt aktuelle Angebote zur Verwendung von Ziegen.");
+                embed.AddField(Config.bot.cmdPrefix + "angriff [User Mention]", "Startet einen Angriff gegen markierten User.");
+                embed.AddField(Config.bot.cmdPrefix + "stats (User Mention)", "Gibt deine Kampfstatistiken aus.");
+                embed.AddField(Config.bot.cmdPrefix + "stall (User Mention)", "Zeigt deinen aktuellen Stall an.");
+                embed.AddField(Config.bot.cmdPrefix + "stalls", "Zeigt eine Liste mit allen Stallen an.");
                 if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
                     embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
             }
             else if (page == 2)
             {
-                embed.Description = "Commandliste Seite 2:";
+                embed.Description = "Commandlist Seite 2:";
                 embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
                 embed.AddField(Config.bot.cmdPrefix + "mute [User Mention] [duration]", "Muted den User für angegebene Zeit (Zeitindikatoren: s = sekunden, m = minuten, h = stunden, d = tage).");
                 embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
@@ -56,6 +61,10 @@ namespace DiscordBot_Core.Commands
                 embed.AddField(Config.bot.cmdPrefix + "setupLevels", "Erstellt S4 League Level Gruppen die automatisch beim erreichen des jeweiligen Levels gesetzt werden.");
                 embed.AddField(Config.bot.cmdPrefix + "levelNotification", "Aktiviert oder deaktiviert die Level Nofitications auf dem Server.");
                 embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
+            }
+            else
+            {
+                return;
             }
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync(null, false, embed.Build());

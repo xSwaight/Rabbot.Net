@@ -11,6 +11,7 @@ using DiscordBot_Core.Database;
 using DiscordBot_Core.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
+using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core
 {
@@ -27,12 +28,13 @@ namespace DiscordBot_Core
             _service = new CommandService();
             services = new ServiceCollection().BuildServiceProvider();
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
-            //new Task(async () => await CheckOnlineUsers(), _cancelationTokenSource.Token, TaskCreationOptions.LongRunning).Start();
 
             new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
@@ -51,9 +53,9 @@ namespace DiscordBot_Core
                     return;
                 if (!(message.Value.Author is SocketGuildUser user))
                     return;
-                if (db.Experience.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).Any())
+                if (db.Userfeatures.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).Any())
                 {
-                    var exp = db.Experience.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                    var exp = db.Userfeatures.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
                     if (exp.Exp > 100)
                     {
                         exp.Exp -= 200 + message.Value.Content.Count();
@@ -152,54 +154,149 @@ namespace DiscordBot_Core
                         }
                         counter++;
                     }
-                    var trades = db.Experience.Where(p => p.Trades > 0);
-                    foreach (var trade in trades)
-                    {
-                        trade.Trades = 0;
-                    }
-                    await db.SaveChangesAsync();
                 }
+                var trades = db.Userfeatures.Where(p => p.Trades > 0);
+                foreach (var trade in trades)
+                {
+                    trade.Trades = 0;
+                }
+
+                var attacks = db.Userfeatures.Where(p => p.Attacks > 0);
+                foreach (var attack in attacks)
+                {
+                    attack.Attacks = 0;
+                }
+                var users = db.Userfeatures.Where(p => p.NamechangeUntil != null);
+                foreach (var user in users)
+                {
+                    if (user.NamechangeUntil.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
+                    {
+                        user.NamechangeUntil = null;
+                        var dcUser = _client.Guilds.Where(p => p.Id == (ulong)user.ServerId).FirstOrDefault().Users.Where(p => p.Id == (ulong)user.UserId).FirstOrDefault() as SocketGuildUser;
+                        await dcUser.SendMessageAsync($"Dein Namechange zu **{dcUser.Nickname}** auf dem **{dcUser.Guild.Name}** Server ist abgelaufen.");
+                        await dcUser.ModifyAsync(p => p.Nickname = null);
+                    }
+                }
+                try
+                {
+                    if (db.Pot.Any())
+                    {
+                        var servers = db.Pot.GroupBy(p => p.ServerId).Select(p => p.Key).ToList();
+                        foreach (var serverId in servers)
+                        {
+                            var pot = db.Pot.Where(p => p.ServerId == serverId);
+                            var sum = pot.Sum(p => p.Goats);
+                            double min = 0;
+                            List<PotUser> myList = new List<PotUser>();
+                            foreach (var item in pot)
+                            {
+                                var chance = (double)item.Goats / (double)sum * 100;
+                                myList.Add(new PotUser { UserId = (long)item.UserId, Min = min + 1, Max = chance + min, Chance = (int)Math.Round(chance) });
+                                min = chance + min;
+                            }
+                            foreach (var item in myList)
+                            {
+                                item.Max = Math.Floor(item.Max);
+                                item.Min = Math.Floor(item.Min);
+                            }
+
+                            Random rnd = new Random();
+                            var luck = rnd.Next(1, 101);
+                            var botChannelId = db.Guild.Where(p => p.ServerId == (long)serverId).FirstOrDefault().Botchannelid;
+                            var dcServer = _client.Guilds.Where(p => p.Id == (ulong)serverId).FirstOrDefault();
+                            var dcBotChannel = dcServer.TextChannels.Where(p => p.Id == (ulong)botChannelId).FirstOrDefault();
+
+                            foreach (var item in myList)
+                            {
+                                if (item.Min <= luck && item.Max >= luck)
+                                {
+                                    var dcUser = dcServer.Users.Where(p => p.Id == (ulong)item.UserId).FirstOrDefault();
+                                    var dbUserfeature = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)dcUser.Id).FirstOrDefault();
+                                    EmbedBuilder embed = new EmbedBuilder();
+                                    embed.Color = Color.Green;
+                                    var stall = Helper.GetStall(dbUserfeature.Wins);
+                                    if (Helper.IsFull(dbUserfeature.Goats + sum, dbUserfeature.Wins))
+                                    {
+                                        embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind dir **{sum - stall.Capacity} Ziegen** wieder **entlaufen**..";
+                                        dbUserfeature.Goats = stall.Capacity;
+                                    }
+                                    else
+                                    {
+                                        embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!";
+                                        dbUserfeature.Goats += sum;
+
+                                    }
+                                    foreach (var myPot in pot)
+                                    {
+                                        db.Pot.Remove(myPot);
+                                    }
+                                    await db.SaveChangesAsync();
+                                    await dcBotChannel.SendMessageAsync(null, false, embed.Build());
+
+                                }
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                }
+
+
+
+
+                await db.SaveChangesAsync();
             }
         }
 
         private async Task RipGoat()
         {
-            using (swaightContext db = new swaightContext())
+            try
             {
-                foreach (var guild in _client.Guilds)
+                using (swaightContext db = new swaightContext())
                 {
-                    foreach (var user in guild.Users)
+                    foreach (var guild in _client.Guilds)
                     {
-                        var dbUser = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault();
-                        if (dbUser == null)
-                            continue;
-                        if (dbUser.Goats == 0)
-                            continue;
-                        if (dbUser.Lastmessage == null)
-                            continue;
-
-                        if (dbUser.Lastmessage.Value.ToShortDateString() != DateTime.Now.AddDays(-1).ToShortDateString() && !(DateTime.Now.ToShortDateString() == dbUser.Lastmessage.Value.ToShortDateString()))
+                        foreach (var user in guild.Users)
                         {
-                            Random rnd = new Random();
-                            int deadGoats;
-                            if (dbUser.Goats > 4 && dbUser.Goats <= 15)
+                            var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault();
+                            if (dbUser == null)
+                                continue;
+                            if (dbUser.Goats == 0)
+                                continue;
+                            if (dbUser.Lastmessage == null)
+                                continue;
+
+                            if (dbUser.Lastmessage.Value.ToShortDateString() != DateTime.Now.AddDays(-1).ToShortDateString() && !(DateTime.Now.ToShortDateString() == dbUser.Lastmessage.Value.ToShortDateString()))
                             {
-                                deadGoats = rnd.Next(5, dbUser.Goats + 1);
-                                dbUser.Goats -= deadGoats;
-                                await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
-                                await db.SaveChangesAsync();
-                            }
-                            else if (dbUser.Goats > 15)
-                            {
-                                deadGoats = rnd.Next(5, 16);
-                                dbUser.Goats -= deadGoats;
-                                await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
-                                await db.SaveChangesAsync();
+                                Random rnd = new Random();
+                                int deadGoats;
+                                if (dbUser.Goats > 4 && dbUser.Goats <= 15)
+                                {
+                                    deadGoats = rnd.Next(5, dbUser.Goats + 1);
+                                    dbUser.Goats -= deadGoats;
+                                    await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                    await db.SaveChangesAsync();
+                                }
+                                else if (dbUser.Goats > 15)
+                                {
+                                    deadGoats = rnd.Next(5, 16);
+                                    dbUser.Goats -= deadGoats;
+                                    await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                    await db.SaveChangesAsync();
+                                }
                             }
                         }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\n" + e.StackTrace);
+            }
+
         }
 
         private async Task CheckSong()
@@ -231,16 +328,17 @@ namespace DiscordBot_Core
                                     {
                                         var channel = await user.GetOrCreateDMChannelAsync();
                                         var msgs = channel.GetMessagesAsync(1).Flatten();
-                                        var exp = db.Experience.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                                        var exp = db.Userfeatures.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
                                         if (msgs != null)
                                         {
                                             var msg = await msgs.FirstOrDefault() as IMessage;
-                                            if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
-                                            {
-                                                var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
-                                                if (exp != null)
-                                                    await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das hören von '**{songToday.Name}**' erhalten!");
-                                            }
+                                            if (msg != null)
+                                                if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                                {
+                                                    var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
+                                                    if (exp != null)
+                                                        await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
+                                                }
                                         }
                                         if (exp != null)
                                             exp.Goats += 10;
@@ -265,6 +363,38 @@ namespace DiscordBot_Core
             }
         }
 
+        private async Task CheckItems()
+        {
+            while (true)
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    if (db.Inventory.Any())
+                    {
+                        foreach (var item in db.Inventory)
+                        {
+                            if (item.Duration < DateTime.Now)
+                            {
+                                db.Inventory.Remove(item);
+                            }
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+                await Task.Delay(1000);
+            }
+        }
+
+        private async Task CheckAttacks()
+        {
+            while (true)
+            {
+                AttackService attacks = new AttackService(_client);
+                await attacks.CheckAttacks();
+                await Task.Delay(1000);
+            }
+        }
+
         private async Task CheckBannedUsers()
         {
             while (true)
@@ -274,87 +404,6 @@ namespace DiscordBot_Core
                 await Task.Delay(1000);
             }
         }
-
-        #region OnlineUser
-        //private async Task CheckOnlineUsers()
-        //{
-        //    int onlineUsers = -1;
-        //    int crashCounter = 0;
-        //    DateTime time = DateTime.Now;
-        //    while (true)
-        //    {
-        //        try
-        //        {
-        //            List<Server> server = new List<Server>();
-        //            ApiRequest DB = new ApiRequest();
-        //            server = await DB.GetServer();
-        //            int onlinecount = 0;
-        //            foreach (var item in server)
-        //            {
-        //                if (item.Player_online >= 0)
-        //                    onlinecount += item.Player_online;
-        //            }
-        //            var percent = (Convert.ToDouble(onlinecount) / Convert.ToDouble(onlineUsers)) * 100;
-        //            if ((percent < 80) && onlineUsers != -1 && onlinecount != 0)
-        //            {
-        //                var embed = new EmbedBuilder();
-        //                embed.WithDescription($"***Server Liste:***");
-        //                embed.WithColor(new Color(111, 116, 124));
-        //                using (swaightContext db = new swaightContext())
-        //                {
-        //                    string crashedServer = "";
-        //                    foreach (var item in server)
-        //                    {
-        //                        if (item.Player_online >= 0)
-        //                        {
-        //                            string status = "";
-        //                            switch (item.State)
-        //                            {
-        //                                case 0:
-        //                                    status = "Offline";
-        //                                    crashedServer = item.Name;
-        //                                    break;
-        //                                case 1:
-        //                                    status = "Slow";
-        //                                    break;
-        //                                case 2:
-        //                                    status = "Online";
-        //                                    break;
-        //                                default:
-        //                                    status = "Unknown";
-        //                                    break;
-        //                            }
-        //                            embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString() + "**", false);
-        //                        }
-        //                    }
-        //                    crashCounter++;
-        //                    TimeSpan span = DateTime.Now - time;
-        //                    if (db.Guild.Count() > 0)
-        //                    {
-        //                        foreach (var item in db.Guild)
-        //                        {
-        //                            if (item.NotificationchannelId != null && item.Notify == 1 && !String.IsNullOrWhiteSpace(crashedServer))
-        //                                await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"**{crashedServer}** ist gecrashed! Das ist der **{crashCounter}.** Crash in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M!**", false, embed.Build());
-        //                            else if (item.NotificationchannelId != null && item.Notify == 1)
-        //                                await _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault().TextChannels.Where(p => p.Id == (ulong)item.NotificationchannelId).FirstOrDefault().SendMessageAsync($"Die Spieleranzahl ist in den letzten **{span.Days}D {span.Hours}H {span.Minutes}M** schon **{crashCounter} mal** eingebrochen!", false, embed.Build());
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            onlineUsers = onlinecount;
-        //            if (onlinecount > 0)
-        //                await _client.SetGameAsync($"{onlinecount} Players online!", null, ActivityType.Watching);
-        //            else
-        //                await _client.SetGameAsync($"Auth Server is down!", null, ActivityType.Watching);
-        //            await Task.Delay(10000);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Console.WriteLine("Fehler: " + e.Message + "\n" + e.StackTrace);
-        //        }
-        //    }
-        //}
-        #endregion
 
         private async Task MessageReceived(SocketMessage msg)
         {

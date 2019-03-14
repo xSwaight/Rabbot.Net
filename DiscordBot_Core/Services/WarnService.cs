@@ -39,12 +39,20 @@ namespace DiscordBot_Core.Services
                         await db.SaveChangesAsync();
                         continue;
                     }
-                    if(warn.Counter >= 3)
+                    if (warn.Counter >= 3)
                     {
                         DcGuild = DcClient.Guilds.Where(p => p.Id == (ulong)warn.ServerId).FirstOrDefault();
                         DcTargetUser = DcGuild.Users.Where(p => p.Id == (ulong)warn.UserId).FirstOrDefault();
+                        var dbUser = db.Userfeatures.Where(p => p.ServerId == warn.ServerId && p.UserId == warn.UserId).FirstOrDefault();
                         MuteService mute = new MuteService(DcClient);
                         await mute.MuteWarnedUser(DcTargetUser, DcGuild);
+                        if (dbUser != null)
+                        {
+                            if (dbUser.Goats >= 100)
+                                dbUser.Goats -= 100;
+                            else
+                                dbUser.Goats = 0;
+                        }
                         db.Warning.Remove(warn);
                         await db.SaveChangesAsync();
                         continue;

@@ -15,15 +15,19 @@ namespace DiscordBot_Core.Database
         {
         }
 
+        public virtual DbSet<Attacks> Attacks { get; set; }
         public virtual DbSet<Badwords> Badwords { get; set; }
         public virtual DbSet<Currentday> Currentday { get; set; }
         public virtual DbSet<Event> Event { get; set; }
-        public virtual DbSet<Experience> Experience { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
+        public virtual DbSet<Inventory> Inventory { get; set; }
+        public virtual DbSet<Items> Items { get; set; }
         public virtual DbSet<Musicrank> Musicrank { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
+        public virtual DbSet<Pot> Pot { get; set; }
         public virtual DbSet<Songlist> Songlist { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<Userfeatures> Userfeatures { get; set; }
         public virtual DbSet<Warning> Warning { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -37,6 +41,35 @@ namespace DiscordBot_Core.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Attacks>(entity =>
+            {
+                entity.ToTable("attacks");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.AttackEnds)
+                    .HasColumnName("attackEnds")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.ChannelId)
+                    .HasColumnName("channelId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.TargetId)
+                    .HasColumnName("targetId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnName("userId")
+                    .HasColumnType("bigint(20)");
+            });
+
             modelBuilder.Entity<Badwords>(entity =>
             {
                 entity.ToTable("badwords");
@@ -81,49 +114,6 @@ namespace DiscordBot_Core.Database
                     .HasDefaultValueSql("'0'");
             });
 
-            modelBuilder.Entity<Experience>(entity =>
-            {
-                entity.ToTable("experience");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.Exp)
-                    .HasColumnName("exp")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.Gain)
-                    .HasColumnName("gain")
-                    .HasColumnType("int(1)")
-                    .HasDefaultValueSql("'1'");
-
-                entity.Property(e => e.Goats)
-                    .HasColumnName("goats")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.Lastdaily)
-                    .HasColumnName("lastdaily")
-                    .HasColumnType("datetime");
-
-                entity.Property(e => e.Lastmessage)
-                    .HasColumnName("lastmessage")
-                    .HasColumnType("datetime");
-
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
-
-                entity.Property(e => e.Trades)
-                    .HasColumnName("trades")
-                    .HasColumnType("int(11)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(11)");
-            });
-
             modelBuilder.Entity<Guild>(entity =>
             {
                 entity.HasKey(e => e.ServerId)
@@ -161,6 +151,51 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("notify")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<Inventory>(entity =>
+            {
+                entity.ToTable("inventory");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Duration)
+                    .HasColumnName("duration")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.FeatureId)
+                    .HasColumnName("featureId")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.ItemId)
+                    .HasColumnName("itemId")
+                    .HasColumnType("int(11)");
+            });
+
+            modelBuilder.Entity<Items>(entity =>
+            {
+                entity.ToTable("items");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Atk)
+                    .HasColumnName("atk")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Def)
+                    .HasColumnName("def")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(80)");
             });
 
             modelBuilder.Entity<Musicrank>(entity =>
@@ -211,6 +246,28 @@ namespace DiscordBot_Core.Database
                     .HasColumnType("bigint(11)");
             });
 
+            modelBuilder.Entity<Pot>(entity =>
+            {
+                entity.ToTable("pot");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Goats)
+                    .HasColumnName("goats")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnName("userId")
+                    .HasColumnType("bigint(20)");
+            });
+
             modelBuilder.Entity<Songlist>(entity =>
             {
                 entity.ToTable("songlist");
@@ -248,6 +305,73 @@ namespace DiscordBot_Core.Database
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasColumnType("varchar(45)");
+            });
+
+            modelBuilder.Entity<Userfeatures>(entity =>
+            {
+                entity.ToTable("userfeatures");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Attacks)
+                    .HasColumnName("attacks")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Exp)
+                    .HasColumnName("exp")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Gain)
+                    .HasColumnName("gain")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Goats)
+                    .HasColumnName("goats")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Lastdaily)
+                    .HasColumnName("lastdaily")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Lastmessage)
+                    .HasColumnName("lastmessage")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Locked)
+                    .HasColumnName("locked")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Loses)
+                    .HasColumnName("loses")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.NamechangeUntil)
+                    .HasColumnName("namechangeUntil")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Trades)
+                    .HasColumnName("trades")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnName("userId")
+                    .HasColumnType("bigint(11)");
+
+                entity.Property(e => e.Wins)
+                    .HasColumnName("wins")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<Warning>(entity =>
