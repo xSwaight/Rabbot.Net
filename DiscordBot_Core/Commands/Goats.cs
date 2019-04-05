@@ -320,6 +320,7 @@ namespace DiscordBot_Core.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
+
                 if (dbTarget.Locked == 1)
                 {
                     embed.Color = Color.Red;
@@ -390,7 +391,7 @@ namespace DiscordBot_Core.Commands
 
                 var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 1).FirstOrDefault();
                 if (inventar != null)
-                    inventar.Duration = DateTime.Now.AddDays(1);
+                    inventar.Duration = inventar.Duration.Value.AddDays(1);
                 else
                     await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Duration = DateTime.Now.AddDays(1) });
 
@@ -428,7 +429,7 @@ namespace DiscordBot_Core.Commands
 
                 var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 2).FirstOrDefault();
                 if (inventar != null)
-                    inventar.Duration = DateTime.Now.AddDays(1);
+                    inventar.Duration = inventar.Duration.Value.AddDays(1);
                 else
                     await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Duration = DateTime.Now.AddDays(1) });
 
@@ -553,6 +554,7 @@ namespace DiscordBot_Core.Commands
 
                         var sum = userAtk + def;
                         var winChance = ((double)userAtk / (double)sum) * 100;
+                        //var blockChance = ((double)userDef / (double)sum) * 100;
 
                         embed.WithTitle($"Statistiken von {target.Username}");
                         embed.WithColor(new Color(241, 242, 222));
@@ -560,6 +562,7 @@ namespace DiscordBot_Core.Commands
                         embed.AddField($"Aktueller Stall", $"{stall.Name}");
                         embed.AddField($"Stats", $"ATK: **{atk.ToString("N0")}0** | DEF: **{def.ToString("N0")}0**");
                         embed.AddField($"Gewinnchance gegen {target.Username}", $"{Math.Round(winChance)}%");
+                        //embed.AddField($"Blockchance gegen {target.Username}", $"{Math.Round(blockChance)}%");
                         if (inventory.Count() != 0)
                         {
                             string items = "";

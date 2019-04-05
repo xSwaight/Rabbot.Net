@@ -31,7 +31,7 @@ namespace DiscordBot_Core.Services
                 EXP = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 string myMessage = Helper.MessageReplace(msg.Content);
-                int textLenght = myMessage.Replace("*", string.Empty).Count();
+                int textLenght = myMessage.Replace("*", string.Empty).Replace("⁢", string.Empty).Count();
                 Random rnd = new Random();
                 int random = rnd.Next(1, 11);
                 if (textLenght == 0)
@@ -111,89 +111,106 @@ namespace DiscordBot_Core.Services
 
         public async Task SetRoles(bool currentServer = false)
         {
-            var roleS4 = dcGuild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
-            var rolePro = dcGuild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
-            var roleSemi = dcGuild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
-            var roleAmateur = dcGuild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
-            var roleRookie = dcGuild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
+            //var roleS4 = dcGuild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
+            //var rolePro = dcGuild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
+            //var roleSemi = dcGuild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
+            //var roleAmateur = dcGuild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
+            //var roleRookie = dcGuild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
 
-            if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
+            using (swaightContext db = new swaightContext())
             {
-                var myUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
-                if (NewLevel < 1)
+                var roles = db.Roles.Where(p => p.ServerId == (long)dcGuild.Id);
+
+                var S4Id = roles.Where(x => x.Description == "S4").FirstOrDefault() ?? new Roles {ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
+                var ProId = roles.Where(x => x.Description == "Pro").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "ProId" };
+                var SemiId = roles.Where(x => x.Description == "Semi").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "SemiId" };
+                var AmateurId = roles.Where(x => x.Description == "Amateur").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "AmateurId" };
+                var RookieId = roles.Where(x => x.Description == "Rookie").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "RookieId" };
+
+                var roleS4 = dcGuild.Roles.Where(p => p.Id == (ulong)S4Id.RoleId).FirstOrDefault();
+                var rolePro = dcGuild.Roles.Where(p => p.Id == (ulong)ProId.RoleId).FirstOrDefault();
+                var roleSemi = dcGuild.Roles.Where(p => p.Id == (ulong)SemiId.RoleId).FirstOrDefault();
+                var roleAmateur = dcGuild.Roles.Where(p => p.Id == (ulong)AmateurId.RoleId).FirstOrDefault();
+                var roleRookie = dcGuild.Roles.Where(p => p.Id == (ulong)RookieId.RoleId).FirstOrDefault();
+
+                if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {
-                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                    var myUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
+                    if (NewLevel < 1)
                     {
-                        await myUser.RemoveRoleAsync(roleS4);
-                        await myUser.RemoveRoleAsync(rolePro);
-                        await myUser.RemoveRoleAsync(roleSemi);
-                        await myUser.RemoveRoleAsync(roleAmateur);
-                        await myUser.RemoveRoleAsync(roleRookie);
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
                     }
-                }
-                if (NewLevel >= 1 && NewLevel <= 19)
-                {
-                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)
+                    if (NewLevel >= 1 && NewLevel <= 19)
                     {
-                        await myUser.RemoveRoleAsync(roleS4);
-                        await myUser.RemoveRoleAsync(rolePro);
-                        await myUser.RemoveRoleAsync(roleSemi);
-                        await myUser.RemoveRoleAsync(roleAmateur);
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                        }
+                        if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() == null)
+                            await myUser.AddRoleAsync(roleRookie);
                     }
-                    if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() == null)
-                        await myUser.AddRoleAsync(roleRookie);
-                }
-                if (NewLevel >= 20 && NewLevel <= 39)
-                {
-                    if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() != null)
-                        await myUser.RemoveRoleAsync(roleRookie);
-                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi").FirstOrDefault() != null)
+                    if (NewLevel >= 20 && NewLevel <= 39)
                     {
-                        await myUser.RemoveRoleAsync(roleS4);
-                        await myUser.RemoveRoleAsync(rolePro);
-                        await myUser.RemoveRoleAsync(roleSemi);
+                        if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() != null)
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                        }
+                        if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() == null)
+                            await myUser.AddRoleAsync(roleAmateur);
                     }
-                    if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() == null)
-                        await myUser.AddRoleAsync(roleAmateur);
-                }
-                if (NewLevel >= 40 && NewLevel <= 59)
-                {
-                    if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() != null)
-                        await myUser.RemoveRoleAsync(roleAmateur);
-                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Rookie").FirstOrDefault() != null)
+                    if (NewLevel >= 40 && NewLevel <= 59)
                     {
-                        await myUser.RemoveRoleAsync(roleS4);
-                        await myUser.RemoveRoleAsync(rolePro);
-                        await myUser.RemoveRoleAsync(roleRookie);
+                        if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() != null)
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Rookie").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() == null)
+                            await myUser.AddRoleAsync(roleSemi);
                     }
-                    if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() == null)
-                        await myUser.AddRoleAsync(roleSemi);
-                }
-                if (NewLevel >= 60 && NewLevel <= 79)
-                {
-                    if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() != null)
-                        await myUser.RemoveRoleAsync(roleSemi);
-                    if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                    if (NewLevel >= 60 && NewLevel <= 79)
                     {
-                        await myUser.RemoveRoleAsync(roleS4);
-                        await myUser.RemoveRoleAsync(roleAmateur);
-                        await myUser.RemoveRoleAsync(roleRookie);
+                        if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() != null)
+                            await myUser.RemoveRoleAsync(roleSemi);
+                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() == null)
+                            await myUser.AddRoleAsync(rolePro);
                     }
-                    if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() == null)
-                        await myUser.AddRoleAsync(rolePro);
-                }
-                if (NewLevel >= 80)
-                {
-                    if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() != null)
-                        await myUser.RemoveRoleAsync(rolePro);
-                    if (myUser.Roles.Where(p => p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                    if (NewLevel >= 80)
                     {
-                        await myUser.RemoveRoleAsync(roleSemi);
-                        await myUser.RemoveRoleAsync(roleAmateur);
-                        await myUser.RemoveRoleAsync(roleRookie);
+                        if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() != null)
+                            await myUser.RemoveRoleAsync(rolePro);
+                        if (myUser.Roles.Where(p => p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.Where(p => p.Name == "S4").FirstOrDefault() == null)
+                            await myUser.AddRoleAsync(roleS4);
                     }
-                    if (myUser.Roles.Where(p => p.Name == "S4").FirstOrDefault() == null)
-                        await myUser.AddRoleAsync(roleS4);
                 }
             }
         }

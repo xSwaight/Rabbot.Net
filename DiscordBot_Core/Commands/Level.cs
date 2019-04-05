@@ -208,28 +208,59 @@ namespace DiscordBot_Core.Commands
             }
         }
 
-
         [Command("setupLevels", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageRoles)]
         public async Task SetupLevel()
         {
             await Context.Message.DeleteAsync();
-            var roleS4 = Context.Guild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
-            var rolePro = Context.Guild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
-            var roleSemi = Context.Guild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
-            var roleAmateur = Context.Guild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
-            var roleRookie = Context.Guild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
+            //var roleS4 = Context.Guild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
+            //var rolePro = Context.Guild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
+            //var roleSemi = Context.Guild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
+            //var roleAmateur = Context.Guild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
+            //var roleRookie = Context.Guild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
 
-            if (roleS4 == null)
-                await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true);
-            if (rolePro == null)
-                await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true);
-            if (roleSemi == null)
-                await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true);
-            if (roleAmateur == null)
-                await Context.Guild.CreateRoleAsync("Amateur", null, new Color(232, 160, 34), true);
-            if (roleRookie == null)
-                await Context.Guild.CreateRoleAsync("Rookie", null, new Color(219, 199, 164), true);
+
+            using (swaightContext db = new swaightContext())
+            {
+                var roles = db.Roles.Where(p => p.ServerId == (long)Context.Guild.Id);
+                if (roles.Where(p => p.Description == "S4").FirstOrDefault() == null)
+                {
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleS4.Id, Description = "S4" });
+                }
+                if (roles.Where(p => p.Description == "Pro").FirstOrDefault() == null)
+                {
+                    Discord.Rest.RestRole rolePro = await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)rolePro.Id, Description = "Pro" });
+                }
+                if (roles.Where(p => p.Description == "Semi").FirstOrDefault() == null)
+                {
+                    Discord.Rest.RestRole roleSemi = await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleSemi.Id, Description = "Semi" });
+                }
+                if (roles.Where(p => p.Description == "Amateur").FirstOrDefault() == null)
+                {
+                    Discord.Rest.RestRole roleAmateur = await Context.Guild.CreateRoleAsync("Amateur", null, new Color(232, 160, 34), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleAmateur.Id, Description = "Amateur" });
+                }
+                if (roles.Where(p => p.Description == "Rookie").FirstOrDefault() == null)
+                {
+                    Discord.Rest.RestRole roleRookie = await Context.Guild.CreateRoleAsync("Rookie", null, new Color(219, 199, 164), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleRookie.Id, Description = "Rookie" });
+                }
+                await db.SaveChangesAsync();
+            }
+
+            //if (roleS4 == null)
+            //    await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true);
+            //if (rolePro == null)
+            //    await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true);
+            //if (roleSemi == null)
+            //    await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true);
+            //if (roleAmateur == null)
+            //    await Context.Guild.CreateRoleAsync("Amateur", null, new Color(232, 160, 34), true);
+            //if (roleRookie == null)
+            //    test = await Context.Guild.CreateRoleAsync("Rookie", null, new Color(219, 199, 164), true);
         }
 
         [Command("levelNotification", RunMode = RunMode.Async)]

@@ -7,5 +7,6 @@ namespace DiscordBot_Core.Database
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public int Notify { get; set; }
     }
 }

@@ -83,7 +83,25 @@ namespace DiscordBot_Core.Services
                 EmbedBuilder embed = new EmbedBuilder();
                 if (chance <= winChance)
                 {
+                    //int amount = 0;
+                    //if (dbTarget.Goats == 0)
+                    //    amount = 0;
+                    //else if (dbTarget.Goats < targetStallBefore.MaxOutput)
+                    //    amount = rnd.Next(1, dbTarget.Goats + 1);
+
+                    //if(dbUser.Goats < userStallBefore.MaxOutput && dbUser.Goats < dbTarget.Goats)
+                    //    amount = rnd.Next(1, dbUser.Goats + 1);
+                    //else if(dbTarget.Goats != 0)
+                    //    amount = rnd.Next(1, dbTarget.Goats + 1);
+                    //else
+                    //    amount = 0;
+
+                    //if (dbUser.Goats == 0)
+                    //    amount = 0;
+
                     int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);
+
+
                     if (!(dcTarget == null || dcUser == null))
                     {
                         if (dcChannel != null)
@@ -104,6 +122,22 @@ namespace DiscordBot_Core.Services
                 }
                 else
                 {
+                    //int amount = 0;
+                    //if (dbUser.Goats == 0)
+                    //    amount = 0;
+                    //else if (dbUser.Goats < userStallBefore.MaxOutput)
+                    //    amount = rnd.Next(1, dbUser.Goats + 1);
+
+                    //if (dbTarget.Goats < targetStallBefore.MaxOutput && dbTarget.Goats < dbUser.Goats)
+                    //    amount = rnd.Next(1, dbTarget.Goats + 1);
+                    //else if (dbUser.Goats != 0)
+                    //    amount = rnd.Next(1, dbUser.Goats + 1);
+                    //else
+                    //    amount = 0;
+
+                    //if (dbTarget.Goats == 0)
+                    //    amount = 0;
+
                     int amount = rnd.Next(40, userStallBefore.MaxOutput + 1);
                     if (!(dcTarget == null || dcUser == null))
                     {

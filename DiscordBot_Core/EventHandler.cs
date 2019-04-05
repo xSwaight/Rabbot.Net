@@ -211,18 +211,22 @@ namespace DiscordBot_Core
                                 if (item.Min <= luck && item.Max >= luck)
                                 {
                                     var dcUser = dcServer.Users.Where(p => p.Id == (ulong)item.UserId).FirstOrDefault();
-                                    var dbUserfeature = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)dcUser.Id).FirstOrDefault();
+                                    //if (dcUser == null)
+                                    //    continue;
+                                    var dbUserfeature = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == item.UserId).FirstOrDefault();
                                     EmbedBuilder embed = new EmbedBuilder();
                                     embed.Color = Color.Green;
                                     var stall = Helper.GetStall(dbUserfeature.Wins);
                                     if (Helper.IsFull(dbUserfeature.Goats + sum, dbUserfeature.Wins))
                                     {
-                                        embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind dir **{sum - stall.Capacity} Ziegen** wieder **entlaufen**..";
+                                        if (dcUser != null)
+                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind dir **{sum - stall.Capacity} Ziegen** wieder **entlaufen**..";
                                         dbUserfeature.Goats = stall.Capacity;
                                     }
                                     else
                                     {
-                                        embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!";
+                                        if (dcUser != null)
+                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!";
                                         dbUserfeature.Goats += sum;
 
                                     }
@@ -273,18 +277,21 @@ namespace DiscordBot_Core
                             {
                                 Random rnd = new Random();
                                 int deadGoats;
+                                var mainUser = db.User.Where(p => p.Id == dbUser.UserId).FirstOrDefault();
                                 if (dbUser.Goats > 4 && dbUser.Goats <= 15)
                                 {
                                     deadGoats = rnd.Next(5, dbUser.Goats + 1);
                                     dbUser.Goats -= deadGoats;
-                                    await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                    if (mainUser.Notify == 1)
+                                        await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
                                     await db.SaveChangesAsync();
                                 }
                                 else if (dbUser.Goats > 15)
                                 {
                                     deadGoats = rnd.Next(5, 16);
                                     dbUser.Goats -= deadGoats;
-                                    await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..");
+                                    if (mainUser.Notify == 1)
+                                        await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
                                     await db.SaveChangesAsync();
                                 }
                             }

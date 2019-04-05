@@ -31,7 +31,7 @@ namespace DiscordBot_Core
             SocketUserMessage msg = s as SocketUserMessage;
             if (msg == null) return;
             var context = new SocketCommandContext(_client, msg);
-            if (context.User.IsBot || context.IsPrivate)
+            if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.bot.cmdPrefix + "hdf")))
                 return;
             int argPos = 0;
             if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos) || msg.HasMentionPrefix(_client.CurrentUser, ref argPos))

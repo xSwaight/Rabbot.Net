@@ -181,5 +181,49 @@ namespace DiscordBot_Core.Commands
         {
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
+
+        [Command("test", RunMode = RunMode.Async)]
+        [Cooldown(30)]
+        public async Task Love(IUser user)
+        {
+            //ulong sum = GetCrossSum(Context.User.Id) + GetCrossSum(user.Id) + user.DiscriminatorValue + Context.User.DiscriminatorValue;
+        }
+
+
+        [Command("hdf", RunMode = RunMode.Async)]
+        public async Task Hdf()
+        {
+            if (!Context.IsPrivate)
+                return;
+
+            using (swaightContext db = new swaightContext())
+            {
+                var user = db.User.Where(p => p.Id == (long)Context.User.Id).FirstOrDefault();
+                if (user.Notify == 1)
+                {
+                    user.Notify = 0;
+                    await Context.Channel.SendMessageAsync("Na gut.");
+                }
+                else
+                {
+                    user.Notify = 1;
+                    await Context.Channel.SendMessageAsync("Yay!");
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
+
+        public ulong GetCrossSum(ulong n)
+        {
+            ulong sum = 0;
+            while (n != 0)
+            {
+                sum += n % 10;
+                n /= 10;
+            }
+
+            return sum;
+        }
     }
 }

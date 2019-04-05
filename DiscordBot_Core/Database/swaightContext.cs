@@ -25,6 +25,7 @@ namespace DiscordBot_Core.Database
         public virtual DbSet<Musicrank> Musicrank { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
         public virtual DbSet<Pot> Pot { get; set; }
+        public virtual DbSet<Roles> Roles { get; set; }
         public virtual DbSet<Songlist> Songlist { get; set; }
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Userfeatures> Userfeatures { get; set; }
@@ -268,6 +269,28 @@ namespace DiscordBot_Core.Database
                     .HasColumnType("bigint(20)");
             });
 
+            modelBuilder.Entity<Roles>(entity =>
+            {
+                entity.ToTable("roles");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(50)");
+
+                entity.Property(e => e.RoleId)
+                    .HasColumnName("roleId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+            });
+
             modelBuilder.Entity<Songlist>(entity =>
             {
                 entity.ToTable("songlist");
@@ -305,6 +328,11 @@ namespace DiscordBot_Core.Database
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasColumnType("varchar(45)");
+
+                entity.Property(e => e.Notify)
+                    .HasColumnName("notify")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'1'");
             });
 
             modelBuilder.Entity<Userfeatures>(entity =>
