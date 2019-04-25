@@ -369,7 +369,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("shop", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Shop()
         {
             var embed = new EmbedBuilder();
@@ -385,7 +385,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("hirtenstab", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Hirtenstab()
         {
             EmbedBuilder embed = new EmbedBuilder();
@@ -423,7 +423,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("zaun", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
@@ -461,7 +461,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("stall", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Stall(IUser target = null)
         {
             using (swaightContext db = new swaightContext())
@@ -497,7 +497,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("stats", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Stats(IUser target = null)
         {
             using (swaightContext db = new swaightContext())
@@ -607,7 +607,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("stalls", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task StallListe()
         {
             var embed = new EmbedBuilder();
@@ -630,7 +630,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("wins", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Wins()
         {
             using (swaightContext db = new swaightContext())
@@ -725,7 +725,7 @@ namespace DiscordBot_Core.Commands
 
         [Command("chance", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         public async Task Chance()
         {
             using (swaightContext db = new swaightContext())
