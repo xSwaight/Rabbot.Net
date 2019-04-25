@@ -1,2 +1,2 @@
-# SwaightBot-Core
+# Rabbot
 Discord Bot in .Net Core
