@@ -13,5 +13,6 @@ namespace DiscordBot_Core.API.Models
         public int Attack { get; set; }
         public string Name { get; set; }
         public int MaxOutput { get; set; }
+        public int MaxPot { get; set; }
     }
 }
