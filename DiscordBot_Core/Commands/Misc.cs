@@ -182,14 +182,6 @@ namespace DiscordBot_Core.Commands
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
 
-        [Command("test", RunMode = RunMode.Async)]
-        [Cooldown(30)]
-        public async Task Love(IUser user)
-        {
-            //ulong sum = GetCrossSum(Context.User.Id) + GetCrossSum(user.Id) + user.DiscriminatorValue + Context.User.DiscriminatorValue;
-        }
-
-
         [Command("hdf", RunMode = RunMode.Async)]
         public async Task Hdf()
         {
@@ -212,7 +204,6 @@ namespace DiscordBot_Core.Commands
                 await db.SaveChangesAsync();
             }
         }
-
 
         public ulong GetCrossSum(ulong n)
         {

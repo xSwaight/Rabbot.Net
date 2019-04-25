@@ -35,8 +35,7 @@ namespace DiscordBot_Core.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseMySql("server=localhost;database=swaight;user=swaight;pwd=eSmh9HqKWWjNibM1;");
+                optionsBuilder.UseMySql(Config.bot.connectionString);
             }
         }
 
@@ -56,6 +55,10 @@ namespace DiscordBot_Core.Database
 
                 entity.Property(e => e.ChannelId)
                     .HasColumnName("channelId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.MessageId)
+                    .HasColumnName("messageId")
                     .HasColumnType("bigint(20)");
 
                 entity.Property(e => e.ServerId)
@@ -152,6 +155,15 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("notify")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Trash)
+                    .HasColumnName("trash")
+                    .HasColumnType("int(1)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TrashchannelId)
+                    .HasColumnName("trashchannelId")
+                    .HasColumnType("bigint(20)");
             });
 
             modelBuilder.Entity<Inventory>(entity =>
@@ -162,9 +174,10 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
 
-                entity.Property(e => e.Duration)
-                    .HasColumnName("duration")
-                    .HasColumnType("datetime");
+                entity.Property(e => e.Durability)
+                    .HasColumnName("durability")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.FeatureId)
                     .HasColumnName("featureId")

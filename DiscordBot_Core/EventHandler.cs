@@ -15,7 +15,6 @@ using DiscordBot_Core.API.Models;
 
 namespace DiscordBot_Core
 {
-#pragma warning disable CS1998
     class EventHandler
     {
         DiscordSocketClient _client;
@@ -33,35 +32,278 @@ namespace DiscordBot_Core
             new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
             _client.MessageDeleted += MessageDeleted;
+            _client.MessageUpdated += MessageUpdated;
             _client.JoinedGuild += JoinedGuild;
             _client.Connected += _client_Connected;
+            _client.ReactionAdded += ReactionAdded;
+            _client.ReactionRemoved += ReactionRemoved;
+        }
+
+        private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            if (reaction.User.Value.Id == _client.CurrentUser.Id)
+                return;
+
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Attacks.Any())
+                    return;
+
+                var dbAtk = db.Attacks.Where(p => p.MessageId == (long)reaction.MessageId).FirstOrDefault();
+                if (dbAtk == null)
+                    return;
+
+                var atkUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+                var defUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+
+                var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
+                var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
+                var zaun = inventoryTarget.Where(p => p.Item.Id == 2).FirstOrDefault();
+                var stab = inventoryUser.Where(p => p.Item.Id == 1).FirstOrDefault();
+
+                bool isActiveZaun = false;
+                bool isActiveStab = false;
+
+                switch (reaction.Emote.Name)
+                {
+                    case "🛡":
+                        if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                            return;
+                        if (zaun == null)
+                            return;
+                        break;
+                    case "🗡":
+                        if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                            return;
+                        if (stab == null)
+                            return;
+                        break;
+                    default:
+                        return;
+                }
+
+                foreach (var item in reaction.Message.Value.Reactions)
+                {
+                    switch (item.Key.Name)
+                    {
+                        case "🛡":
+                            if (item.Value.ReactionCount >= 2)
+                                isActiveZaun = true;
+                            break;
+                        case "🗡":
+                            if (item.Value.ReactionCount >= 2)
+                                isActiveStab = true;
+                            break;
+                    }
+                }
+
+                var stall = Helper.GetStall(defUserfeature.Wins);
+                var atk = stall.Attack;
+                var def = stall.Defense;
+
+                if (isActiveZaun)
+                    if (inventoryTarget.Count() != 0)
+                    {
+                        foreach (var item in inventoryTarget)
+                        {
+                            def += item.Item.Def;
+                        }
+                    }
+
+                var userStall = Helper.GetStall(atkUserfeature.Wins);
+                var userAtk = userStall.Attack;
+                var userDef = userStall.Defense;
+
+                if (isActiveStab)
+                    if (inventoryUser.Count() != 0)
+                    {
+                        foreach (var item in inventoryUser)
+                        {
+                            userAtk += item.Item.Atk;
+                        }
+                    }
+
+                var sum = userAtk + def;
+                var winChance = ((double)userAtk / (double)sum) * 100;
+
+                var atkUsername = db.User.Where(p => p.Id == atkUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
+                var defUsername = db.User.Where(p => p.Id == defUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
+
+                string chance = $"**{Math.Round(winChance)}% {atkUsername} - {defUsername} {100 - Math.Round(winChance)}%**";
+
+                await reaction.Message.Value.ModifyAsync(msg => msg.Content = chance);
+            }
+        }
+
+        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            if (reaction.User.Value.Id == _client.CurrentUser.Id)
+                return;
+
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Attacks.Any())
+                    return;
+
+                var dbAtk = db.Attacks.Where(p => p.MessageId == (long)reaction.MessageId).FirstOrDefault();
+                if (dbAtk == null)
+                    return;
+
+                var atkUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+                var defUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+
+                var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
+                var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
+                var zaun = inventoryTarget.Where(p => p.Item.Id == 2).FirstOrDefault();
+                var stab = inventoryUser.Where(p => p.Item.Id == 1).FirstOrDefault();
+
+                bool isActiveZaun = false;
+                bool isActiveStab = false;
+
+                switch (reaction.Emote.Name)
+                {
+                    case "🛡":
+                        if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                        {
+                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                            return;
+                        }
+                        if (zaun == null)
+                        {
+                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                            return;
+                        }
+                        break;
+                    case "🗡":
+                        if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                        {
+                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                            return;
+                        }
+                        if (stab == null)
+                        {
+                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                            return;
+                        }
+                        break;
+                    default:
+                        await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                        return;
+                }
+
+                foreach (var item in reaction.Message.Value.Reactions)
+                {
+                    switch (item.Key.Name)
+                    {
+                        case "🛡":
+                            if (item.Value.ReactionCount >= 2)
+                                isActiveZaun = true;
+                            break;
+                        case "🗡":
+                            if (item.Value.ReactionCount >= 2)
+                                isActiveStab = true;
+                            break;
+                    }
+                }
+
+                var stall = Helper.GetStall(defUserfeature.Wins);
+                var atk = stall.Attack;
+                var def = stall.Defense;
+
+                if (isActiveZaun)
+                    if (inventoryTarget.Count() != 0)
+                    {
+                        foreach (var item in inventoryTarget)
+                        {
+                            def += item.Item.Def;
+                        }
+                    }
+
+                var userStall = Helper.GetStall(atkUserfeature.Wins);
+                var userAtk = userStall.Attack;
+                var userDef = userStall.Defense;
+
+                if (isActiveStab)
+                    if (inventoryUser.Count() != 0)
+                    {
+                        foreach (var item in inventoryUser)
+                        {
+                            userAtk += item.Item.Atk;
+                        }
+                    }
+
+                var sum = userAtk + def;
+                var winChance = ((double)userAtk / (double)sum) * 100;
+
+                var atkUsername = db.User.Where(p => p.Id == atkUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
+                var defUsername = db.User.Where(p => p.Id == defUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
+
+                string chance = $"**{Math.Round(winChance)}% {atkUsername} - {defUsername} {100 - Math.Round(winChance)}%**";
+
+                await reaction.Message.Value.ModifyAsync(msg => msg.Content = chance);
+            }
+        }
+
+        private async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage newMessage, ISocketMessageChannel channel)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                if (message.Value.Content == newMessage.Content)
+                    return;
+                var dcUser = message.Value.Author as SocketGuildUser;
+                if (dcUser.IsBot)
+                    return;
+                var dcTextchannel = channel as SocketTextChannel;
+                var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
+                var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
+                if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
+                    return;
+                var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
+                if (dcTrashChannel == null)
+                    return;
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.WithAuthor(dcUser as IUser);
+                embed.Description = $"Nachricht von {dcUser.Mention} in {dcTextchannel.Mention} wurde editiert!";
+                embed.AddField($"Alte Nachricht:", $"{message.Value.Content}");
+                embed.AddField($"Neue Nachricht:", $"{newMessage.Content}");
+                DateTime msgTime = message.Value.Timestamp.DateTime.ToLocalTime();
+                embed.WithFooter($"Message ID: {message.Value.Id} • {msgTime.ToShortTimeString()} {msgTime.ToShortDateString()}");
+                embed.Color = new Color(0, 225, 255);
+                await dcTrashChannel.SendMessageAsync(null, false, embed.Build());
+            }
         }
 
         private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var timenow = DateTime.Now;
             using (swaightContext db = new swaightContext())
             {
-                var time = message.Value.Timestamp.DateTime.AddHours(1).AddSeconds(4);
-                if (time > timenow)
+                var dcUser = message.Value.Author as SocketGuildUser;
+                if (dcUser.IsBot)
                     return;
-                if (!(message.Value.Author is SocketGuildUser user))
+                if (message.Value.Content.StartsWith(Config.bot.cmdPrefix))
                     return;
-                if (db.Userfeatures.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).Any())
-                {
-                    var exp = db.Userfeatures.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
-                    if (exp.Exp > 100)
-                    {
-                        exp.Exp -= 200 + message.Value.Content.Count();
-                        await db.SaveChangesAsync();
-                    }
-                }
+                var dcTextchannel = channel as SocketTextChannel;
+                var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
+                var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
+                if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
+                    return;
+                var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
+                if (dcTrashChannel == null)
+                    return;
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.WithAuthor(dcUser as IUser);
+                embed.Description = $"Nachricht von {dcUser.Mention} in {dcTextchannel.Mention} wurde gelöscht!";
+                embed.AddField($"Nachricht:", $"{message.Value.Content}");
+                DateTime msgTime = message.Value.Timestamp.DateTime.ToLocalTime();
+                embed.WithFooter($"Message ID: {message.Value.Id} • {msgTime.ToShortTimeString()} {msgTime.ToShortDateString()}");
+                embed.Color = new Color(255, 0, 0);
+                await dcTrashChannel.SendMessageAsync(null, false, embed.Build());
             }
         }
 
@@ -211,8 +453,6 @@ namespace DiscordBot_Core
                                 if (item.Min <= luck && item.Max >= luck)
                                 {
                                     var dcUser = dcServer.Users.Where(p => p.Id == (ulong)item.UserId).FirstOrDefault();
-                                    //if (dcUser == null)
-                                    //    continue;
                                     var dbUserfeature = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == item.UserId).FirstOrDefault();
                                     EmbedBuilder embed = new EmbedBuilder();
                                     embed.Color = Color.Green;
@@ -247,10 +487,6 @@ namespace DiscordBot_Core
                 {
                     Console.WriteLine(e.Message + " " + e.StackTrace);
                 }
-
-
-
-
                 await db.SaveChangesAsync();
             }
         }
@@ -370,27 +606,27 @@ namespace DiscordBot_Core
             }
         }
 
-        private async Task CheckItems()
-        {
-            while (true)
-            {
-                using (swaightContext db = new swaightContext())
-                {
-                    if (db.Inventory.Any())
-                    {
-                        foreach (var item in db.Inventory)
-                        {
-                            if (item.Duration < DateTime.Now)
-                            {
-                                db.Inventory.Remove(item);
-                            }
-                        }
-                        await db.SaveChangesAsync();
-                    }
-                }
-                await Task.Delay(1000);
-            }
-        }
+        //private async Task CheckItems()
+        //{
+        //    while (true)
+        //    {
+        //        using (swaightContext db = new swaightContext())
+        //        {
+        //            if (db.Inventory.Any())
+        //            {
+        //                foreach (var item in db.Inventory)
+        //                {
+        //                    if (item.Duration < DateTime.Now)
+        //                    {
+        //                        db.Inventory.Remove(item);
+        //                    }
+        //                }
+        //                await db.SaveChangesAsync();
+        //            }
+        //        }
+        //        await Task.Delay(1000);
+        //    }
+        //}
 
         private async Task CheckAttacks()
         {
@@ -443,7 +679,6 @@ namespace DiscordBot_Core
             await User.SendLevelUp();
             await User.SetRoles();
         }
-
 
         private async Task UserLeft(SocketGuildUser user)
         {

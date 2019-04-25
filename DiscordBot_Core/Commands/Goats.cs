@@ -338,13 +338,31 @@ namespace DiscordBot_Core.Commands
 
                 dbUser.Attacks++;
                 embed.Color = new Color(242, 255, 0);
+                var shield = new Emoji("🛡");
+                var dagger = new Emoji("🗡");
                 embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {targetUser.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
+                embed.Description += $"\n\n**Interaktionen:**";
+                embed.Description += $"\n{dagger} = Hirtenstab       (Nur Angreifer)";
+                embed.Description += $"\n{shield} = Stacheldrahtzaun (Nur Angegriffener)";
                 embed.WithFooter("Der Angriff dauert 3 Minuten!");
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+
+                var stallTarget = Helper.GetStall(dbTarget.Wins);
+                var stallUser = Helper.GetStall(dbUser.Wins);
+                var atk = stallUser.Attack;
+                var def = stallTarget.Defense;
+
+                var sum = atk + def;
+                var winChance = ((double)atk / (double)sum) * 100;
+
+                string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {targetUser.Username} {100 - Math.Round(winChance)}%**";
+
+                var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 dbUser.Locked = 1;
                 dbTarget.Locked = 1;
-                await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, TargetId = (long)targetUser.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
+                await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)targetUser.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
                 await db.SaveChangesAsync();
+                await msg.AddReactionAsync(dagger);
+                await msg.AddReactionAsync(shield);
             }
         }
 
@@ -359,8 +377,8 @@ namespace DiscordBot_Core.Commands
             embed.WithDescription("Gönn dir.");
             embed.WithColor(new Color(241, 242, 222));
             //embed.AddField($"{Config.bot.cmdPrefix}minuten [Anzahl]", $"Minuten im Musicrank\nPreis: 1 Ziege für 1 Minute");
-            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 30 ATK) für 24 Stunden\nPreis: 75 Ziegen");
-            embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 20 DEF) für 24 Stunden\nPreis: 100 Ziegen");
+            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) 5 Benutzungen\nPreis: 100 Ziegen");
+            embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) 7 Benutzungen\nPreis: 75 Ziegen");
             //embed.AddField($"{Config.bot.cmdPrefix}namechange [Name]", $"7 Tage Namechange\nPreis: 100 Ziegen");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
@@ -381,7 +399,7 @@ namespace DiscordBot_Core.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-                if (features.Goats < 75)
+                if (features.Goats < 100)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
@@ -391,15 +409,15 @@ namespace DiscordBot_Core.Commands
 
                 var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 1).FirstOrDefault();
                 if (inventar != null)
-                    inventar.Duration = inventar.Duration.Value.AddDays(1);
+                    inventar.Durability += 5;
                 else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Duration = DateTime.Now.AddDays(1) });
+                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 5 });
 
-                features.Goats -= 75;
+                features.Goats -= 100;
                 await db.SaveChangesAsync();
             }
             embed.Color = Color.Green;
-            embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **75 Ziegen** einen **Hirtenstab** gekauft.\nDu hast jetzt für **24 Stunden +30 ATK**";
+            embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **100 Ziegen** einen **Hirtenstab** gekauft.\nDu kannst ihn bei einem Angriff benutzen um **+20 ATK** mehr zu haben!";
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
@@ -429,15 +447,15 @@ namespace DiscordBot_Core.Commands
 
                 var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 2).FirstOrDefault();
                 if (inventar != null)
-                    inventar.Duration = inventar.Duration.Value.AddDays(1);
+                    inventar.Durability += 7;
                 else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Duration = DateTime.Now.AddDays(1) });
+                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 });
 
-                features.Goats -= 100;
+                features.Goats -= 75;
                 await db.SaveChangesAsync();
             }
             embed.Color = Color.Green;
-            embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **100 Ziegen** einen **Stacheldrahtzaun** gekauft.\nDu hast jetzt für **24 Stunden +20 DEF**";
+            embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **75 Ziegen** einen **Stacheldrahtzaun** gekauft.\nDu kannst ihn bei einem Angriff gegen dich benutzen um **+30 DEF** mehr zu haben!";
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
@@ -512,7 +530,7 @@ namespace DiscordBot_Core.Commands
                         string items = "";
                         foreach (var item in inventory)
                         {
-                            items += $"**{item.Item.Name}** bis {item.Inventory.Duration.Value.ToString()}\n";
+                            items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         }
                         embed.AddField($"Inventar", items);
                     }
@@ -527,8 +545,12 @@ namespace DiscordBot_Core.Commands
                         var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == targetUser.Id);
                         var UserInventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == myUser.Id);
                         var stall = Helper.GetStall(targetUser.Wins);
+                        var userStall = Helper.GetStall(myUser.Wins);
                         var atk = stall.Attack;
                         var def = stall.Defense;
+
+                        var sumWithout = stall.Attack + userStall.Defense;
+                        var winChanceWithout = ((double)stall.Attack / (double)sumWithout) * 100;
 
                         if (inventory.Count() != 0)
                         {
@@ -539,7 +561,6 @@ namespace DiscordBot_Core.Commands
                             }
                         }
 
-                        var userStall = Helper.GetStall(myUser.Wins);
                         var userAtk = userStall.Attack;
                         var userDef = userStall.Defense;
 
@@ -560,22 +581,23 @@ namespace DiscordBot_Core.Commands
                         embed.WithColor(new Color(241, 242, 222));
                         embed.AddField($"Battle", $"**{(targetUser.Loses + targetUser.Wins).ToString("N0")}** Kämpfe | **{targetUser.Wins.ToString("N0")}** Siege | **{targetUser.Loses.ToString("N0")}** Niederlagen");
                         embed.AddField($"Aktueller Stall", $"{stall.Name}");
-                        embed.AddField($"Stats", $"ATK: **{atk.ToString("N0")}0** | DEF: **{def.ToString("N0")}0**");
-                        embed.AddField($"Gewinnchance gegen {target.Username}", $"{Math.Round(winChance)}%");
+                        embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0")}0** | DEF: **{stall.Defense.ToString("N0")}0**");
+                        embed.AddField($"Gewinnchance ohne Items", $"{Math.Round(winChanceWithout)}%");
+                        if (winChance != winChanceWithout)
+                            embed.AddField($"Gewinnchance mit Items", $"{Math.Round(winChance)}%");
                         //embed.AddField($"Blockchance gegen {target.Username}", $"{Math.Round(blockChance)}%");
                         if (inventory.Count() != 0)
                         {
                             string items = "";
                             foreach (var item in inventory)
                             {
-                                items += $"**{item.Item.Name}** bis {item.Inventory.Duration.Value.ToString()}\n";
+                                items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                             }
                             embed.AddField($"Inventar", items);
                         }
                     }
-                    catch (Exception e)
+                    catch
                     {
-
                         throw;
                     }
                 }
@@ -665,8 +687,24 @@ namespace DiscordBot_Core.Commands
                         return;
                     }
 
+                    var stall = Helper.GetStall(myUser.Wins);
+                    if(amount > stall.MaxPot)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"{Context.User.Mention} kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
 
                     var myPot = db.Pot.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Pot.AddAsync(new Pot { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Goats = 0 }).Result.Entity;
+                    if (amount + myPot.Goats > stall.MaxPot)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"{Context.User.Mention} kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
+
                     myPot.Goats += amount;
                     myUser.Goats -= amount;
 

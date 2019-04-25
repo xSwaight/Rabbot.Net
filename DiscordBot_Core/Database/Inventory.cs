@@ -8,6 +8,6 @@ namespace DiscordBot_Core.Database
         public int Id { get; set; }
         public int FeatureId { get; set; }
         public int ItemId { get; set; }
-        public DateTime? Duration { get; set; }
+        public int Durability { get; set; }
     }
 }

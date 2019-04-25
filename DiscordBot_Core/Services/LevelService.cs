@@ -31,13 +31,13 @@ namespace DiscordBot_Core.Services
                 EXP = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 string myMessage = Helper.MessageReplace(msg.Content);
-                int textLenght = myMessage.Replace("*", string.Empty).Replace("⁢", string.Empty).Count();
+                int textLenght = myMessage.Count();
                 Random rnd = new Random();
                 int random = rnd.Next(1, 11);
-                if (textLenght == 0)
+                if (textLenght <= 2)
                     random = 2;
                 int exp = 0;
-                if (textLenght >= 1 && textLenght < 10 && random > 1)
+                if (textLenght >= 3 && textLenght < 10 && random > 1)
                     exp = rnd.Next(10, 21);
                 if (textLenght >= 10 && textLenght < 20 && random > 1)
                     exp = rnd.Next(20, 31);
@@ -53,7 +53,7 @@ namespace DiscordBot_Core.Services
                 var chance = rnd.Next(1, 6);
                 if (chance == 3)
                 {
-                    exp = exp * rnd.Next(1, 11);
+                    exp *= rnd.Next(1, 11);
                 }
 
                 int multiplier = 1;
@@ -62,12 +62,12 @@ namespace DiscordBot_Core.Services
                     multiplier = 2;
 
                 var ranks = db.Musicrank.Where(p => p.ServerId == (long)dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
-                int rank = 1;
+                int rank = 0;
                 foreach (var Rank in ranks)
                 {
+                    rank++;
                     if (Rank.UserId == (long)msg.Author.Id)
                         break;
-                    rank++;
                 }
                 double dblExp = exp;
                 if (rank == 1)
@@ -105,18 +105,12 @@ namespace DiscordBot_Core.Services
 
             if (NewLevel > OldLevel)
             {
-                await SetRoles(true);
+                await SetRoles();
             }
         }
 
-        public async Task SetRoles(bool currentServer = false)
+        public async Task SetRoles()
         {
-            //var roleS4 = dcGuild.Roles.Where(p => p.Name == "S4").FirstOrDefault();
-            //var rolePro = dcGuild.Roles.Where(p => p.Name == "Pro").FirstOrDefault();
-            //var roleSemi = dcGuild.Roles.Where(p => p.Name == "Semi").FirstOrDefault();
-            //var roleAmateur = dcGuild.Roles.Where(p => p.Name == "Amateur").FirstOrDefault();
-            //var roleRookie = dcGuild.Roles.Where(p => p.Name == "Rookie").FirstOrDefault();
-
             using (swaightContext db = new swaightContext())
             {
                 var roles = db.Roles.Where(p => p.ServerId == (long)dcGuild.Id);

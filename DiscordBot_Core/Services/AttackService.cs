@@ -58,22 +58,57 @@ namespace DiscordBot_Core.Services
                 var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbTarget.Id);
                 var atkUser = userStallBefore.Attack;
                 var defTarget = targetStallBefore.Defense;
+                bool hirtenstab = false;
+                bool zaun = false;
 
-                if (inventoryUser.Count() != 0)
-                {
-                    foreach (var item in inventoryUser)
-                    {
-                        atkUser += item.Item.Atk;
-                    }
-                }
+                var dcMessage = dcChannel.CachedMessages.Where(p => p.Id == (ulong)attack.MessageId).FirstOrDefault() as SocketUserMessage;
 
-                if (inventoryTarget.Count() != 0)
-                {
-                    foreach (var item in inventoryTarget)
+                if (dcMessage != null)
+                    foreach (var reaction in dcMessage.Reactions)
                     {
-                        defTarget += item.Item.Def;
+                        switch (reaction.Key.Name)
+                        {
+                            case "🛡":
+                                if (reaction.Value.ReactionCount >= 2)
+                                    zaun = true;
+                                break;
+                            case "🗡":
+                                if (reaction.Value.ReactionCount >= 2)
+                                    hirtenstab = true;
+                                break;
+                        }
                     }
-                }
+
+                if (hirtenstab)
+                    if (inventoryUser.Count() != 0)
+                    {
+                        foreach (var item in inventoryUser)
+                        {
+                            atkUser += item.Item.Atk;
+                            if (item.Inventory.ItemId == 1)
+                            {
+                                item.Inventory.Durability--;
+                                if (item.Inventory.Durability <= 0)
+                                    db.Inventory.Remove(item.Inventory);
+                            }
+                        }
+
+                    }
+
+                if (zaun)
+                    if (inventoryTarget.Count() != 0)
+                    {
+                        foreach (var item in inventoryTarget)
+                        {
+                            defTarget += item.Item.Def;
+                            if (item.Inventory.ItemId == 2)
+                            {
+                                item.Inventory.Durability--;
+                                if (item.Inventory.Durability <= 0)
+                                    db.Inventory.Remove(item.Inventory);
+                            }
+                        }
+                    }
 
                 Random rnd = new Random();
 

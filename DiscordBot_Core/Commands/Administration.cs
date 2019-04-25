@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using DiscordBot_Core.Database;
 using DiscordBot_Core.Services;
 
@@ -70,7 +71,9 @@ namespace DiscordBot_Core.Commands
         {
             if (duration.Contains('-'))
                 return;
-
+            var dcUser = user as SocketGuildUser;
+            if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
+                return;
             await Context.Message.DeleteAsync();
             MuteService mute = new MuteService(Context.Client);
             await mute.MuteTargetUser(user, duration, Context);
@@ -91,6 +94,9 @@ namespace DiscordBot_Core.Commands
         {
             await Context.Message.DeleteAsync();
             if (user == null)
+                return;
+            var dcUser = user as SocketGuildUser;
+            if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
             WarnService warn = new WarnService(Context.Client);
             await warn.Warn(user, Context);
@@ -195,6 +201,34 @@ namespace DiscordBot_Core.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("setTrash", RunMode = RunMode.Async)]
+        public async Task SetTrash()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                {
+                    await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, TrashchannelId = (long)Context.Channel.Id });
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    defaultChannel.TrashchannelId = (long)Context.Channel.Id;
+                    defaultChannel.Trash = 1;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Trash Channel wurde erfolgreich gesetzt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setNotification", RunMode = RunMode.Async)]
         public async Task SetNotification()
         {
@@ -270,6 +304,34 @@ namespace DiscordBot_Core.Commands
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
                 embed.WithDescription("Bot Channel wurde erfolgreich gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delTrash", RunMode = RunMode.Async)]
+        public async Task DelTrash()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                {
+                    return;
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    defaultChannel.Botchannelid = null;
+                    defaultChannel.Trash = 0;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Trash Channel wurde erfolgreich gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
                 await Task.Delay(delay);
