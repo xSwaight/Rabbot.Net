@@ -126,7 +126,10 @@ namespace DiscordBot_Core.Services
                         if (dcChannel != null)
                         {
                             embed.Color = Color.Green;
-                            embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!";
+                            if (!Helper.IsFull(dbUser.Goats + amount, dbUser.Wins))
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!";
+                            else
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!\nLeider ist **dein Stall voll**. Deswegen sind **{(dbUser.Goats + amount) - Helper.GetStall(dbUser.Wins).Capacity} Ziegen** geflüchtet.";
                             await dcChannel.SendMessageAsync(null, false, embed.Build());
                         }
                     }
@@ -147,7 +150,10 @@ namespace DiscordBot_Core.Services
                         if (dcChannel != null)
                         {
                             embed.Color = Color.Red;
-                            embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen.. ";
+                            if (!Helper.IsFull(dbUser.Goats + amount, dbUser.Wins))
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..";
+                            else
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..\nLeider ist {dcTarget.Nickname ?? dcTarget.Username}'s **Stall voll**. Deswegen sind **{(dbTarget.Goats + amount) - Helper.GetStall(dbTarget.Wins).Capacity} Ziegen** geflüchtet.";
                             await dcChannel.SendMessageAsync(null, false, embed.Build());
                         }
                     }
