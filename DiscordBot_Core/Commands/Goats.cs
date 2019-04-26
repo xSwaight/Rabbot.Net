@@ -524,7 +524,7 @@ namespace DiscordBot_Core.Commands
                     embed.WithColor(new Color(241, 242, 222));
                     embed.AddField($"Battle", $"**{(user.Loses + user.Wins).ToString("N0")}** Kämpfe | **{user.Wins.ToString("N0")}** Siege | **{user.Loses.ToString("N0")}** Niederlagen");
                     embed.AddField($"Aktueller Stall", $"{stall.Name}");
-                    embed.AddField($"Stats", $"ATK: **{atk.ToString("N0")}0** | DEF: **{def.ToString("N0")}0**");
+                    embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0")}0** | DEF: **{stall.Defense.ToString("N0")}0**");
                     if (inventory.Count() != 0)
                     {
                         string items = "";
