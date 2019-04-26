@@ -691,7 +691,7 @@ namespace DiscordBot_Core.Commands
                     if(amount > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
+                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
@@ -700,7 +700,7 @@ namespace DiscordBot_Core.Commands
                     if (amount + myPot.Goats > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
+                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0")} Ziegen** in den Pot stecken!";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
