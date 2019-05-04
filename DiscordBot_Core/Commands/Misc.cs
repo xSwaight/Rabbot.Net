@@ -182,6 +182,18 @@ namespace DiscordBot_Core.Commands
             await Context.Channel.SendMessageAsync("Pong! `" + Context.Client.Latency + "ms`");
         }
 
+        [Command("test", RunMode = RunMode.Async)]
+        [BotCommand]
+        [RequireOwner]
+        [Cooldown(30)]
+        public async Task Test()
+        {
+
+            Emote emote = Emote.Parse("<:shtaco:555055295806701578>"); //Normal
+            Emote emote2 = Emote.Parse("<a:shtaco:555055295806701578>"); //Animated
+            await Context.Channel.SendMessageAsync($"Hi {emote}");
+        }
+
         [Command("hdf", RunMode = RunMode.Async)]
         public async Task Hdf()
         {
