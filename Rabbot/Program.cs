@@ -1,0 +1,52 @@
+﻿using Discord;
+using Discord.WebSocket;
+using Rabbot.API;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Rabbot
+{
+#pragma warning disable CS1998
+    class Program
+    {
+        DiscordSocketClient _client;
+        CommandHandler _handler;
+        EventHandler _event;
+        Twitch _twitch;
+        public static DateTime startTime;
+
+
+        static void Main(string[] args)
+        => new Program().StartAsync().GetAwaiter().GetResult();
+
+        public async Task StartAsync()
+        {
+            if (String.IsNullOrWhiteSpace(Config.bot.token)) return;
+            _client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                LogLevel = LogSeverity.Verbose,
+                MessageCacheSize = 1000
+            });
+            _client.Log += Log;
+            startTime = DateTime.Now;
+            await _client.LoginAsync(TokenType.Bot, Config.bot.token);
+            await _client.StartAsync();
+            await _client.SetStatusAsync(UserStatus.Online);
+            _handler = new CommandHandler();
+            _event = new EventHandler();
+            _twitch = new Twitch();
+            await _handler.InitializeAsync(_client);
+            await _event.InitializeAsync(_client);
+            await _twitch.ConfigLiveMonitorAsync(_client);
+            
+            await Task.Delay(-1);
+        }
+
+
+        private async Task Log(LogMessage msg)
+        {
+            Console.WriteLine(msg.Message);
+        }
+    }
+}
