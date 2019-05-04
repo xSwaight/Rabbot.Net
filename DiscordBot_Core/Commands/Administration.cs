@@ -228,6 +228,33 @@ namespace DiscordBot_Core.Commands
             }
         }
 
+        [RequireOwner]
+        [Command("setStream", RunMode = RunMode.Async)]
+        public async Task SetStream()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                await Context.Message.DeleteAsync();
+                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                {
+                    await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, StreamchannelId = (long)Context.Channel.Id });
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    defaultChannel.StreamchannelId = (long)Context.Channel.Id;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Stream Channel wurde erfolgreich gesetzt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setNotification", RunMode = RunMode.Async)]
         public async Task SetNotification()

@@ -27,6 +27,7 @@ namespace DiscordBot_Core.Database
         public virtual DbSet<Pot> Pot { get; set; }
         public virtual DbSet<Roles> Roles { get; set; }
         public virtual DbSet<Songlist> Songlist { get; set; }
+        public virtual DbSet<Stream> Stream { get; set; }
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Userfeatures> Userfeatures { get; set; }
         public virtual DbSet<Warning> Warning { get; set; }
@@ -35,7 +36,8 @@ namespace DiscordBot_Core.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql(Config.bot.connectionString);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=localhost;database=swaight;user=root;");
             }
         }
 
@@ -155,6 +157,10 @@ namespace DiscordBot_Core.Database
                     .HasColumnName("notify")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.StreamchannelId)
+                    .HasColumnName("streamchannelId")
+                    .HasColumnType("bigint(20)");
 
                 entity.Property(e => e.Trash)
                     .HasColumnName("trash")
@@ -324,6 +330,28 @@ namespace DiscordBot_Core.Database
                     .IsRequired()
                     .HasColumnName("name")
                     .HasColumnType("varchar(200)");
+            });
+
+            modelBuilder.Entity<Stream>(entity =>
+            {
+                entity.ToTable("stream");
+
+                entity.Property(e => e.StreamId)
+                    .HasColumnName("streamId")
+                    .HasColumnType("bigint(11)");
+
+                entity.Property(e => e.StartTime)
+                    .HasColumnName("startTime")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasColumnName("title")
+                    .HasColumnType("varchar(300)");
+
+                entity.Property(e => e.TwitchUserId)
+                    .HasColumnName("twitchUserId")
+                    .HasColumnType("bigint(11)");
             });
 
             modelBuilder.Entity<User>(entity =>

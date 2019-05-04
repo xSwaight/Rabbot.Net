@@ -10,6 +10,7 @@ namespace DiscordBot_Core.Database
         public long? NotificationchannelId { get; set; }
         public long? Botchannelid { get; set; }
         public long? TrashchannelId { get; set; }
+        public long? StreamchannelId { get; set; }
         public int Notify { get; set; }
         public int Log { get; set; }
         public int Trash { get; set; }

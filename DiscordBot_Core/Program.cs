@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using DiscordBot_Core.API;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace DiscordBot_Core
         DiscordSocketClient _client;
         CommandHandler _handler;
         EventHandler _event;
+        Twitch _twitch;
         public static DateTime startTime;
 
 
@@ -33,8 +35,10 @@ namespace DiscordBot_Core
             await _client.SetStatusAsync(UserStatus.Online);
             _handler = new CommandHandler();
             _event = new EventHandler();
+            _twitch = new Twitch();
             await _handler.InitializeAsync(_client);
             await _event.InitializeAsync(_client);
+            await _twitch.ConfigLiveMonitorAsync(_client);
             
             await Task.Delay(-1);
         }

@@ -33,6 +33,7 @@ namespace DiscordBot_Core
     {
         public string token;
         public string apiToken;
+        public string twitchToken;
         public string connectionString;
         public string cmdPrefix;
         public int expMultiplier;
