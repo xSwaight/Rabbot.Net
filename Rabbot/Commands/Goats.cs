@@ -106,86 +106,87 @@ namespace Rabbot.Commands
             }
         }
 
-        //[Command("trade")]
-        //[BotCommand]
-        //[Cooldown(30)]
-        //public async Task Trade(IUser user, int amount)
-        //{
-        //    if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
-        //    {
-        //        using (swaightContext db = new swaightContext())
-        //        {
-        //            var senderUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
-        //            if (senderUser.Goats < amount)
-        //            {
-        //                await Context.Message.DeleteAsync();
-        //                var msg = await Context.Channel.SendMessageAsync($"Dir fehlen **{amount - senderUser.Goats} Ziegen**..");
-        //                await Task.Delay(3000);
-        //                await msg.DeleteAsync();
-        //                await db.SaveChangesAsync();
-        //                return;
-        //            }
-        //            if (senderUser.Trades >= 5)
-        //            {
-        //                await Context.Message.DeleteAsync();
-        //                var msg = await Context.Channel.SendMessageAsync($"**Du kannst heute nicht mehr traden!**");
-        //                await Task.Delay(3000);
-        //                await msg.DeleteAsync();
-        //                await db.SaveChangesAsync();
-        //                return;
-        //            }
+        [Command("trade")]
+        [BotCommand]
+        [Cooldown(30)]
+        public async Task Trade(IUser user, int amount)
+        {
+            if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    var embed = new EmbedBuilder();
+                    var senderUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    if (senderUser.Goats < amount)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"Dir fehlen **{amount - senderUser.Goats} Ziegen**..";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
+                    if (senderUser.Trades >= 5)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"**Du kannst heute nicht mehr traden!**";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
 
-        //            var targetUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
-        //            if (targetUser == senderUser)
-        //            {
-        //                await Context.Channel.SendMessageAsync($"Nö.");
-        //                return;
-        //            }
+                    var targetUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    if (targetUser == senderUser)
+                    {
+                        await Context.Channel.SendMessageAsync($"Nö.");
+                        return;
+                    }
 
-        //            if (targetUser.Locked == 1)
-        //            {
-        //                await Context.Message.DeleteAsync();
-        //                var msg = await Context.Channel.SendMessageAsync($"**{user.Mention} hat gerade eine Trading Sperre!**");
-        //                await Task.Delay(3000);
-        //                await msg.DeleteAsync();
-        //                return;
-        //            }
+                    if (targetUser.Locked == 1)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"**{user.Mention} hat gerade eine Trading Sperre!**";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
 
-        //            if (senderUser.Locked == 1)
-        //            {
-        //                await Context.Message.DeleteAsync();
-        //                var msg = await Context.Channel.SendMessageAsync($"**{Context.User.Mention} du hast gerade eine Trading Sperre!**");
-        //                await Task.Delay(3000);
-        //                await msg.DeleteAsync();
-        //                return;
-        //            }
+                    if (senderUser.Locked == 1)
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"**{Context.User.Mention} du hast gerade eine Trading Sperre!**";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
 
 
 
-        //            var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
-        //            senderUser.Goats -= amount;
-        //            int fees = amount / 4;
-        //            if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
-        //            {
-        //                await Context.Message.DeleteAsync();
-        //                var msg = await Context.Channel.SendMessageAsync($"**Leider ist der Stall von {user.Mention} schon zu voll!**");
-        //                await Task.Delay(3000);
-        //                await msg.DeleteAsync();
-        //                return;
-        //            }
-        //            rabbotUser.Goats += fees;
-        //            targetUser.Goats += amount - fees;
-        //            senderUser.Trades++;
-        //            await db.SaveChangesAsync();
+                    var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    senderUser.Goats -= amount;
+                    int fees = amount / 4;
+                    if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
+                    {
+                        embed.Color = Color.Red;
+                        embed.Description = $"**Leider ist der Stall von {user.Mention} schon zu voll!**";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        return;
+                    }
+                    rabbotUser.Goats += fees;
+                    targetUser.Goats += amount - fees;
+                    senderUser.Trades++;
+                    await db.SaveChangesAsync();
 
-        //            if (amount > 1)
-        //                await Context.Channel.SendMessageAsync($"{Context.User.Username} hat {user.Mention} **{amount - fees} Ziegen** (-{fees} Schutzgeldziegens) geschenkt! Du kannst heute noch **{5 - senderUser.Trades} mal** traden.");
-        //            else
-        //                await Context.Channel.SendMessageAsync($"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt!");
-
-        //        }
-        //    }
-        //}
+                    if (amount > 1)
+                    {
+                        embed.Color = Color.Green;
+                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount - fees} Ziegen** (-{fees} Schutzgeldziegens) geschenkt! Du kannst heute noch **{5 - senderUser.Trades} mal** traden.";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    }
+                    else
+                    {
+                        embed.Color = Color.Green;
+                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt!";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    }
+                }
+            }
+        }
 
 
         //[Command("namechange", RunMode = RunMode.Async)]
