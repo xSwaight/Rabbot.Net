@@ -9,5 +9,8 @@ namespace Rabbot.Database
         public long? UserId { get; set; }
         public long? ServerId { get; set; }
         public int Goats { get; set; }
+
+        public virtual Guild Server { get; set; }
+        public virtual User User { get; set; }
     }
 }

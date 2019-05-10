@@ -12,5 +12,8 @@ namespace Rabbot.Database
         public long? MessageId { get; set; }
         public long? TargetId { get; set; }
         public DateTime? AttackEnds { get; set; }
+
+        public virtual Guild Server { get; set; }
+        public virtual User User { get; set; }
     }
 }

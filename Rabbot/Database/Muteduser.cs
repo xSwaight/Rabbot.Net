@@ -10,5 +10,8 @@ namespace Rabbot.Database
         public long ServerId { get; set; }
         public DateTime? Duration { get; set; }
         public string Roles { get; set; }
+
+        public virtual Guild Server { get; set; }
+        public virtual User User { get; set; }
     }
 }

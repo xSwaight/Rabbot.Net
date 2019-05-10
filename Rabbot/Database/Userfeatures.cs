@@ -5,6 +5,11 @@ namespace Rabbot.Database
 {
     public partial class Userfeatures
     {
+        public Userfeatures()
+        {
+            Inventory = new HashSet<Inventory>();
+        }
+
         public int Id { get; set; }
         public long? ServerId { get; set; }
         public long UserId { get; set; }
@@ -19,5 +24,8 @@ namespace Rabbot.Database
         public DateTime? Lastmessage { get; set; }
         public DateTime? NamechangeUntil { get; set; }
         public int Locked { get; set; }
+
+        public virtual User User { get; set; }
+        public virtual ICollection<Inventory> Inventory { get; set; }
     }
 }

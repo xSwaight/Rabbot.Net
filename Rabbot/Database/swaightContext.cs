@@ -46,6 +46,12 @@ namespace Rabbot.Database
             {
                 entity.ToTable("attacks");
 
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
@@ -73,6 +79,16 @@ namespace Rabbot.Database
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Attacks)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("attacks_ibfk_1");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Attacks)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("attacks_ibfk_2");
             });
 
             modelBuilder.Entity<Badwords>(entity =>
@@ -175,6 +191,12 @@ namespace Rabbot.Database
             {
                 entity.ToTable("inventory");
 
+                entity.HasIndex(e => e.FeatureId)
+                    .HasName("featureId");
+
+                entity.HasIndex(e => e.ItemId)
+                    .HasName("itemId");
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
@@ -191,6 +213,18 @@ namespace Rabbot.Database
                 entity.Property(e => e.ItemId)
                     .HasColumnName("itemId")
                     .HasColumnType("int(11)");
+
+                entity.HasOne(d => d.Feature)
+                    .WithMany(p => p.Inventory)
+                    .HasForeignKey(d => d.FeatureId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("inventory_ibfk_2");
+
+                entity.HasOne(d => d.Item)
+                    .WithMany(p => p.Inventory)
+                    .HasForeignKey(d => d.ItemId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("inventory_ibfk_1");
             });
 
             modelBuilder.Entity<Items>(entity =>
@@ -221,6 +255,12 @@ namespace Rabbot.Database
             {
                 entity.ToTable("musicrank");
 
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
+
                 entity.Property(e => e.Id).HasColumnType("int(11)");
 
                 entity.Property(e => e.Date)
@@ -239,11 +279,29 @@ namespace Rabbot.Database
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Musicrank)
+                    .HasForeignKey(d => d.ServerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("musicrank_ibfk_1");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Musicrank)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("musicrank_ibfk_2");
             });
 
             modelBuilder.Entity<Muteduser>(entity =>
             {
                 entity.ToTable("muteduser");
+
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
 
                 entity.Property(e => e.Id).HasColumnType("int(11)");
 
@@ -263,11 +321,29 @@ namespace Rabbot.Database
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(11)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Muteduser)
+                    .HasForeignKey(d => d.ServerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("muteduser_ibfk_2");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Muteduser)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("muteduser_ibfk_1");
             });
 
             modelBuilder.Entity<Pot>(entity =>
             {
                 entity.ToTable("pot");
+
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
@@ -285,11 +361,24 @@ namespace Rabbot.Database
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Pot)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("pot_ibfk_2");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Pot)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("pot_ibfk_1");
             });
 
             modelBuilder.Entity<Roles>(entity =>
             {
                 entity.ToTable("roles");
+
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
@@ -307,6 +396,11 @@ namespace Rabbot.Database
                 entity.Property(e => e.ServerId)
                     .HasColumnName("serverId")
                     .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Roles)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("roles_ibfk_1");
             });
 
             modelBuilder.Entity<Songlist>(entity =>
@@ -379,6 +473,9 @@ namespace Rabbot.Database
             {
                 entity.ToTable("userfeatures");
 
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
@@ -440,11 +537,23 @@ namespace Rabbot.Database
                     .HasColumnName("wins")
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Userfeatures)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("userfeatures_ibfk_1");
             });
 
             modelBuilder.Entity<Warning>(entity =>
             {
                 entity.ToTable("warning");
+
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
 
                 entity.Property(e => e.Id).HasColumnType("int(11)");
 
@@ -463,6 +572,18 @@ namespace Rabbot.Database
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Warning)
+                    .HasForeignKey(d => d.ServerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("warning_ibfk_2");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Warning)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("warning_ibfk_1");
             });
         }
     }

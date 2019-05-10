@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 using System;
@@ -392,7 +393,11 @@ namespace Rabbot.Commands
             EmbedBuilder embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
             {
-                var features = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                var features = db.Userfeatures
+                    .Include(p => p.Inventory)
+                    .ThenInclude(p => p.Item)
+                    .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
                 if (features.Locked == 1)
                 {
                     embed.Color = Color.Red;
@@ -408,9 +413,9 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 1).FirstOrDefault();
-                if (inventar != null)
-                    inventar.Durability += 5;
+                var hirtenstab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
+                if (hirtenstab != null)
+                    hirtenstab.Durability += 5;
                 else
                     await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 5 });
 
@@ -430,7 +435,11 @@ namespace Rabbot.Commands
             EmbedBuilder embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
             {
-                var features = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                var features = db.Userfeatures
+                   .Include(p => p.Inventory)
+                   .ThenInclude(p => p.Item)
+                   .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
                 if (features.Locked == 1)
                 {
                     embed.Color = Color.Red;
@@ -446,9 +455,9 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                var inventar = db.Inventory.Where(p => p.FeatureId == features.Id && p.ItemId == 2).FirstOrDefault();
-                if (inventar != null)
-                    inventar.Durability += 7;
+                var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
+                if (zaun != null)
+                    zaun.Durability += 7;
                 else
                     await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 });
 

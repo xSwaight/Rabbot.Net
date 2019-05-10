@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 
@@ -191,7 +192,13 @@ namespace Rabbot.Commands
 
             Emote emote = Emote.Parse("<:shtaco:555055295806701578>"); //Normal
             Emote emote2 = Emote.Parse("<a:shtaco:555055295806701578>"); //Animated
-            await Context.Channel.SendMessageAsync($"Hi {emote}");
+            //await Context.Channel.SendMessageAsync($"Hi {emote}");
+
+            using (swaightContext db = new swaightContext())
+            {
+                var test = db.User
+                    .FirstOrDefault(p => p.Id == (long)Context.User.Id);
+            }
         }
 
         [Command("hdf", RunMode = RunMode.Async)]
