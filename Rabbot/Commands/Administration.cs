@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -31,7 +32,7 @@ namespace Rabbot.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
-                await Log.Delete(Context, (int)amount);
+                await Logging.Delete(Context, (int)amount);
                 await Task.Delay(delay);
                 await m.DeleteAsync();
             }
@@ -58,7 +59,7 @@ namespace Rabbot.Commands
                 embed.WithDescription($"Die letzten {amount} Nachrichten von {user.Username} wurden gelöscht.");
                 embed.WithColor(new Color(90, 92, 96));
                 IUserMessage m = await ReplyAsync("", false, embed.Build());
-                await Log.Delete(user, Context, (int)amount);
+                await Logging.Delete(user, Context, (int)amount);
                 await Task.Delay(delay);
                 await m.DeleteAsync();
 
@@ -140,9 +141,8 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task Uptime()
         {
-            TimeSpan span = DateTime.Now - Program.startTime;
+            TimeSpan span = DateTime.Now - Process.GetCurrentProcess().StartTime;
             await Context.Channel.SendMessageAsync($"`Uptime: {span.Days}D {span.Hours}H {span.Minutes}M`");
-            
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Rabbot
 {
-    public static class Log
+    public static class Logging
     {
         public static async Task Unmuted(SocketCommandContext context, IUser user)
         {

@@ -16,6 +16,10 @@ namespace Rabbot.API
         private LiveStreamMonitorService Monitor;
         private TwitchAPI API;
         DiscordSocketClient _client;
+        public Twitch(DiscordSocketClient client)
+        {
+            _ = ConfigLiveMonitorAsync(client);
+        }
         public async Task ConfigLiveMonitorAsync(DiscordSocketClient client)
         {
             try

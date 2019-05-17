@@ -238,7 +238,7 @@ namespace Rabbot.Commands
 
                 await user.AddRoleAsync(s4Role.FirstOrDefault());
                 var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                await Log.S4Role(Context);
+                await Logging.S4Role(Context);
             }
         }
     }

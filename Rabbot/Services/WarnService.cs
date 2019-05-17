@@ -76,7 +76,7 @@ namespace Rabbot.Services
                     warn.Counter++;
                     await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                 }
-                await Log.Warn(user, Context);
+                await Logging.Warn(user, Context);
                 await db.SaveChangesAsync();
             }
         }

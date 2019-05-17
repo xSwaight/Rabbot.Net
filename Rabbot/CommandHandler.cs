@@ -1,29 +1,30 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Rabbot.Commands;
 
 namespace Rabbot
 {
     class CommandHandler
     {
         DiscordSocketClient _client;
-        CommandService _service;
-        private IServiceProvider services;
+        CommandService _commands;
+        private readonly IServiceProvider _provider;
+        private readonly IConfigurationRoot _config;
+        private readonly ILogger _logger;
 
-        public async Task InitializeAsync(DiscordSocketClient client)
+        public CommandHandler(IServiceProvider provider, IConfigurationRoot config, ILogger<CommandHandler> logger)
         {
-            _client = client;
-            _service = new CommandService();
-            services = new ServiceCollection().BuildServiceProvider();
-            await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
+            _config = config;
+            _provider = provider;
+            _client = _provider.GetService<DiscordSocketClient>();
+            _commands = _provider.GetService<CommandService>();
             _client.MessageReceived += HandleCommandAsync;
+            _logger = logger;
         }
 
         private async Task HandleCommandAsync(SocketMessage s)
@@ -36,11 +37,26 @@ namespace Rabbot
             int argPos = 0;
             if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos) || msg.HasMentionPrefix(_client.CurrentUser, ref argPos))
             {
-                var result = await _service.ExecuteAsync(context, argPos, services);
+                var result = await _commands.ExecuteAsync(context, argPos, _provider);
+                await LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     Console.WriteLine(result.ErrorReason);
                 }
+            }
+        }
+
+        private async Task LogCommandUsage(SocketCommandContext context, IResult result)
+        {
+            if (context.Channel is IGuildChannel)
+            {
+                var logTxt = $"User: [{context.User.Username}] Discord Server: [{context.Guild.Name}] -> [{context.Message.Content}]";
+                _logger.LogInformation(logTxt);
+            }
+            else
+            {
+                var logTxt = $"User: [{context.User.Username}] -> [{context.Message.Content}]";
+                _logger.LogInformation(logTxt);
             }
         }
     }

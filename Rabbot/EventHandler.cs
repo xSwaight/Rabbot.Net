@@ -12,6 +12,7 @@ using Rabbot.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
 using Rabbot.API.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Rabbot
 {
@@ -19,20 +20,16 @@ namespace Rabbot
     {
         DiscordSocketClient _client;
         CommandService _service;
-        private IServiceProvider services;
 
         public async Task InitializeAsync(DiscordSocketClient client)
         {
             _client = client;
             _service = new CommandService();
-            services = new ServiceCollection().BuildServiceProvider();
-            await _service.AddModulesAsync(Assembly.GetEntryAssembly(), services);
 
             new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
-            //new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
@@ -606,28 +603,6 @@ namespace Rabbot
             }
         }
 
-        //private async Task CheckItems()
-        //{
-        //    while (true)
-        //    {
-        //        using (swaightContext db = new swaightContext())
-        //        {
-        //            if (db.Inventory.Any())
-        //            {
-        //                foreach (var item in db.Inventory)
-        //                {
-        //                    if (item.Duration < DateTime.Now)
-        //                    {
-        //                        db.Inventory.Remove(item);
-        //                    }
-        //                }
-        //                await db.SaveChangesAsync();
-        //            }
-        //        }
-        //        await Task.Delay(1000);
-        //    }
-        //}
-
         private async Task CheckAttacks()
         {
             while (true)
@@ -670,7 +645,7 @@ namespace Rabbot
                         await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
                     var myUser = msg.Author as SocketGuildUser;
-                    await Log.Warning(myUser, msg);
+                    await Logging.Warning(myUser, msg);
                 }
                 await db.SaveChangesAsync();
             }

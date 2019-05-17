@@ -72,7 +72,7 @@ namespace Rabbot.Services
                                     if (role != null)
                                         await DcTargetUser.AddRoleAsync(role);
                                 }
-                                await Log.Unmuted(DcTargetUser);
+                                await Logging.Unmuted(DcTargetUser);
                             }
                             catch (Exception e)
                             {
@@ -171,7 +171,7 @@ namespace Rabbot.Services
                     ban.Duration = banUntil;
                 }
                 await SendPrivate(DcGuild, banUntil, duration, DcTargetUser);
-                await Log.Mute(context, user, duration);
+                await Logging.Mute(context, user, duration);
                 await db.SaveChangesAsync();
             }
         }
@@ -215,7 +215,7 @@ namespace Rabbot.Services
                     ban.Duration = banUntil;
                 }
                 await SendPrivate(DcGuild, banUntil, "1 Stunde", user);
-                await Log.WarningMute(DcTargetUser);
+                await Logging.WarningMute(DcTargetUser);
                 await db.SaveChangesAsync();
             }
         }
@@ -248,7 +248,7 @@ namespace Rabbot.Services
                                 await DcTargetUser.AddRoleAsync(role);
                         }
                     }
-                    await Log.Unmuted(context, user);
+                    await Logging.Unmuted(context, user);
                 }
 
             }
