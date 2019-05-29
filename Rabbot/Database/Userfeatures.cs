@@ -25,6 +25,7 @@ namespace Rabbot.Database
         public DateTime? NamechangeUntil { get; set; }
         public int Locked { get; set; }
 
+        public virtual Guild Server { get; set; }
         public virtual User User { get; set; }
         public virtual ICollection<Inventory> Inventory { get; set; }
     }

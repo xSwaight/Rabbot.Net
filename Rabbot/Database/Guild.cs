@@ -12,6 +12,7 @@ namespace Rabbot.Database
             Muteduser = new HashSet<Muteduser>();
             Pot = new HashSet<Pot>();
             Roles = new HashSet<Roles>();
+            Userfeatures = new HashSet<Userfeatures>();
             Warning = new HashSet<Warning>();
         }
 
@@ -31,6 +32,7 @@ namespace Rabbot.Database
         public virtual ICollection<Muteduser> Muteduser { get; set; }
         public virtual ICollection<Pot> Pot { get; set; }
         public virtual ICollection<Roles> Roles { get; set; }
+        public virtual ICollection<Userfeatures> Userfeatures { get; set; }
         public virtual ICollection<Warning> Warning { get; set; }
     }
 }

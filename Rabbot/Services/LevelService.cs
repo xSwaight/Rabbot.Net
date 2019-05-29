@@ -57,9 +57,12 @@ namespace Rabbot.Services
                 }
 
                 int multiplier = 1;
-                var myEvent = db.Event.FirstOrDefault();
-                if (myEvent.Status == 1)
-                    multiplier = 2;
+                if (db.Event.Where(p => p.Status == 1).Any())
+                {
+                    var myEvent = db.Event.Where(p => p.Status == 1).FirstOrDefault();
+                    multiplier = myEvent.Multiplier;
+                }
+                    
 
                 var ranks = db.Musicrank.Where(p => p.ServerId == (long)dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
                 int rank = 0;
@@ -115,7 +118,7 @@ namespace Rabbot.Services
             {
                 var roles = db.Roles.Where(p => p.ServerId == (long)dcGuild.Id);
 
-                var S4Id = roles.Where(x => x.Description == "S4").FirstOrDefault() ?? new Roles {ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
+                var S4Id = roles.Where(x => x.Description == "S4").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
                 var ProId = roles.Where(x => x.Description == "Pro").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "ProId" };
                 var SemiId = roles.Where(x => x.Description == "Semi").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "SemiId" };
                 var AmateurId = roles.Where(x => x.Description == "Amateur").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "AmateurId" };

@@ -526,22 +526,29 @@ namespace Rabbot.Commands
 
         [RequireOwner]
         [Command("event", RunMode = RunMode.Async)]
-        public async Task Event()
+        public async Task Event(int eventId)
         {
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var myEvent = db.Event.FirstOrDefault();
-                if (myEvent.Status == 0)
-                {
-                    myEvent.Status = 1;
-                    await Context.Client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
-                }
-                else
+                if (!db.Event.Where(x => x.Id == eventId).Any())
+                    return;
+
+                var events = db.Event.ToList();
+                foreach (var myEvent in events)
                 {
                     myEvent.Status = 0;
-                    await Context.Client.SetGameAsync($">rank", null, ActivityType.Watching);
                 }
+
+                if (eventId == 0)
+                {
+                    await Context.Client.SetGameAsync($">rank", null, ActivityType.Watching);
+                    return;
+                }
+
+                var Event = db.Event.Where(x => x.Id == eventId).FirstOrDefault();
+                Event.Status = 1;
+                await Context.Client.SetGameAsync($"{Event.Name} Event aktiv!", null, ActivityType.Watching);
                 await db.SaveChangesAsync();
             }
         }

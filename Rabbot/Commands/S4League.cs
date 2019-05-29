@@ -48,18 +48,18 @@ namespace Rabbot.Commands
                     string[] exp = player.Levelbar.Split(':');
                     var percent = (Convert.ToDecimal(exp[0]) / Convert.ToDecimal(exp[1])) * 100;
                     embedInfo.AddField("Percent", Math.Round(percent, 2).ToString() + "%", true);
-                    embedInfo.AddField("EXP", player.Exp.ToString("N0"), true);
+                    embedInfo.AddField("EXP", player.Exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
                     TimeSpan time = DateTime.Now.AddSeconds(player.Playtime) - DateTime.Now;
                     string playtime = time.Days + "D " + time.Hours + "H " + time.Minutes + "M ";
                     embedInfo.AddField("Playtime", playtime, true);
                     embedInfo.AddField("TD Rate", player.Tdrate.ToString(), true);
                     embedInfo.AddField("KD Rate", player.Kdrate.ToString(), true);
-                    embedInfo.AddField("Matches played", player.Matches_played.ToString("N0"), true);
-                    embedInfo.AddField("Matches won", player.Matches_won.ToString("N0"), true);
-                    embedInfo.AddField("Matches lost", player.Matches_lost.ToString("N0"), true);
+                    embedInfo.AddField("Matches played", player.Matches_played.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
+                    embedInfo.AddField("Matches won", player.Matches_won.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
+                    embedInfo.AddField("Matches lost", player.Matches_lost.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
                     embedInfo.AddField("Last online", Convert.ToDateTime(player.Last_online).ToShortDateString(), true);
-                    embedInfo.AddField("Views", player.Views.ToString("N0"), true);
-                    embedInfo.AddField("Favorites", player.Favorites.ToString("N0"), true);
+                    embedInfo.AddField("Views", player.Views.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
+                    embedInfo.AddField("Favorites", player.Favorites.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
                     embedInfo.AddField("Fame", player.Fame.ToString() + "%", true);
                     embedInfo.AddField("Hate", player.Hate.ToString() + "%", true);
                     embedInfo.ThumbnailUrl = "https://s4db.net/assets/img/icon192.png";
@@ -97,7 +97,7 @@ namespace Rabbot.Commands
                         embedInfo.AddField("Announcement", clan.Announcement, true);
                     if (!String.IsNullOrWhiteSpace(clan.Description))
                         embedInfo.AddField("Description", clan.Description, true);
-                    embedInfo.AddField("Views", clan.Views.ToString("N0"), true);
+                    embedInfo.AddField("Views", clan.Views.ToString("N0", new System.Globalization.CultureInfo("de-DE")), true);
                     embedInfo.AddField("Favorites", clan.Favorites.ToString(), true);
                     embedInfo.AddField("Fame", clan.Fame.ToString() + "%", true);
                     embedInfo.AddField("Hate", clan.Hate.ToString() + "%", true);
@@ -140,7 +140,7 @@ namespace Rabbot.Commands
         //                        status = "Unknown";
         //                        break;
         //                }
-        //                embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString("N0") + "**", false);
+        //                embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString("N0", new System.Globalization.CultureInfo("de-DE")) + "**", false);
         //            }
         //        }
         //        await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -172,9 +172,9 @@ namespace Rabbot.Commands
                     COLOR = "#949494",
                     LEVEL = player.Level.ToString(),
                     IGNAME = player.Name,
-                    EXP = player.Exp.ToString("N0"),
+                    EXP = player.Exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
                     TOUCHDOWN = player.Tdrate.ToString(),
-                    MATCHES = player.Matches_played.ToString("N0"),
+                    MATCHES = player.Matches_played.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
                     DEATHMATCH = player.Kdrate.ToString()
                 });
 
@@ -209,9 +209,9 @@ namespace Rabbot.Commands
                     COLOR = "#403e3e",
                     LEVEL = player.Level.ToString(),
                     IGNAME = player.Name,
-                    EXP = player.Exp.ToString("N0"),
+                    EXP = player.Exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
                     TOUCHDOWN = player.Tdrate.ToString(),
-                    MATCHES = player.Matches_played.ToString("N0"),
+                    MATCHES = player.Matches_played.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
                     DEATHMATCH = player.Kdrate.ToString()
                 });
 

@@ -208,8 +208,8 @@ namespace Rabbot
             myMessage = new Regex("<:[a-zA-Z0-9]*:[0-9]{18,18}>").Replace(myMessage, ""); //Edit custom images
             myMessage = new Regex("<a:[a-zA-Z0-9]*:[0-9]{18,18}>").Replace(myMessage, ""); //Edit custom animated images
             myMessage = new Regex("<@[0-9!]{18,19}>").Replace(myMessage, ""); //Edit tags
-            myMessage = new Regex("[\\s]{2,}").Replace(myMessage, " "); //Edit every multiple whitespace type to a single whitespace
             myMessage = new Regex("[^\\w\\d\\s]|[\\\\_]").Replace(myMessage, ""); //Edit all special characters
+            myMessage = new Regex("[\\s]{2,}").Replace(myMessage, " "); //Edit every multiple whitespace type to a single whitespace
             return myMessage;
         }
 

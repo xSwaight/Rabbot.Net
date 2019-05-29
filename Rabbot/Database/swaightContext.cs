@@ -124,6 +124,11 @@ namespace Rabbot.Database
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
 
+                entity.Property(e => e.Multiplier)
+                    .HasColumnName("multiplier")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'1'");
+
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
@@ -473,6 +478,9 @@ namespace Rabbot.Database
             {
                 entity.ToTable("userfeatures");
 
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
                 entity.HasIndex(e => e.UserId)
                     .HasName("userId");
 
@@ -537,6 +545,11 @@ namespace Rabbot.Database
                     .HasColumnName("wins")
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Userfeatures)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("userfeatures_ibfk_2");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Userfeatures)

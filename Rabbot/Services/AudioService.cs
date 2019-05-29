@@ -24,6 +24,8 @@ namespace Rabbot.Services
             }
 
             var audioClient = await target.ConnectAsync();
+
+            ConnectedChannels.TryAdd(guild.Id, audioClient);
         }
 
         public async Task LeaveAudio(IGuild guild)
