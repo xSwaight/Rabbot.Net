@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -14,68 +15,43 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly swaightContext _database;
-        public Misc(swaightContext database)
+        private readonly CommandService _commandService;
+        public Misc(swaightContext database, CommandService commandService)
         {
             _database = database;
+            _commandService = commandService;
         }
 
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(30)]
-        public async Task Help(int page = 1)
+        public async Task Help()
         {
-            var embed = new EmbedBuilder();
-            embed.WithColor(new Color(241, 242, 222));
-            if (page == 1)
+            List<CommandInfo> commands = _commandService.Commands.ToList();
+            string help = "";
+            foreach (var command in commands.OrderBy(p => p.Name))
             {
-                embed.Description = "Commandlist Seite 1:";
-                embed.AddField("Hinweis", "Pflicht Argumente: [argument] | Optionale Argumente: (argument)");
-                embed.AddField("__**Normal:**__ \n" + Config.bot.cmdPrefix + "player [S4 Username]", "Gibt die Stats eines S4 Spielers aus.");
-                embed.AddField(Config.bot.cmdPrefix + "clan [S4 Clanname]", "Gibt die Stats eines S4 Clans aus.");
-                embed.AddField(Config.bot.cmdPrefix + "playercard [S4 Username]", "Erstellt eine Playercard Grafik.");
-                embed.AddField(Config.bot.cmdPrefix + "about", "Gibt Statistiken zum Bot aus.");
-                embed.AddField(Config.bot.cmdPrefix + "ping", "Gibt die Verzögerung zum Bot aus.");
-                embed.AddField(Config.bot.cmdPrefix + "profile (User Mention)", "Ohne Argument gibt er das eigene Profil aus, mit Argument das Profil des markierten Users.");
-                embed.AddField(Config.bot.cmdPrefix + "daily", "Du hast die tägliche Chance deinen Stall mit Ziegen zu füllen, mit denen du handeln kannst.");
-                embed.AddField(Config.bot.cmdPrefix + "shop", "Zeigt aktuelle Angebote zur Verwendung von Ziegen.");
-                embed.AddField(Config.bot.cmdPrefix + "angriff [User Mention]", "Startet einen Angriff gegen markierten User.");
-                embed.AddField(Config.bot.cmdPrefix + "stats (User Mention)", "Gibt deine Kampfstatistiken aus.");
-                embed.AddField(Config.bot.cmdPrefix + "stall (User Mention)", "Zeigt deinen aktuellen Stall an.");
-                embed.AddField(Config.bot.cmdPrefix + "stalls", "Zeigt eine Liste mit allen Stallen an.");
-                if (Context.Guild.Roles.Where(p => p.Name == "S4 League").Count() > 0)
-                    embed.AddField(Config.bot.cmdPrefix + "s4", "Gibt dir die S4 League Rolle.");
+                if (command.Summary == null)
+                    continue;
+                if (command.Module.Name == "Administration")
+                    continue;
+                string param = "";
+                foreach (var parameter in command.Parameters)
+                {
+                    if (parameter.IsOptional)
+                        param += $"({parameter}) ";
+                    else
+                        param += $"[{parameter}] ";
+
+                }
+                help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n{command.Summary}\n";
             }
-            else if (page == 2)
-            {
-                embed.Description = "Commandlist Seite 2:";
-                embed.AddField("\n__**Administration:**__ \n" + Config.bot.cmdPrefix + "del [anzahl] (User Mention)", "Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).");
-                embed.AddField(Config.bot.cmdPrefix + "mute [User Mention] [duration]", "Muted den User für angegebene Zeit (Zeitindikatoren: s = sekunden, m = minuten, h = stunden, d = tage).");
-                embed.AddField(Config.bot.cmdPrefix + "unmute [User Mention]", "Unmuted den User.");
-                embed.AddField(Config.bot.cmdPrefix + "warn [User Mention]", "Warnt den User.");
-                embed.AddField(Config.bot.cmdPrefix + "addBadword [word]", "Fügt das Wort zum Wortfilter hinzu.");
-                embed.AddField(Config.bot.cmdPrefix + "delBadword [word]", "Löscht das Wort aus dem Wortfilter.");
-                embed.AddField(Config.bot.cmdPrefix + "badwords", "Listet alle Badwords auf.");
-                embed.AddField(Config.bot.cmdPrefix + "settings", "Zeigt die aktuellen Einstellungen an.");
-                embed.AddField(Config.bot.cmdPrefix + "setBot", "Setzt den aktuellen Channel als Bot Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "delBot", "Löscht den aktuell gesetzten Bot Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "setLog", "Setzt den aktuellen Channel als Log Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "delLog", "Löscht den aktuell gesetzten Log Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "log", "Aktiviert oder deaktiviert die Logs auf dem Server.");
-                embed.AddField(Config.bot.cmdPrefix + "setNotification", "Setzt den aktuellen Channel als Notification Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "delNotification", "Löscht den aktuell gesetzten Log Channel.");
-                embed.AddField(Config.bot.cmdPrefix + "setupLevels", "Erstellt S4 League Level Gruppen die automatisch beim erreichen des jeweiligen Levels gesetzt werden.");
-                embed.AddField(Config.bot.cmdPrefix + "levelNotification", "Aktiviert oder deaktiviert die Level Nofitications auf dem Server.");
-                embed.AddField(Config.bot.cmdPrefix + "notification", "Aktiviert oder deaktiviert die Notifications auf dem Server.");
-            }
-            else
-            {
-                return;
-            }
-            embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
-            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+
+            await Context.Channel.SendMessageAsync(help);
         }
 
         [Command("about", RunMode = RunMode.Async)]
+        [Summary("Gibt Statistiken über den Bot aus.")]
         [BotCommand]
         [Cooldown(30)]
         public async Task About()
@@ -102,6 +78,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("settings", RunMode = RunMode.Async)]
+        [Summary("Gibt die aktuellen Einstellungen aus.")]
         [BotCommand]
         [Cooldown(30)]
         public async Task Settings()
@@ -178,6 +155,7 @@ namespace Rabbot.Commands
 
         [Command("ping", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Zeigt den Ping vom Bot an.")]
         [Cooldown(30)]
         public async Task Ping()
         {

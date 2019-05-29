@@ -70,6 +70,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("mute", RunMode = RunMode.Async)]
+        [Summary("Muted den User für angegebene Zeit (Zeitindikatoren: s = Sekunden, m = Minuten, h = Stunden, d = Tage).")]
         public async Task Mute(IUser user, string duration)
         {
             if (duration.Contains('-'))
@@ -84,6 +85,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("unmute", RunMode = RunMode.Async)]
+        [Summary("Entmuted den markierten User.")]
         public async Task Unmute(IUser user)
         {
             await Context.Message.DeleteAsync();
@@ -93,6 +95,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("warn", RunMode = RunMode.Async)]
+        [Summary("Warnt den markierten User.")]
         public async Task Warn(IUser user)
         {
             await Context.Message.DeleteAsync();
@@ -149,6 +152,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setLog", RunMode = RunMode.Async)]
+        [Summary("Setzt den aktuellen Channel als Log Channel.")]
         public async Task SetLog()
         {
             await Context.Message.DeleteAsync();
@@ -174,6 +178,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setBot", RunMode = RunMode.Async)]
+        [Summary("Setzt den aktuellen Channel als Bot Channel.")]
         public async Task SetBot()
         {
             await Context.Message.DeleteAsync();
@@ -198,6 +203,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setTrash", RunMode = RunMode.Async)]
+        [Summary("Setzt den aktuellen Channel als Trash Channel.")]
         public async Task SetTrash()
         {
             await Context.Message.DeleteAsync();
@@ -247,6 +253,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setNotification", RunMode = RunMode.Async)]
+        [Summary("Setzt den aktuellen Channel als Notification Channel.")]
         public async Task SetNotification()
         {
             await Context.Message.DeleteAsync();
@@ -272,6 +279,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delNotification", RunMode = RunMode.Async)]
+        [Summary("Löscht den Notification Channel in den Einstellungen.")]
         public async Task DelNotification()
         {
             await Context.Message.DeleteAsync();
@@ -297,6 +305,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delBot", RunMode = RunMode.Async)]
+        [Summary("Löscht den Bot Channel in den Einstellungen.")]
         public async Task DelBot()
         {
             await Context.Message.DeleteAsync();
@@ -321,6 +330,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delTrash", RunMode = RunMode.Async)]
+        [Summary("Löscht den Trash Channel in den Einstellungen.")]
         public async Task DelTrash()
         {
             await Context.Message.DeleteAsync();
@@ -346,6 +356,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delLog", RunMode = RunMode.Async)]
+        [Summary("Löscht den Log Channel in den Einstellungen.")]
         public async Task DelLog()
         {
             await Context.Message.DeleteAsync();
@@ -371,6 +382,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("notification", RunMode = RunMode.Async)]
+        [Summary("Toggled die Notifications.")]
         public async Task Notification()
         {
             await Context.Message.DeleteAsync();
@@ -404,6 +416,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("log", RunMode = RunMode.Async)]
+        [Summary("Toggled die Logs.")]
         public async Task ToggleLog()
         {
             await Context.Message.DeleteAsync();

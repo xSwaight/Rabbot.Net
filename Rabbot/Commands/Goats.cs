@@ -24,6 +24,7 @@ namespace Rabbot.Commands
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Du kannst 1x täglich eine Belohnung bekommen.")]
         public async Task Daily()
         {
             var dbUser = _database.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
@@ -110,6 +111,7 @@ namespace Rabbot.Commands
         [Command("trade")]
         [BotCommand]
         [Cooldown(30)]
+        [Summary("Du kannst dem Markierten User die angegebene Anzahl an Ziegen schenken.")]
         public async Task Trade(IUser user, int amount)
         {
             if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
@@ -267,12 +269,13 @@ namespace Rabbot.Commands
         [Command("angriff", RunMode = RunMode.Async)]
         [Alias("attack", "atk")]
         [BotCommand]
-        public async Task Angriff(IUser targetUser)
+        [Summary("Du kannst den Markierten User angreifen und Ziegen gewinnen oder verlieren.")]
+        public async Task Angriff(IUser target)
         {
             Random rnd = new Random();
             await Task.Delay(rnd.Next(1, 201));
             EmbedBuilder embed = new EmbedBuilder();
-            if (Context.User.Id == targetUser.Id || targetUser.IsBot)
+            if (Context.User.Id == target.Id || target.IsBot)
             {
                 embed.Color = Color.Red;
                 embed.Description = "Ne man. Lass mal. Muss nicht sein.";
@@ -280,7 +283,7 @@ namespace Rabbot.Commands
                 return;
             }
 
-            var dbTarget = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)targetUser.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)targetUser.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbTarget = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)target.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
             var dbUser = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
             var targetStall = Helper.GetStall(dbTarget.Wins);
             var userStall = Helper.GetStall(dbUser.Wins);
@@ -335,7 +338,7 @@ namespace Rabbot.Commands
             embed.Color = new Color(242, 255, 0);
             var shield = new Emoji("🛡");
             var dagger = new Emoji("🗡");
-            embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {targetUser.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
+            embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {target.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
             embed.Description += $"\n\n**Interaktionen:**";
             embed.Description += $"\n{dagger} = Hirtenstab       (Nur Angreifer)";
             embed.Description += $"\n{shield} = Stacheldrahtzaun (Nur Angegriffener)";
@@ -349,12 +352,12 @@ namespace Rabbot.Commands
             var sum = atk + def;
             var winChance = ((double)atk / (double)sum) * 100;
 
-            string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {targetUser.Username} {100 - Math.Round(winChance)}%**";
+            string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {target.Username} {100 - Math.Round(winChance)}%**";
 
             var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
             dbUser.Locked = 1;
             dbTarget.Locked = 1;
-            await _database.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)targetUser.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
+            await _database.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)target.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
             await _database.SaveChangesAsync();
             await msg.AddReactionAsync(dagger);
             await msg.AddReactionAsync(shield);
@@ -364,6 +367,7 @@ namespace Rabbot.Commands
         [Command("shop", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
+        [Summary("Im Shop kannst du Items für Kämpfe kaufen.")]
         public async Task Shop()
         {
             var embed = new EmbedBuilder();
@@ -458,21 +462,22 @@ namespace Rabbot.Commands
         [Command("stall", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        public async Task Stall(SocketUser target = null)
+        [Summary("Du kannst entweder deinen eigenen Stall, oder den Stall des markierten Users sehen.")]
+        public async Task Stall(SocketUser user = null)
         {
-            if (target == null)
+            if (user == null)
             {
-                target = Context.User;
+                user = Context.User;
             }
             var embed = new EmbedBuilder();
-            var user = _database.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
-            var stall = Helper.GetStall(user.Wins);
-            embed.WithTitle($"Stall von {target.Username}");
+            var dbUser = _database.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var stall = Helper.GetStall(dbUser.Wins);
+            embed.WithTitle($"Stall von {user.Username}");
             embed.WithDescription(stall.Name);
             embed.WithColor(new Color(241, 242, 222));
             embed.AddField($"Level", $"{stall.Level} / 26");
-            var percent = ((double)user.Goats / (double)stall.Capacity) * 100;
-            embed.AddField($"Kapazität", $"{user.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
+            var percent = ((double)dbUser.Goats / (double)stall.Capacity) * 100;
+            embed.AddField($"Kapazität", $"{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
             embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
             await _database.SaveChangesAsync();
@@ -481,17 +486,18 @@ namespace Rabbot.Commands
         [Command("stats", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        public async Task Stats(SocketUser target = null)
+        [Summary("Du kannst entweder deine eigenen Stats, oder die Stats des markierten Users sehen.")]
+        public async Task Stats(SocketUser user = null)
         {
-            if (target == null)
+            if (user == null)
             {
-                target = Context.User;
+                user = Context.User;
             }
             var embed = new EmbedBuilder();
 
-            var user = _database.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
-            var inventory = _database.Inventory.Join(_database.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == user.Id);
-            var stall = Helper.GetStall(user.Wins);
+            var dbUser = _database.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var inventory = _database.Inventory.Join(_database.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
+            var stall = Helper.GetStall(dbUser.Wins);
             var atk = stall.Attack;
             var def = stall.Defense;
 
@@ -503,10 +509,10 @@ namespace Rabbot.Commands
                     def += item.Item.Def;
                 }
             }
-            var myUser = target as SocketGuildUser;
+            var myUser = user as SocketGuildUser;
             embed.WithTitle($"Statistiken von {myUser.Nickname ?? myUser.Username}");
             embed.WithColor(new Color(241, 242, 222));
-            embed.AddField($"Battle", $"**{(user.Loses + user.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{user.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{user.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
+            embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{dbUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{dbUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
             embed.AddField($"Aktueller Stall", $"{stall.Name}");
             embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
             if (inventory.Count() != 0)
@@ -526,6 +532,7 @@ namespace Rabbot.Commands
         [Command("stalls", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
+        [Summary("Eine Liste mit allen Ställen")]
         public async Task StallListe()
         {
             var embed = new EmbedBuilder();
@@ -549,6 +556,7 @@ namespace Rabbot.Commands
         [Command("wins", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
+        [Summary("Die Bestenliste sortiert nach Siegen")]
         public async Task Wins()
         {
             var top25 = _database.Userfeatures.Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
@@ -567,6 +575,7 @@ namespace Rabbot.Commands
         [Command("pot", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
+        [Summary("Du kannst eine bestimmte Anzahl an Ziegen in den Pot werfen, der täglich um 0 Uhr ausgelost wird.")]
         public async Task Pot(int amount)
         {
             try
@@ -637,6 +646,7 @@ namespace Rabbot.Commands
         [Command("chance", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
+        [Summary("Zeigt die Chancen im aktuellen Pot an.")]
         public async Task Chance()
         {
                 var sum = _database.Pot.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);

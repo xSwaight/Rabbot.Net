@@ -19,6 +19,7 @@ namespace Rabbot.Commands
 
         [Command("player", RunMode = RunMode.Async)]
         [Cooldown(10)]
+        [Summary("Zeigt Statistiken vom eingegebenen S4 Spieler an.")]
         public async Task Player([Remainder]string arg)
         {
 
@@ -70,6 +71,7 @@ namespace Rabbot.Commands
 
         [Command("clan", RunMode = RunMode.Async)]
         [Cooldown(10)]
+        [Summary("Zeigt Statistiken zum eingegebenen S4 Clan an.")]
         public async Task Clan([Remainder]string name)
         {
 
@@ -109,6 +111,7 @@ namespace Rabbot.Commands
 
         [Command("playercard", RunMode = RunMode.Async)]
         [Cooldown(10)]
+        [Summary("Gibt eine Grafik mit S4 Spielerdaten aus.")]
         public async Task Playercard([Remainder]string arg)
         {
 
@@ -146,6 +149,7 @@ namespace Rabbot.Commands
 
 
         [Command("s4")]
+        [Summary("Gibt dir die S4 League Rolle.")]
         public async Task S4()
         {
             await Context.Message.DeleteAsync();
