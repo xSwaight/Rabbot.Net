@@ -360,55 +360,15 @@ namespace Rabbot.Commands
 
         [Command("profile", RunMode = RunMode.Async), Alias("rank")]
         [Cooldown(30)]
-        public async Task Profile(IUser user = null)
+        public async Task Profile(SocketUser user = null)
         {
-
+            if (user == null)
+            {
+                user = Context.User;
+            }
             using (swaightContext db = new swaightContext())
             {
-                if (user == null)
-                {
-                    string name = (Context.User as IGuildUser).Nickname ?? Context.User.Username;
-                    var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                    int exp = dbUser.Exp ?? 0;
-                    int goat = dbUser.Goats;
-                    var level = Helper.GetLevel(exp);
-                    var neededExp1 = Helper.GetEXP((int)level);
-                    var neededExp2 = Helper.GetEXP((int)level + 1);
-                    var currentExp = exp - Helper.GetEXP((int)level);
-                    int totalExp = (int)exp;
-                    int currentLevelExp = (int)currentExp;
-                    int neededLevelExp = (int)neededExp2 - (int)neededExp1;
-                    double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
-                    int percent = (int)dblPercent;
-                    var ranks = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp);
-                    int rank = 1;
-                    foreach (var Rank in ranks)
-                    {
-                        if (Rank.UserId == (long)Context.User.Id)
-                            break;
-                        rank++;
-                    }
-                    string profilePicture = Context.User.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
-                    if (profilePicture == null)
-                        profilePicture = Context.User.GetDefaultAvatarUrl();
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/profile.html");
-                    var html = template.Render(new
-                    {
-                        AVATAR = profilePicture,
-                        NAME = name,
-                        LEVEL = level.ToString(),
-                        RANK = rank.ToString(),
-                        EXP = exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
-                        PROGRESS = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | {neededLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}",
-                        PERCENT = percent.ToString(),
-                        GOATCOINS = goat.ToString("N0", new System.Globalization.CultureInfo("de-DE"))
-                    });
-
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
-                    await Context.Channel.SendFileAsync(path);
-                    File.Delete(path);
-                }
-                else
+                using (Context.Channel.EnterTypingState())
                 {
                     string name = (user as IGuildUser).Nickname ?? user.Username;
                     var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
@@ -450,6 +410,7 @@ namespace Rabbot.Commands
                     var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
                     await Context.Channel.SendFileAsync(path);
                     File.Delete(path);
+                    await db.SaveChangesAsync();
                 }
             }
         }

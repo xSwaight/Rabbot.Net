@@ -92,18 +92,21 @@ namespace Rabbot.Services
         {
             if (NewLevel > OldLevel && Guild.Level == 1)
             {
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
-                var dcUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
-                string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
-                var html = template.Render(new
+                using (dcMessage.Channel.EnterTypingState())
                 {
-                    NAME = name,
-                    LEVEL = NewLevel.ToString()
-                });
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
+                    var dcUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
+                    string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
+                    var html = template.Render(new
+                    {
+                        NAME = name,
+                        LEVEL = NewLevel.ToString()
+                    });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                await dcMessage.Channel.SendFileAsync(path);
-                File.Delete(path);
+                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
+                    await dcMessage.Channel.SendFileAsync(path);
+                    File.Delete(path);
+                }
             }
 
             if (NewLevel > OldLevel)

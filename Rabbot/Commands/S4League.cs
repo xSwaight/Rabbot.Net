@@ -107,86 +107,9 @@ namespace Rabbot.Commands
             }
         }
 
-        //[Command("server", RunMode = RunMode.Async)]
-        //public async Task Server()
-        //{
-        //    List<Server> server = new List<Server>();
-        //    ApiRequest DB = new ApiRequest();
-        //    server = await DB.GetServer();
-        //    var embed = new EmbedBuilder();
-        //    embed.WithDescription($"***Server Liste:***");
-        //    embed.WithColor(new Color(111, 116, 124));
-        //    using (swaightContext db = new swaightContext())
-        //    {
-        //        string crashedServer = "";
-        //        foreach (var item in server)
-        //        {
-        //            if (item.Player_online >= 0)
-        //            {
-        //                string status = "";
-        //                switch (item.State)
-        //                {
-        //                    case 0:
-        //                        status = "Offline";
-        //                        crashedServer = item.Name;
-        //                        break;
-        //                    case 1:
-        //                        status = "Slow";
-        //                        break;
-        //                    case 2:
-        //                        status = "Online";
-        //                        break;
-        //                    default:
-        //                        status = "Unknown";
-        //                        break;
-        //                }
-        //                embed.AddField(item.Name, "Status: **" + status + "** | User online: **" + item.Player_online.ToString("N0", new System.Globalization.CultureInfo("de-DE")) + "**", false);
-        //            }
-        //        }
-        //        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-        //    }
-        //}
-
         [Command("playercard", RunMode = RunMode.Async)]
         [Cooldown(10)]
         public async Task Playercard([Remainder]string arg)
-        {
-
-            Player player = new Player();
-            ApiRequest DB = new ApiRequest();
-            player = await DB.GetPlayer(arg);
-            if (player == null)
-            {
-                var embed = new EmbedBuilder();
-                embed.WithTitle("Fehler");
-                embed.WithDescription("Spieler nicht gefunden ¯\\_(ツ)_/¯");
-                embed.WithColor(new Color(255, 0, 0));
-                await Context.Channel.SendMessageAsync("", false, embed.Build());
-            }
-            else
-            {
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/playercardTemplate.html");
-                var html = template.Render(new
-                {
-                    BACKGROUND = "Background.png",
-                    COLOR = "#949494",
-                    LEVEL = player.Level.ToString(),
-                    IGNAME = player.Name,
-                    EXP = player.Exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
-                    TOUCHDOWN = player.Tdrate.ToString(),
-                    MATCHES = player.Matches_played.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
-                    DEATHMATCH = player.Kdrate.ToString()
-                });
-
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html, 300, 170);
-                await Context.Channel.SendFileAsync(path);
-                File.Delete(path);
-            }
-        }
-
-        [Command("s4dbcard", RunMode = RunMode.Async)]
-        [Cooldown(10)]
-        public async Task S4dbcard([Remainder]string arg)
         {
 
             Player player = new Player();
@@ -225,21 +148,17 @@ namespace Rabbot.Commands
         [Command("s4")]
         public async Task S4()
         {
-            using (swaightContext db = new swaightContext())
-            {
-                await Context.Message.DeleteAsync();
-                var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");
-                if (s4Role.Count() == 0)
-                    return;
+            await Context.Message.DeleteAsync();
+            var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");
+            if (s4Role.Count() == 0)
+                return;
 
-                var user = Context.Guild.Users.Where(p => p.Id == Context.User.Id).FirstOrDefault();
-                if (user.Roles.Where(p => p.Name == "S4 League").Count() != 0)
-                    return;
+            var user = Context.Guild.Users.Where(p => p.Id == Context.User.Id).FirstOrDefault();
+            if (user.Roles.Where(p => p.Name == "S4 League").Count() != 0)
+                return;
 
-                await user.AddRoleAsync(s4Role.FirstOrDefault());
-                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                await Logging.S4Role(Context);
-            }
+            await user.AddRoleAsync(s4Role.FirstOrDefault());
+            await Logging.S4Role(Context);
         }
     }
 }

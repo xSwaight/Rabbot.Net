@@ -15,36 +15,39 @@ namespace Rabbot.Commands
 {
     public class Goats : ModuleBase<SocketCommandContext>
     {
+        private readonly swaightContext _database;
+
+        public Goats(swaightContext database)
+        {
+            _database = database;
+        }
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]
         public async Task Daily()
         {
-            using (swaightContext db = new swaightContext())
+            var dbUser = _database.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            if (dbUser.Lastdaily != null)
             {
-                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                if (dbUser.Lastdaily != null)
+                if (dbUser.Lastdaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
                 {
-                    if (dbUser.Lastdaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
-                    {
-                        dbUser.Lastdaily = DateTime.Now;
-                        await db.SaveChangesAsync();
-                        await GetDailyReward(Context);
-                    }
-                    else
-                    {
-                        var now = DateTime.Now;
-                        var tomorrow = now.AddDays(1).Date;
-                        TimeSpan totalTime = (tomorrow - now);
-                        await Context.Channel.SendMessageAsync($"Du hast heute schon deine Daily Ziegen bekommen.\n**Komm in {totalTime.Hours}h {totalTime.Minutes}m wieder und versuche es erneut!**");
-                    }
+                    dbUser.Lastdaily = DateTime.Now;
+                    await _database.SaveChangesAsync();
+                    await GetDailyReward(Context);
                 }
                 else
                 {
-                    dbUser.Lastdaily = DateTime.Now;
-                    await db.SaveChangesAsync();
-                    await GetDailyReward(Context);
+                    var now = DateTime.Now;
+                    var tomorrow = now.AddDays(1).Date;
+                    TimeSpan totalTime = (tomorrow - now);
+                    await Context.Channel.SendMessageAsync($"Du hast heute schon deine Daily Ziegen bekommen.\n**Komm in {totalTime.Hours}h {totalTime.Minutes}m wieder und versuche es erneut!**");
                 }
+            }
+            else
+            {
+                dbUser.Lastdaily = DateTime.Now;
+                await _database.SaveChangesAsync();
+                await GetDailyReward(Context);
             }
         }
 
@@ -56,48 +59,45 @@ namespace Rabbot.Commands
             EmbedBuilder embed = new EmbedBuilder();
             if (chance > 1)
             {
-                using (swaightContext db = new swaightContext())
+                var dbUser = _database.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                var stall = Helper.GetStall(dbUser.Wins);
+                if (jackpot <= 2)
                 {
-                    var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    var stall = Helper.GetStall(dbUser.Wins);
-                    if (jackpot <= 2)
-                    {
 
-                        if (Helper.IsFull(dbUser.Goats + stall.Jackpot, dbUser.Wins))
-                        {
-                            embed.Color = new Color(0, 203, 255);
-                            embed.Description = $"**Jackpot**!! Dorq besucht dich mit seiner Familie und hinterlässt dir **{stall.Jackpot} Ziegen**. Verdammter **Glückspilz**!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + stall.Jackpot) - stall.Capacity} Ziegen** sind wieder entlaufen..";
-                            await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                            dbUser.Goats = stall.Capacity;
-                        }
-                        else
-                        {
-                            dbUser.Goats += stall.Jackpot;
-                            embed.Color = new Color(0, 203, 255);
-                            embed.Description = $"**Jackpot**!! Dorq besucht dich mit seiner Familie und hinterlässt dir **{stall.Jackpot} Ziegen**. Verdammter **Glückspilz**!";
-                            await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        }
-                        await db.SaveChangesAsync();
-                        return;
-                    }
-                    int goats = 0;
-                    goats = rnd.Next(40, 101);
-                    if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
+                    if (Helper.IsFull(dbUser.Goats + stall.Jackpot, dbUser.Wins))
                     {
-                        embed.Color = Color.Green;
-                        embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind wieder entlaufen..";
+                        embed.Color = new Color(0, 203, 255);
+                        embed.Description = $"**Jackpot**!! Dorq besucht dich mit seiner Familie und hinterlässt dir **{stall.Jackpot} Ziegen**. Verdammter **Glückspilz**!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + stall.Jackpot) - stall.Capacity} Ziegen** sind wieder entlaufen..";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         dbUser.Goats = stall.Capacity;
                     }
                     else
                     {
-                        dbUser.Goats += goats;
-                        embed.Color = Color.Green;
-                        embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!";
+                        dbUser.Goats += stall.Jackpot;
+                        embed.Color = new Color(0, 203, 255);
+                        embed.Description = $"**Jackpot**!! Dorq besucht dich mit seiner Familie und hinterlässt dir **{stall.Jackpot} Ziegen**. Verdammter **Glückspilz**!";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     }
-                    await db.SaveChangesAsync();
+                    await _database.SaveChangesAsync();
+                    return;
                 }
+                int goats = 0;
+                goats = rnd.Next(40, 101);
+                if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
+                {
+                    embed.Color = Color.Green;
+                    embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind wieder entlaufen..";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    dbUser.Goats = stall.Capacity;
+                }
+                else
+                {
+                    dbUser.Goats += goats;
+                    embed.Color = Color.Green;
+                    embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                }
+                await _database.SaveChangesAsync();
             }
             else
             {
@@ -114,77 +114,72 @@ namespace Rabbot.Commands
         {
             if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
             {
-                using (swaightContext db = new swaightContext())
+                var embed = new EmbedBuilder();
+                var senderUser = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? _database.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                if (senderUser.Goats < amount)
                 {
-                    var embed = new EmbedBuilder();
-                    var senderUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
-                    if (senderUser.Goats < amount)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"Dir fehlen **{amount - senderUser.Goats} Ziegen**..";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-                    if (senderUser.Trades >= 5)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"**Du kannst heute nicht mehr traden!**";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
+                    embed.Color = Color.Red;
+                    embed.Description = $"Dir fehlen **{amount - senderUser.Goats} Ziegen**..";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+                if (senderUser.Trades >= 5)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"**Du kannst heute nicht mehr traden!**";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
 
-                    var targetUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
-                    if (targetUser == senderUser)
-                    {
-                        await Context.Channel.SendMessageAsync($"Nö.");
-                        return;
-                    }
+                var targetUser = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault() ?? _database.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                if (targetUser == senderUser)
+                {
+                    await Context.Channel.SendMessageAsync($"Nö.");
+                    return;
+                }
 
-                    if (targetUser.Locked == 1)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"**{user.Mention} hat gerade eine Trading Sperre!**";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
+                if (targetUser.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"**{user.Mention} hat gerade eine Trading Sperre!**";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
 
-                    if (senderUser.Locked == 1)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"**{Context.User.Mention} du hast gerade eine Trading Sperre!**";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
+                if (senderUser.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"**{Context.User.Mention} du hast gerade eine Trading Sperre!**";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
 
+                var rabbotUser = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? _database.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                senderUser.Goats -= amount;
+                int fees = amount / 4;
+                if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"**Leider ist der Stall von {user.Mention} schon zu voll!**";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+                rabbotUser.Goats += fees;
+                targetUser.Goats += amount - fees;
+                senderUser.Trades++;
+                await _database.SaveChangesAsync();
 
-
-                    var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
-                    senderUser.Goats -= amount;
-                    int fees = amount / 4;
-                    if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"**Leider ist der Stall von {user.Mention} schon zu voll!**";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-                    rabbotUser.Goats += fees;
-                    targetUser.Goats += amount - fees;
-                    senderUser.Trades++;
-                    await db.SaveChangesAsync();
-
-                    if (amount > 1)
-                    {
-                        embed.Color = Color.Green;
-                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount - fees} Ziegen** (-{fees} Schutzgeldziegens) geschenkt! Du kannst heute noch **{5 - senderUser.Trades} mal** traden.";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    }
-                    else
-                    {
-                        embed.Color = Color.Green;
-                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt!";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    }
+                if (amount > 1)
+                {
+                    embed.Color = Color.Green;
+                    embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount - fees} Ziegen** (-{fees} Schutzgeldziegens) geschenkt! Du kannst heute noch **{5 - senderUser.Trades} mal** traden.";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                }
+                else
+                {
+                    embed.Color = Color.Green;
+                    embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
                 }
             }
         }
@@ -285,87 +280,84 @@ namespace Rabbot.Commands
                 return;
             }
 
-            using (swaightContext db = new swaightContext())
+            var dbTarget = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)targetUser.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)targetUser.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbUser = _database.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var targetStall = Helper.GetStall(dbTarget.Wins);
+            var userStall = Helper.GetStall(dbUser.Wins);
+
+            if (dbUser.Attacks >= 5)
             {
-                var dbTarget = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)targetUser.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)targetUser.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                var dbUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                var targetStall = Helper.GetStall(dbTarget.Wins);
-                var userStall = Helper.GetStall(dbUser.Wins);
-
-                if (dbUser.Attacks >= 5)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du hast deine **heutigen** Kämpfe bereits **verbraucht**!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                if (targetStall.Level < (userStall.Level - 3))
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} das **Stall Level** deines Gegners ist zu **niedrig**.";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                if (dbUser.Goats < userStall.MaxOutput)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du musst mindestens **{userStall.MaxOutput} Ziegen** haben um jemanden **angreifen** zu können!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-                if (dbTarget.Goats < targetStall.MaxOutput)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} dein Opfer muss mindestens **{targetStall.MaxOutput} Ziegen** haben um **angegriffen** werden zu können!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                if (dbTarget.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} dein Opfer ist aktuell schon in einem **Kampf**!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-                if (dbUser.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du bist aktuell schon in einem **Kampf**!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                dbUser.Attacks++;
-                embed.Color = new Color(242, 255, 0);
-                var shield = new Emoji("🛡");
-                var dagger = new Emoji("🗡");
-                embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {targetUser.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
-                embed.Description += $"\n\n**Interaktionen:**";
-                embed.Description += $"\n{dagger} = Hirtenstab       (Nur Angreifer)";
-                embed.Description += $"\n{shield} = Stacheldrahtzaun (Nur Angegriffener)";
-                embed.WithFooter("Der Angriff dauert 3 Minuten!");
-
-                var stallTarget = Helper.GetStall(dbTarget.Wins);
-                var stallUser = Helper.GetStall(dbUser.Wins);
-                var atk = stallUser.Attack;
-                var def = stallTarget.Defense;
-
-                var sum = atk + def;
-                var winChance = ((double)atk / (double)sum) * 100;
-
-                string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {targetUser.Username} {100 - Math.Round(winChance)}%**";
-
-                var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
-                dbUser.Locked = 1;
-                dbTarget.Locked = 1;
-                await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)targetUser.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
-                await db.SaveChangesAsync();
-                await msg.AddReactionAsync(dagger);
-                await msg.AddReactionAsync(shield);
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} du hast deine **heutigen** Kämpfe bereits **verbraucht**!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
             }
+
+            if (targetStall.Level < (userStall.Level - 3))
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} das **Stall Level** deines Gegners ist zu **niedrig**.";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+
+            if (dbUser.Goats < userStall.MaxOutput)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} du musst mindestens **{userStall.MaxOutput} Ziegen** haben um jemanden **angreifen** zu können!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+            if (dbTarget.Goats < targetStall.MaxOutput)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} dein Opfer muss mindestens **{targetStall.MaxOutput} Ziegen** haben um **angegriffen** werden zu können!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+
+            if (dbTarget.Locked == 1)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} dein Opfer ist aktuell schon in einem **Kampf**!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+            if (dbUser.Locked == 1)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} du bist aktuell schon in einem **Kampf**!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+
+            dbUser.Attacks++;
+            embed.Color = new Color(242, 255, 0);
+            var shield = new Emoji("🛡");
+            var dagger = new Emoji("🗡");
+            embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {targetUser.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
+            embed.Description += $"\n\n**Interaktionen:**";
+            embed.Description += $"\n{dagger} = Hirtenstab       (Nur Angreifer)";
+            embed.Description += $"\n{shield} = Stacheldrahtzaun (Nur Angegriffener)";
+            embed.WithFooter("Der Angriff dauert 3 Minuten!");
+
+            var stallTarget = Helper.GetStall(dbTarget.Wins);
+            var stallUser = Helper.GetStall(dbUser.Wins);
+            var atk = stallUser.Attack;
+            var def = stallTarget.Defense;
+
+            var sum = atk + def;
+            var winChance = ((double)atk / (double)sum) * 100;
+
+            string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {targetUser.Username} {100 - Math.Round(winChance)}%**";
+
+            var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
+            dbUser.Locked = 1;
+            dbTarget.Locked = 1;
+            await _database.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)targetUser.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
+            await _database.SaveChangesAsync();
+            await msg.AddReactionAsync(dagger);
+            await msg.AddReactionAsync(shield);
         }
 
 
@@ -391,37 +383,34 @@ namespace Rabbot.Commands
         public async Task Hirtenstab()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            var features = _database.Userfeatures
+                .Include(p => p.Inventory)
+                .ThenInclude(p => p.Item)
+                .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
+            if (features.Locked == 1)
             {
-                var features = db.Userfeatures
-                    .Include(p => p.Inventory)
-                    .ThenInclude(p => p.Item)
-                    .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
-
-                if (features.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-                if (features.Goats < 100)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                var hirtenstab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
-                if (hirtenstab != null)
-                    hirtenstab.Durability += 5;
-                else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 5 });
-
-                features.Goats -= 100;
-                await db.SaveChangesAsync();
+                embed.Color = Color.Red;
+                embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
             }
+            if (features.Goats < 100)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+
+            var hirtenstab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
+            if (hirtenstab != null)
+                hirtenstab.Durability += 5;
+            else
+                await _database.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 5 });
+
+            features.Goats -= 100;
+            await _database.SaveChangesAsync();
             embed.Color = Color.Green;
             embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **100 Ziegen** einen **Hirtenstab** gekauft.\nDu kannst ihn bei einem Angriff benutzen um **+20 ATK** mehr zu haben!";
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -433,37 +422,34 @@ namespace Rabbot.Commands
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            var features = _database.Userfeatures
+               .Include(p => p.Inventory)
+               .ThenInclude(p => p.Item)
+               .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
+            if (features.Locked == 1)
             {
-                var features = db.Userfeatures
-                   .Include(p => p.Inventory)
-                   .ThenInclude(p => p.Item)
-                   .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
-
-                if (features.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-                if (features.Goats < 75)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-
-                var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
-                if (zaun != null)
-                    zaun.Durability += 7;
-                else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 });
-
-                features.Goats -= 75;
-                await db.SaveChangesAsync();
+                embed.Color = Color.Red;
+                embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
             }
+            if (features.Goats < 75)
+            {
+                embed.Color = Color.Red;
+                embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                return;
+            }
+
+            var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
+            if (zaun != null)
+                zaun.Durability += 7;
+            else
+                await _database.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 });
+
+            features.Goats -= 75;
+            await _database.SaveChangesAsync();
             embed.Color = Color.Green;
             embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **75 Ziegen** einen **Stacheldrahtzaun** gekauft.\nDu kannst ihn bei einem Angriff gegen dich benutzen um **+30 DEF** mehr zu haben!";
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -472,147 +458,69 @@ namespace Rabbot.Commands
         [Command("stall", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        public async Task Stall(IUser target = null)
+        public async Task Stall(SocketUser target = null)
         {
-            using (swaightContext db = new swaightContext())
+            if (target == null)
             {
-                var embed = new EmbedBuilder();
-                if (target == null)
-                {
-                    var user = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    var stall = Helper.GetStall(user.Wins);
-                    embed.WithTitle($"Stall von {Context.User.Username}");
-                    embed.WithDescription(stall.Name);
-                    embed.WithColor(new Color(241, 242, 222));
-                    embed.AddField($"Level", $"{stall.Level} / 26");
-                    var percent = ((double)user.Goats / (double)stall.Capacity) * 100;
-                    embed.AddField($"Kapazität", $"{user.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
-                    embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                }
-                else
-                {
-                    var user = db.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    var stall = Helper.GetStall(user.Wins);
-                    embed.WithTitle($"Stall von {target.Username}");
-                    embed.WithDescription(stall.Name);
-                    embed.WithColor(new Color(241, 242, 222));
-                    embed.AddField($"Level", $"{stall.Level} / 26");
-                    var percent = ((double)user.Goats / (double)stall.Capacity) * 100;
-                    embed.AddField($"Kapazität", $"{user.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
-                    embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                target = Context.User;
             }
+            var embed = new EmbedBuilder();
+            var user = _database.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var stall = Helper.GetStall(user.Wins);
+            embed.WithTitle($"Stall von {target.Username}");
+            embed.WithDescription(stall.Name);
+            embed.WithColor(new Color(241, 242, 222));
+            embed.AddField($"Level", $"{stall.Level} / 26");
+            var percent = ((double)user.Goats / (double)stall.Capacity) * 100;
+            embed.AddField($"Kapazität", $"{user.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
+            embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            await _database.SaveChangesAsync();
         }
 
         [Command("stats", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        public async Task Stats(IUser target = null)
+        public async Task Stats(SocketUser target = null)
         {
-            using (swaightContext db = new swaightContext())
+            if (target == null)
             {
-                var embed = new EmbedBuilder();
-                if (target == null)
-                {
-                    var user = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == user.Id);
-                    var stall = Helper.GetStall(user.Wins);
-                    var atk = stall.Attack;
-                    var def = stall.Defense;
-
-                    if (inventory != null)
-                    {
-                        foreach (var item in inventory)
-                        {
-                            atk += item.Item.Atk;
-                            def += item.Item.Def;
-                        }
-                    }
-
-                    embed.WithTitle($"Statistiken von {Context.User.Username}");
-                    embed.WithColor(new Color(241, 242, 222));
-                    embed.AddField($"Battle", $"**{(user.Loses + user.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{user.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{user.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
-                    embed.AddField($"Aktueller Stall", $"{stall.Name}");
-                    embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                    if (inventory.Count() != 0)
-                    {
-                        string items = "";
-                        foreach (var item in inventory)
-                        {
-                            items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
-                        }
-                        embed.AddField($"Inventar", items);
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        var myUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-
-                        var targetUser = db.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                        var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == targetUser.Id);
-                        var UserInventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == myUser.Id);
-                        var stall = Helper.GetStall(targetUser.Wins);
-                        var userStall = Helper.GetStall(myUser.Wins);
-                        var atk = stall.Attack;
-                        var def = stall.Defense;
-
-                        var sumWithout = stall.Attack + userStall.Defense;
-                        var winChanceWithout = ((double)stall.Attack / (double)sumWithout) * 100;
-
-                        if (inventory.Count() != 0)
-                        {
-                            foreach (var item in inventory)
-                            {
-                                atk += item.Item.Atk;
-                                def += item.Item.Def;
-                            }
-                        }
-
-                        var userAtk = userStall.Attack;
-                        var userDef = userStall.Defense;
-
-                        if (UserInventory.Count() != 0)
-                        {
-                            foreach (var item in UserInventory)
-                            {
-                                userAtk += item.Item.Atk;
-                                userDef += item.Item.Def;
-                            }
-                        }
-
-                        var sum = userAtk + def;
-                        var winChance = ((double)userAtk / (double)sum) * 100;
-                        //var blockChance = ((double)userDef / (double)sum) * 100;
-
-                        embed.WithTitle($"Statistiken von {target.Username}");
-                        embed.WithColor(new Color(241, 242, 222));
-                        embed.AddField($"Battle", $"**{(targetUser.Loses + targetUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{targetUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{targetUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
-                        embed.AddField($"Aktueller Stall", $"{stall.Name}");
-                        embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                        embed.AddField($"Gewinnchance ohne Items", $"{Math.Round(winChanceWithout)}%");
-                        if (winChance != winChanceWithout)
-                            embed.AddField($"Gewinnchance mit Items", $"{Math.Round(winChance)}%");
-                        //embed.AddField($"Blockchance gegen {target.Username}", $"{Math.Round(blockChance)}%");
-                        if (inventory.Count() != 0)
-                        {
-                            string items = "";
-                            foreach (var item in inventory)
-                            {
-                                items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
-                            }
-                            embed.AddField($"Inventar", items);
-                        }
-                    }
-                    catch
-                    {
-                        throw;
-                    }
-                }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                target = Context.User;
             }
+            var embed = new EmbedBuilder();
+
+            var user = _database.Userfeatures.Where(p => p.UserId == (long)target.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
+            var inventory = _database.Inventory.Join(_database.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == user.Id);
+            var stall = Helper.GetStall(user.Wins);
+            var atk = stall.Attack;
+            var def = stall.Defense;
+
+            if (inventory != null)
+            {
+                foreach (var item in inventory)
+                {
+                    atk += item.Item.Atk;
+                    def += item.Item.Def;
+                }
+            }
+            var myUser = target as SocketGuildUser;
+            embed.WithTitle($"Statistiken von {myUser.Nickname ?? myUser.Username}");
+            embed.WithColor(new Color(241, 242, 222));
+            embed.AddField($"Battle", $"**{(user.Loses + user.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{user.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{user.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
+            embed.AddField($"Aktueller Stall", $"{stall.Name}");
+            embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
+            if (inventory.Count() != 0)
+            {
+                string items = "";
+                foreach (var item in inventory)
+                {
+                    items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
+                }
+                embed.AddField($"Inventar", items);
+            }
+
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            await _database.SaveChangesAsync();
         }
 
         [Command("stalls", RunMode = RunMode.Async)]
@@ -643,20 +551,17 @@ namespace Rabbot.Commands
         [Cooldown(10)]
         public async Task Wins()
         {
-            using (swaightContext db = new swaightContext())
+            var top25 = _database.Userfeatures.Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
+            EmbedBuilder embed = new EmbedBuilder();
+            int counter = 1;
+            foreach (var top in top25)
             {
-                var top25 = db.Userfeatures.Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
-                EmbedBuilder embed = new EmbedBuilder();
-                int counter = 1;
-                foreach (var top in top25)
-                {
-                    var user = db.User.Where(p => p.Id == top.UserId).FirstOrDefault();
-                    var stall = Helper.GetStall(top.Wins);
-                    embed.AddField($"{counter}. {user.Name}", $"**{top.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
-                    counter++;
-                }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                var user = _database.User.Where(p => p.Id == top.UserId).FirstOrDefault();
+                var stall = Helper.GetStall(top.Wins);
+                embed.AddField($"{counter}. {user.Name}", $"**{top.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
+                counter++;
             }
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
         [Command("pot", RunMode = RunMode.Async)]
@@ -677,53 +582,49 @@ namespace Rabbot.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-
-                using (swaightContext db = new swaightContext())
+                var myUser = _database.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                if (myUser.Goats < amount)
                 {
-                    var myUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    if (myUser.Goats < amount)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du hast leider **nicht ausreichend Ziegen**.";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-
-                    if (myUser.Locked == 1)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du hast gerade eine **Sperre**, da du in einem Kampf bist.";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-
-                    var stall = Helper.GetStall(myUser.Wins);
-                    if(amount > stall.MaxPot)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-
-                    var myPot = db.Pot.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Pot.AddAsync(new Pot { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Goats = 0 }).Result.Entity;
-                    if (amount + myPot.Goats > stall.MaxPot)
-                    {
-                        embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
-                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                        return;
-                    }
-
-                    myPot.Goats += amount;
-                    myUser.Goats -= amount;
-
-                    await db.SaveChangesAsync();
-
-                    embed.Color = Color.Green;
-                    embed.Description = $"{Context.User.Mention} du hast erfolgreich **{amount} Ziegen** in den Pot gesteckt!";
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast leider **nicht ausreichend Ziegen**.";
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
                 }
+
+                if (myUser.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast gerade eine **Sperre**, da du in einem Kampf bist.";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
+                var stall = Helper.GetStall(myUser.Wins);
+                if (amount > stall.MaxPot)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
+                var myPot = _database.Pot.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? _database.Pot.AddAsync(new Pot { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Goats = 0 }).Result.Entity;
+                if (amount + myPot.Goats > stall.MaxPot)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
+                myPot.Goats += amount;
+                myUser.Goats -= amount;
+
+                await _database.SaveChangesAsync();
+
+                embed.Color = Color.Green;
+                embed.Description = $"{Context.User.Mention} du hast erfolgreich **{amount} Ziegen** in den Pot gesteckt!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
             }
             catch (Exception e)
             {
@@ -738,23 +639,20 @@ namespace Rabbot.Commands
         [Cooldown(10)]
         public async Task Chance()
         {
-            using (swaightContext db = new swaightContext())
-            {
-                var sum = db.Pot.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
-                var pot = db.Pot.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
+                var sum = _database.Pot.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
+                var pot = _database.Pot.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var item in pot)
                 {
                     var chance = (double)item.Goats / (double)sum * 100;
-                    var user = db.User.Where(p => p.Id == item.UserId).FirstOrDefault();
+                    var user = _database.User.Where(p => p.Id == item.UserId).FirstOrDefault();
                     embed.Title = $"{sum.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen im Pot!";
                     embed.AddField($"{counter}. {user.Name}", $"**{item.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen | **{Math.Round(chance)}%** Chance");
                     counter++;
                 }
                 embed.WithFooter("Glücksspiel kann süchtig machen! Sucht Hotline: 089 / 28 28 22");
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
-            }
         }
     }
 }

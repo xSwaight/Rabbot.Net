@@ -15,6 +15,7 @@ using Serilog;
 using Microsoft;
 using Rabbot.Services;
 using Rabbot.API;
+using Rabbot.Database;
 
 namespace Rabbot
 {
@@ -57,7 +58,8 @@ namespace Rabbot
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<StartupService>()
                 .AddSingleton<AudioService>()
-                .AddSingleton<LoggingService>();
+                .AddSingleton<LoggingService>()
+                .AddSingleton<swaightContext>();
 
             //Add logging     
             ConfigureServices(services);
@@ -75,7 +77,7 @@ namespace Rabbot
             serviceProvider.GetRequiredService<CommandHandler>();
             serviceProvider.GetRequiredService<Twitch>();
 
-            await _event.InitializeAsync(_client);
+            //await _event.InitializeAsync(_client);
             // Block this program until it is closed.
             await Task.Delay(-1);
         }
