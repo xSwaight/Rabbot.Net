@@ -648,7 +648,8 @@ namespace Rabbot
                 }
                 await db.SaveChangesAsync();
             }
-
+            if (msg.Content.StartsWith(Config.bot.cmdPrefix))
+                return;
             LevelService User = new LevelService(msg);
             await User.SendLevelUp();
             await User.SetRoles();
