@@ -14,11 +14,9 @@ namespace Rabbot.Commands
     public class Misc : ModuleBase<SocketCommandContext>
     {
         private readonly string version = "0.9";
-        private readonly swaightContext _database;
         private readonly CommandService _commandService;
-        public Misc(swaightContext database, CommandService commandService)
+        public Misc(CommandService commandService)
         {
-            _database = database;
             _commandService = commandService;
         }
 
@@ -83,74 +81,78 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Settings()
         {
-            var guild = _database.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-            if (guild == null)
-                return;
-            var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.LogchannelId).FirstOrDefault();
-            var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.NotificationchannelId).FirstOrDefault();
-            var botcChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.Botchannelid).FirstOrDefault();
-
-            var embed = new EmbedBuilder();
-            embed.WithDescription($"**Settings**");
-            embed.WithColor(new Color(241, 242, 222));
-            if (logChannel != null)
-                embed.AddField("Log Channel", logChannel.Mention, true);
-            else
-                embed.AddField("Log Channel", "Nicht gesetzt.", true);
-
-            if (notificationChannel != null)
-                embed.AddField("Notification Channel", notificationChannel.Mention, true);
-            else
-                embed.AddField("Notification Channel", "Nicht gesetzt.", true);
-
-
-            switch (guild.Log)
+            using (swaightContext db = new swaightContext())
             {
-                case 0:
-                    embed.AddField("Log", "Disabled", true);
-                    break;
-                case 1:
-                    embed.AddField("Log", "Enabled", true);
-                    break;
-                default:
-                    embed.AddField("Log", "Unknown", true);
-                    break;
+
+                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                if (guild == null)
+                    return;
+                var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.LogchannelId).FirstOrDefault();
+                var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.NotificationchannelId).FirstOrDefault();
+                var botcChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.Botchannelid).FirstOrDefault();
+
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"**Settings**");
+                embed.WithColor(new Color(241, 242, 222));
+                if (logChannel != null)
+                    embed.AddField("Log Channel", logChannel.Mention, true);
+                else
+                    embed.AddField("Log Channel", "Nicht gesetzt.", true);
+
+                if (notificationChannel != null)
+                    embed.AddField("Notification Channel", notificationChannel.Mention, true);
+                else
+                    embed.AddField("Notification Channel", "Nicht gesetzt.", true);
+
+
+                switch (guild.Log)
+                {
+                    case 0:
+                        embed.AddField("Log", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Log", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Log", "Unknown", true);
+                        break;
+                }
+
+                switch (guild.Notify)
+                {
+                    case 0:
+                        embed.AddField("Notification", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Notification", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Notification", "Unknown", true);
+                        break;
+                }
+
+                switch (guild.Level)
+                {
+                    case 0:
+                        embed.AddField("Level", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Level", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Level", "Unknown", true);
+                        break;
+                }
+
+                if (botcChannel != null)
+                    embed.AddField("Bot Channel", botcChannel.Mention, true);
+                else
+                    embed.AddField("Bot Channel", "Nicht gesetzt.", true);
+
+                embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";
+                embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
+                await Context.Channel.SendMessageAsync("", false, embed.Build());
             }
-
-            switch (guild.Notify)
-            {
-                case 0:
-                    embed.AddField("Notification", "Disabled", true);
-                    break;
-                case 1:
-                    embed.AddField("Notification", "Enabled", true);
-                    break;
-                default:
-                    embed.AddField("Notification", "Unknown", true);
-                    break;
-            }
-
-            switch (guild.Level)
-            {
-                case 0:
-                    embed.AddField("Level", "Disabled", true);
-                    break;
-                case 1:
-                    embed.AddField("Level", "Enabled", true);
-                    break;
-                default:
-                    embed.AddField("Level", "Unknown", true);
-                    break;
-            }
-
-            if (botcChannel != null)
-                embed.AddField("Bot Channel", botcChannel.Mention, true);
-            else
-                embed.AddField("Bot Channel", "Nicht gesetzt.", true);
-
-            embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";
-            embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
-            await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("ping", RunMode = RunMode.Async)]
@@ -172,8 +174,10 @@ namespace Rabbot.Commands
             Emote emote = Emote.Parse("<:shtaco:555055295806701578>"); //Normal
             Emote emote2 = Emote.Parse("<a:shtaco:555055295806701578>"); //Animated
             //await Context.Channel.SendMessageAsync($"Hi {emote}");
-
-            var test = _database.User.FirstOrDefault(p => p.Id == (long)Context.User.Id);
+            using (swaightContext db = new swaightContext())
+            {
+                var test = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id);
+            }
         }
 
         [Command("hdf", RunMode = RunMode.Async)]
@@ -181,19 +185,21 @@ namespace Rabbot.Commands
         {
             if (!Context.IsPrivate)
                 return;
-
-            var user = _database.User.Where(p => p.Id == (long)Context.User.Id).FirstOrDefault();
-            if (user.Notify == 1)
+            using (swaightContext db = new swaightContext())
             {
-                user.Notify = 0;
-                await Context.Channel.SendMessageAsync("Na gut.");
+                var user = db.User.Where(p => p.Id == (long)Context.User.Id).FirstOrDefault();
+                if (user.Notify == 1)
+                {
+                    user.Notify = 0;
+                    await Context.Channel.SendMessageAsync("Na gut.");
+                }
+                else
+                {
+                    user.Notify = 1;
+                    await Context.Channel.SendMessageAsync("Yay!");
+                }
+                await db.SaveChangesAsync();
             }
-            else
-            {
-                user.Notify = 1;
-                await Context.Channel.SendMessageAsync("Yay!");
-            }
-            await _database.SaveChangesAsync();
         }
 
         public ulong GetCrossSum(ulong n)

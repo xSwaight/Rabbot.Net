@@ -6,7 +6,12 @@ namespace Rabbot
     class Config
     {
         private const string configFolder = "Resources";
+#if DEBUG
+        private const string configFile = "configDebug.json";
+#else
         private const string configFile = "config.json";
+#endif
+
 
         public static BotConfig bot;
 

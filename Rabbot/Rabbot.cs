@@ -58,8 +58,7 @@ namespace Rabbot
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<StartupService>()
                 .AddSingleton<AudioService>()
-                .AddSingleton<LoggingService>()
-                .AddSingleton<swaightContext>();
+                .AddSingleton<LoggingService>();
 
             //Add logging     
             ConfigureServices(services);
