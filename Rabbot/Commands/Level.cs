@@ -313,6 +313,35 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("exp")]
+        [Cooldown(30)]
+        [Summary("Zeigt die benötigten EXP bis zum angegebenen Level an.")]
+        public async Task Exp(int level)
+        {
+            if (level > 80 || level < 1)
+            {
+                await Context.Channel.SendMessageAsync("Nö.");
+                return;
+            }
+            using (swaightContext db = new swaightContext())
+            {
+                var user = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == (long)Context.User.Id);
+                var feature = user.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
+                EmbedBuilder embed = new EmbedBuilder();
+                if(Helper.GetLevel(feature.Exp) >= level)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du bist bereits über **Level {level}**.";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+                var neededEXP = (int)Helper.GetEXP(level) - (int)feature.Exp;
+                embed.Color = Color.Green;
+                embed.Description = $"{Context.User.Mention} du benötigst noch **{neededEXP.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} EXP** bis **Level {level}**.";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
+        }
+
         [Command("profile", RunMode = RunMode.Async), Alias("rank")]
         [Cooldown(30)]
         [Summary("Zeigt das Profil von dir oder dem markierten User an.")]
