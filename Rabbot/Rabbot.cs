@@ -77,7 +77,7 @@ namespace Rabbot
             serviceProvider.GetRequiredService<CommandHandler>();
             serviceProvider.GetRequiredService<Twitch>();
 
-            //await _event.InitializeAsync(_client);
+            await _event.InitializeAsync(_client);
             // Block this program until it is closed.
             await Task.Delay(-1);
         }

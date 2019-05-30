@@ -308,11 +308,10 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                var myEvent = db.Event.FirstOrDefault();
-                if (myEvent.Status == 1)
-                {
-                    await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
-                }
+                if (!db.Event.Where(p => p.Status == 1).Any())
+                    return;
+                var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
+                await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
             }
         }
 
