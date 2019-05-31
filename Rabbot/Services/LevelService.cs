@@ -62,7 +62,7 @@ namespace Rabbot.Services
                     var myEvent = db.Event.Where(p => p.Status == 1).FirstOrDefault();
                     multiplier = myEvent.Multiplier;
                 }
-                    
+
 
                 var ranks = db.Musicrank.Where(p => p.ServerId == (long)dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
                 int rank = 0;
@@ -92,6 +92,7 @@ namespace Rabbot.Services
         {
             if (NewLevel > OldLevel && Guild.Level == 1)
             {
+                string path = "";
                 using (dcMessage.Channel.EnterTypingState())
                 {
                     var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
@@ -103,10 +104,10 @@ namespace Rabbot.Services
                         LEVEL = NewLevel.ToString()
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
+                    path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
                     await dcMessage.Channel.SendFileAsync(path);
-                    File.Delete(path);
                 }
+                File.Delete(path);
             }
 
             if (NewLevel > OldLevel)

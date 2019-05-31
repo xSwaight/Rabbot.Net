@@ -328,7 +328,7 @@ namespace Rabbot.Commands
                 var user = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == (long)Context.User.Id);
                 var feature = user.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                 EmbedBuilder embed = new EmbedBuilder();
-                if(Helper.GetLevel(feature.Exp) >= level)
+                if (Helper.GetLevel(feature.Exp) >= level)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du bist bereits über **Level {level}**.";
@@ -353,7 +353,7 @@ namespace Rabbot.Commands
             }
             using (swaightContext db = new swaightContext())
             {
-
+                string path = "";
                 using (Context.Channel.EnterTypingState())
                 {
                     string name = (user as IGuildUser).Nickname ?? user.Username;
@@ -393,11 +393,11 @@ namespace Rabbot.Commands
                         GOATCOINS = goat.ToString("N0", new System.Globalization.CultureInfo("de-DE"))
                     });
 
-                    var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
+                    path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
                     await Context.Channel.SendFileAsync(path);
-                    File.Delete(path);
                     await db.SaveChangesAsync();
                 }
+                File.Delete(path);
             }
         }
     }
