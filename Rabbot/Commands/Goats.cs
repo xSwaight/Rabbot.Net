@@ -360,7 +360,7 @@ namespace Rabbot.Commands
                 var sum = atk + def;
                 var winChance = ((double)atk / (double)sum) * 100;
 
-                string chance = $"**{Math.Round(winChance)}% {Context.User.Username} - {target.Username} {100 - Math.Round(winChance)}%**";
+                string chance = $"**{Math.Round(winChance)}% {Context.User.Mention} - {target.Mention} {100 - Math.Round(winChance)}%**";
 
                 var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 dbUser.Locked = 1;

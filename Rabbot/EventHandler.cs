@@ -47,6 +47,8 @@ namespace Rabbot
             if (reaction.User.Value.Id == _client.CurrentUser.Id)
                 return;
 
+            var dcGuild = (channel as SocketGuildChannel).Guild;
+
             using (swaightContext db = new swaightContext())
             {
                 if (!db.Attacks.Any())
@@ -129,10 +131,10 @@ namespace Rabbot
                 var sum = userAtk + def;
                 var winChance = ((double)userAtk / (double)sum) * 100;
 
-                var atkUsername = db.User.Where(p => p.Id == atkUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
-                var defUsername = db.User.Where(p => p.Id == defUserfeature.UserId).FirstOrDefault().Name.Split('#')[0];
+                var atkUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.UserId).FirstOrDefault();
+                var defUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.TargetId).FirstOrDefault();
 
-                string chance = $"**{Math.Round(winChance)}% {atkUsername} - {defUsername} {100 - Math.Round(winChance)}%**";
+                string chance = $"**{Math.Round(winChance)}% {atkUser.Mention} - {defUser.Mention} {100 - Math.Round(winChance)}%**";
 
                 await reaction.Message.Value.ModifyAsync(msg => msg.Content = chance);
             }
