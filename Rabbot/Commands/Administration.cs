@@ -554,6 +554,7 @@ namespace Rabbot.Commands
                 if (eventId == 0)
                 {
                     await Context.Client.SetGameAsync($">rank", null, ActivityType.Watching);
+                    await db.SaveChangesAsync();
                     return;
                 }
 

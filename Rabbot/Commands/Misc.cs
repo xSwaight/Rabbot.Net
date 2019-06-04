@@ -203,6 +203,7 @@ namespace Rabbot.Commands
         }
 
         [Command("poll", RunMode = RunMode.Async)]
+        [Cooldown(100)]
         public async Task Poll()
         {
             await Context.Channel.SendMessageAsync("Gönn dir. https://www.strawpoll.me/");
