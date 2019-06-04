@@ -83,7 +83,6 @@ namespace Rabbot.Services
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;
                 NewLevel = Helper.GetLevel(EXP.Exp);
-                EXP.Lastmessage = DateTime.Now;
                 db.SaveChanges();
             }
         }
