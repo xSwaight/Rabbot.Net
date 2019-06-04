@@ -202,6 +202,12 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("poll", RunMode = RunMode.Async)]
+        public async Task Poll()
+        {
+            await Context.Channel.SendMessageAsync("Gönn dir. https://www.strawpoll.me/");
+        }
+
         public ulong GetCrossSum(ulong n)
         {
             ulong sum = 0;

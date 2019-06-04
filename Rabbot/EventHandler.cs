@@ -44,6 +44,16 @@ namespace Rabbot
 
         private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            await ResetItem(reaction, channel);
+        }
+
+        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            await SetItem(reaction, channel);
+        }
+
+        private async Task ResetItem(SocketReaction reaction, ISocketMessageChannel channel)
+        {
             if (reaction.User.Value.Id == _client.CurrentUser.Id)
                 return;
 
@@ -139,8 +149,7 @@ namespace Rabbot
                 await reaction.Message.Value.ModifyAsync(msg => msg.Content = chance);
             }
         }
-
-        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
+        private async Task SetItem(SocketReaction reaction, ISocketMessageChannel channel)
         {
             if (reaction.User.Value.Id == _client.CurrentUser.Id)
                 return;
