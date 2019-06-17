@@ -13,7 +13,6 @@ namespace Rabbot.Services
     {
         public SocketMessage dcMessage { get; set; }
         public SocketGuild dcGuild { get; set; }
-        public User User { get; set; }
         public Guild Guild { get; set; }
         public Userfeatures EXP { get; set; }
         public uint OldLevel { get; set; }
@@ -25,8 +24,6 @@ namespace Rabbot.Services
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
             using (swaightContext db = new swaightContext())
             {
-                User = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
-                User.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
                 EXP = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);

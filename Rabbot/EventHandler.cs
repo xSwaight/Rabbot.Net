@@ -662,6 +662,8 @@ namespace Rabbot
                 else
                 {
                     SocketGuild dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
+                    var dbUser = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
+                    dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                     var feature = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                     feature.Lastmessage = DateTime.Now;
                 }

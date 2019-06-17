@@ -54,7 +54,7 @@ namespace Rabbot
                     CaseSensitiveCommands = false,
                     ThrowOnError = false
                 }))
-                .AddSingleton<Twitch>()
+                //.AddSingleton<Twitch>()
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<StartupService>()
                 .AddSingleton<AudioService>()
@@ -74,7 +74,7 @@ namespace Rabbot
 
             //Load up services
             serviceProvider.GetRequiredService<CommandHandler>();
-            serviceProvider.GetRequiredService<Twitch>();
+            //serviceProvider.GetRequiredService<Twitch>();
 
             await _event.InitializeAsync(_client);
             // Block this program until it is closed.

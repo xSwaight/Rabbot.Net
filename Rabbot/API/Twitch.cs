@@ -18,7 +18,14 @@ namespace Rabbot.API
         DiscordSocketClient _client;
         public Twitch(DiscordSocketClient client)
         {
-            _ = ConfigLiveMonitorAsync(client);
+            try
+            {
+                _ = ConfigLiveMonitorAsync(client);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + " " + e.StackTrace);
+            }
         }
         public async Task ConfigLiveMonitorAsync(DiscordSocketClient client)
         {
@@ -52,7 +59,15 @@ namespace Rabbot.API
 
         private void Monitor_OnStreamOnline(object sender, OnStreamOnlineArgs e)
         {
-            Task.Run(() => StreamOnline(e));
+            try
+            {
+                Task.Run(() => StreamOnline(e));
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message + " " + ex.StackTrace);
+            }
         }
 
         private async Task StreamOnline(OnStreamOnlineArgs e)
