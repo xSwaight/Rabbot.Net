@@ -312,20 +312,20 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                if (dbUser.Goats < userStall.MaxOutput)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du musst mindestens **{userStall.MaxOutput} Ziegen** haben um jemanden **angreifen** zu können!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
-                if (dbTarget.Goats < targetStall.MaxOutput)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} dein Opfer muss mindestens **{targetStall.MaxOutput} Ziegen** haben um **angegriffen** werden zu können!";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
+                //if (dbUser.Goats < userStall.MaxOutput)
+                //{
+                //    embed.Color = Color.Red;
+                //    embed.Description = $"{Context.User.Mention} du musst mindestens **{userStall.MaxOutput} Ziegen** haben um jemanden **angreifen** zu können!";
+                //    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                //    return;
+                //}
+                //if (dbTarget.Goats < targetStall.MaxOutput)
+                //{
+                //    embed.Color = Color.Red;
+                //    embed.Description = $"{Context.User.Mention} dein Opfer muss mindestens **{targetStall.MaxOutput} Ziegen** haben um **angegriffen** werden zu können!";
+                //    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                //    return;
+                //}
 
                 if (dbTarget.Locked == 1)
                 {

@@ -119,7 +119,8 @@ namespace Rabbot.Services
                 if (chance <= winChance)
                 {
                     int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);
-
+                    if (amount >= dbTarget.Goats)
+                        amount = dbTarget.Goats;
 
                     if (!(dcTarget == null || dcUser == null))
                     {
@@ -145,6 +146,8 @@ namespace Rabbot.Services
                 else
                 {
                     int amount = rnd.Next(40, userStallBefore.MaxOutput + 1);
+                    if (amount >= dbUser.Goats)
+                        amount = dbUser.Goats;
                     if (!(dcTarget == null || dcUser == null))
                     {
                         if (dcChannel != null)
