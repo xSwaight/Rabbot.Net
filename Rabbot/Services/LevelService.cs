@@ -11,7 +11,7 @@ namespace Rabbot.Services
 {
     class LevelService
     {
-        public SocketMessage dcMessage { get; set; }
+        public SocketUserMessage dcMessage { get; set; }
         public SocketGuild dcGuild { get; set; }
         public Guild Guild { get; set; }
         public Userfeatures EXP { get; set; }
@@ -20,7 +20,7 @@ namespace Rabbot.Services
 
         public LevelService(SocketMessage msg)
         {
-            dcMessage = msg;
+            dcMessage = msg as SocketUserMessage;
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
             using (swaightContext db = new swaightContext())
             {
@@ -76,6 +76,10 @@ namespace Rabbot.Services
                     exp = (int)(dblExp * 1.5);
                 if (rank == 3)
                     exp = (int)(dblExp * 1.3);
+
+                if (dcMessage.Author is SocketGuildUser user)
+                    if (user.Roles.Where(p => p.Name == "Nitro Booster").Any())
+                        exp += (int)(exp * 1.5);
 
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;
