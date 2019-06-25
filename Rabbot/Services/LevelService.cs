@@ -27,6 +27,8 @@ namespace Rabbot.Services
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
                 EXP = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
+                var oldEXP = Convert.ToDouble(EXP.Exp);
+                var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
                 string myMessage = Helper.MessageReplace(msg.Content);
                 int textLenght = myMessage.Count();
                 Random rnd = new Random();
@@ -83,6 +85,12 @@ namespace Rabbot.Services
 
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;
+                if (roundedEXP < EXP.Exp)
+                {
+                    EXP.Attacks--;
+                    if (dcMessage.Author is SocketGuildUser dcUser)
+                        dcUser.SendMessageAsync("Du hast dir heute durch deine **Aktivität** einen **extra Kampf** verdient!");
+                }
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
             }
