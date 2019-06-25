@@ -607,12 +607,20 @@ namespace Rabbot
 
         private async Task CheckWarnings()
         {
-            while (true)
+            try
             {
-                WarnService warn = new WarnService(_client);
-                await warn.CheckWarnings();
-                await Task.Delay(1000);
+                while (true)
+                {
+                    WarnService warn = new WarnService(_client);
+                    await warn.CheckWarnings();
+                    await Task.Delay(1000);
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + " " + e.StackTrace);
+            }
+
         }
 
         private async Task CheckAttacks()

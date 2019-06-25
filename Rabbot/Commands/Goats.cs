@@ -384,7 +384,7 @@ namespace Rabbot.Commands
             embed.WithDescription("Gönn dir.");
             embed.WithColor(new Color(241, 242, 222));
             //embed.AddField($"{Config.bot.cmdPrefix}minuten [Anzahl]", $"Minuten im Musicrank\nPreis: 1 Ziege für 1 Minute");
-            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) 5 Benutzungen\nPreis: 100 Ziegen");
+            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) 7 Benutzungen\nPreis: 75 Ziegen");
             embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) 7 Benutzungen\nPreis: 75 Ziegen");
             //embed.AddField($"{Config.bot.cmdPrefix}namechange [Name]", $"7 Tage Namechange\nPreis: 100 Ziegen");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -411,7 +411,7 @@ namespace Rabbot.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-                if (features.Goats < 100)
+                if (features.Goats < 75)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
@@ -423,12 +423,12 @@ namespace Rabbot.Commands
                 if (hirtenstab != null)
                     hirtenstab.Durability += 5;
                 else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 5 });
+                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 });
 
-                features.Goats -= 100;
+                features.Goats -= 75;
                 await db.SaveChangesAsync();
                 embed.Color = Color.Green;
-                embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **100 Ziegen** einen **Hirtenstab** gekauft.\nDu kannst ihn bei einem Angriff benutzen um **+20 ATK** mehr zu haben!";
+                embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **75 Ziegen** einen **Hirtenstab** gekauft.\nDu kannst ihn bei einem Angriff benutzen um **+20 ATK** mehr zu haben!";
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
             }
         }
