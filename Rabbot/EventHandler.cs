@@ -593,7 +593,8 @@ namespace Rabbot
                                                 }
                                         }
                                         if (exp != null)
-                                            exp.Goats += 10;
+                                            if (!Helper.IsFull(exp.Goats, exp.Wins))
+                                                exp.Goats += 10;
                                         await db.SaveChangesAsync();
                                     }
                                 }
