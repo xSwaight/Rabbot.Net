@@ -58,6 +58,7 @@ namespace Rabbot
                 return;
 
             var dcGuild = (channel as SocketGuildChannel).Guild;
+            var emote = reaction.Emote as Emote;
 
             using (swaightContext db = new swaightContext())
             {
@@ -80,14 +81,14 @@ namespace Rabbot
                 bool isActiveStab = false;
 
 
-                if(reaction.Emote == Helper.Shield)
+                if(emote.Id == Helper.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                         return;
                     if (zaun == null)
                         return;
                 }
-                else if(reaction.Emote == Helper.Sword)
+                else if(emote.Id == Helper.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                         return;
@@ -102,12 +103,13 @@ namespace Rabbot
 
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
-                    if (item.Key == Helper.Shield)
+                    var Emote = item.Key as Emote;
+                    if (Emote.Id == Helper.Shield.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveZaun = true;
                     }
-                    else if (item.Key == Helper.Sword)
+                    else if (Emote.Id == Helper.Sword.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveStab = true;
@@ -157,6 +159,7 @@ namespace Rabbot
                 return;
 
             var dcGuild = (channel as SocketGuildChannel).Guild;
+            var emote = reaction.Emote as Emote;
 
             using (swaightContext db = new swaightContext())
             {
@@ -178,7 +181,7 @@ namespace Rabbot
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
 
-                if(reaction.Emote == Helper.Shield)
+                if(emote.Id == Helper.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                     {
@@ -191,7 +194,7 @@ namespace Rabbot
                         return;
                     }
                 }
-                else if(reaction.Emote == Helper.Sword)
+                else if(emote.Id == Helper.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                     {
@@ -213,12 +216,13 @@ namespace Rabbot
 
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
-                    if (item.Key == Helper.Shield)
+                    var Emote = item.Key as Emote;
+                    if (Emote.Id == Helper.Shield.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveZaun = true;
                     }
-                    else if(item.Key == Helper.Sword)
+                    else if(Emote.Id == Helper.Sword.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveStab = true;

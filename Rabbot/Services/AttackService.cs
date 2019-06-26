@@ -66,16 +66,17 @@ namespace Rabbot.Services
                 if (dcMessage != null)
                     foreach (var reaction in dcMessage.Reactions)
                     {
-                        switch (reaction.Key.Name)
+                        var emote = reaction.Key as Emote;
+
+                        if(emote.Id == Helper.Shield.Id)
                         {
-                            case "🛡":
-                                if (reaction.Value.ReactionCount >= 2)
-                                    zaun = true;
-                                break;
-                            case "🗡":
-                                if (reaction.Value.ReactionCount >= 2)
-                                    hirtenstab = true;
-                                break;
+                            if (reaction.Value.ReactionCount >= 2)
+                                zaun = true;
+                        }
+                        else if(emote.Id == Helper.Sword.Id)
+                        {
+                            if (reaction.Value.ReactionCount >= 2)
+                                hirtenstab = true;
                         }
                     }
 
