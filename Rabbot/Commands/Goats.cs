@@ -53,7 +53,7 @@ namespace Rabbot.Commands
         private async Task GetDailyReward(SocketCommandContext context)
         {
             Random rnd = new Random();
-            int chance = rnd.Next(1, 16);
+            int chance = rnd.Next(1, 18);
             int jackpot = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
@@ -63,7 +63,7 @@ namespace Rabbot.Commands
                 {
                     var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
                     var stall = Helper.GetStall(dbUser.Wins);
-                    if (jackpot <= 2)
+                    if (jackpot <= 3)
                     {
 
                         if (Helper.IsFull(dbUser.Goats + stall.Jackpot, dbUser.Wins))
@@ -83,8 +83,9 @@ namespace Rabbot.Commands
                         await db.SaveChangesAsync();
                         return;
                     }
-                    int goats = 0;
-                    goats = rnd.Next(40, 101);
+
+                    int goats = rnd.Next(20, 201);
+                    int bonus = rnd.Next(1, 11);
                     if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
                     {
                         embed.Color = Color.Green;
@@ -97,6 +98,36 @@ namespace Rabbot.Commands
                         dbUser.Goats += goats;
                         embed.Color = Color.Green;
                         embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    }
+                    if (bonus == 2)
+                    {
+                        var features = db.Userfeatures
+                                        .Include(p => p.Inventory)
+                                        .ThenInclude(p => p.Item)
+                                        .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
+                        int rndChance = rnd.Next(1, 3);
+                        int usage = rnd.Next(2, 11);
+                        if (rndChance == 1)
+                        {
+                            var stab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
+                            if (stab != null)
+                                stab.Durability += usage;
+                            else
+                                await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = usage });
+                        }
+                        else
+                        {
+                            var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
+                            if (zaun != null)
+                                zaun.Durability += usage;
+                            else
+                                await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = usage });
+                        }
+                        embed.Color = Color.LightOrange;
+                        string item = rndChance == 1 ? "Hirtenstab" : "Stacheldrahtzaun";
+                        embed.Description = $"**Bonus**: Du hast einen **{item}** mit **{usage} Benutzungen** gefunden.";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     }
                     await db.SaveChangesAsync();
