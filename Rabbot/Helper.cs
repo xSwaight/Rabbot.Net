@@ -127,7 +127,10 @@ namespace Rabbot
             { 80, 5664900 }
         };
 
-    public static string RemoveSpecialCharacters(string str)
+        public static Emote Sword = Emote.Parse("<a:sword:593493621400010795>");
+        public static Emote Shield = Emote.Parse("<a:shield:593498755441885275>");
+
+        public static string RemoveSpecialCharacters(string str)
         {
             StringBuilder sb = new StringBuilder();
             foreach (char c in str)
@@ -164,7 +167,7 @@ namespace Rabbot
             return myStall;
         }
 
-        public static bool IsFull (int goats, int wins)
+        public static bool IsFull(int goats, int wins)
         {
             var stall = GetStall(wins);
             if (stall.Capacity < goats)

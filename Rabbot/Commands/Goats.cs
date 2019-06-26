@@ -375,12 +375,10 @@ namespace Rabbot.Commands
 
                 dbUser.Attacks++;
                 embed.Color = new Color(242, 255, 0);
-                var shield = new Emoji("🛡");
-                var dagger = new Emoji("🗡");
                 embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {target.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
                 embed.Description += $"\n\n**Interaktionen:**";
-                embed.Description += $"\n{dagger} = Hirtenstab       (Nur Angreifer)";
-                embed.Description += $"\n{shield} = Stacheldrahtzaun (Nur Angegriffener)";
+                embed.Description += $"\n{Helper.Sword} = Hirtenstab       (Nur Angreifer)";
+                embed.Description += $"\n{Helper.Shield} = Stacheldrahtzaun (Nur Angegriffener)";
                 embed.WithFooter("Der Angriff dauert 3 Minuten!");
 
                 var stallTarget = Helper.GetStall(dbTarget.Wins);
@@ -398,8 +396,8 @@ namespace Rabbot.Commands
                 dbTarget.Locked = 1;
                 await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)target.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
                 await db.SaveChangesAsync();
-                await msg.AddReactionAsync(dagger);
-                await msg.AddReactionAsync(shield);
+                await msg.AddReactionAsync(Helper.Sword);
+                await msg.AddReactionAsync(Helper.Shield);
             }
         }
 

@@ -79,36 +79,38 @@ namespace Rabbot
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
 
-                switch (reaction.Emote.Name)
+
+                if(reaction.Emote == Helper.Shield)
                 {
-                    case "🛡":
-                        if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
-                            return;
-                        if (zaun == null)
-                            return;
-                        break;
-                    case "🗡":
-                        if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
-                            return;
-                        if (stab == null)
-                            return;
-                        break;
-                    default:
+                    if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                        return;
+                    if (zaun == null)
                         return;
                 }
+                else if(reaction.Emote == Helper.Sword)
+                {
+                    if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                        return;
+                    if (stab == null)
+                        return;
+                }
+                else
+                {
+                    return;
+                }
+
 
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
-                    switch (item.Key.Name)
+                    if (item.Key == Helper.Shield)
                     {
-                        case "🛡":
-                            if (item.Value.ReactionCount >= 2)
-                                isActiveZaun = true;
-                            break;
-                        case "🗡":
-                            if (item.Value.ReactionCount >= 2)
-                                isActiveStab = true;
-                            break;
+                        if (item.Value.ReactionCount >= 2)
+                            isActiveZaun = true;
+                    }
+                    else if (item.Key == Helper.Sword)
+                    {
+                        if (item.Value.ReactionCount >= 2)
+                            isActiveStab = true;
                     }
                 }
 
@@ -176,49 +178,50 @@ namespace Rabbot
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
 
-                switch (reaction.Emote.Name)
+                if(reaction.Emote == Helper.Shield)
                 {
-                    case "🛡":
-                        if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
-                        {
-                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-                            return;
-                        }
-                        if (zaun == null)
-                        {
-                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-                            return;
-                        }
-                        break;
-                    case "🗡":
-                        if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
-                        {
-                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-                            return;
-                        }
-                        if (stab == null)
-                        {
-                            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-                            return;
-                        }
-                        break;
-                    default:
+                    if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                    {
                         await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                         return;
+                    }
+                    if (zaun == null)
+                    {
+                        await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                        return;
+                    }
                 }
+                else if(reaction.Emote == Helper.Sword)
+                {
+                    if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                    {
+                        await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                        return;
+                    }
+                    if (stab == null)
+                    {
+                        await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                        return;
+                    }
+                }
+                else
+                {
+                    await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                    return;
+                }
+
 
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
-                    switch (item.Key.Name)
+                    if (item.Key == Helper.Shield)
                     {
-                        case "🛡":
-                            if (item.Value.ReactionCount >= 2)
-                                isActiveZaun = true;
-                            break;
-                        case "🗡":
-                            if (item.Value.ReactionCount >= 2)
-                                isActiveStab = true;
-                            break;
+                        if (item.Value.ReactionCount >= 2)
+                            isActiveZaun = true;
+                    }
+                    else if(item.Key == Helper.Sword)
+                    {
+                        if (item.Value.ReactionCount >= 2)
+                            isActiveStab = true;
                     }
                 }
 
