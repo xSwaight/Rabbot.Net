@@ -45,7 +45,8 @@ namespace Rabbot
                     .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
                     {
                         LogLevel = LogSeverity.Verbose,
-                        MessageCacheSize = 1000
+                        MessageCacheSize = 1000,
+                        ExclusiveBulkDelete = true
                     }))
                     .AddSingleton(_config)
                     .AddSingleton(new CommandService(new CommandServiceConfig
