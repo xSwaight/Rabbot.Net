@@ -561,11 +561,14 @@ namespace Rabbot.Commands
                         def += item.Item.Def;
                     }
                 }
+                var fights = 5 - dbUser.Attacks;
+                string kaempfe = fights == 1 ? "Kampf" : "Kämpfe";
                 var myUser = user as SocketGuildUser;
                 embed.WithTitle($"Statistiken von {myUser.Nickname ?? myUser.Username}");
                 embed.WithColor(new Color(241, 242, 222));
                 embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{dbUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{dbUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
                 embed.AddField($"Aktueller Stall", $"{stall.Name}");
+                embed.AddField($"Heute Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
                 if (inventory.Count() != 0)
                 {
@@ -595,11 +598,11 @@ namespace Rabbot.Commands
             {
                 try
                 {
-                    embed.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: {stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | Kapazität: {stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen");
+                    embed.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Kapazität: **{stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen");
                 }
                 catch
                 {
-                    embed2.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: {stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | Kapazität: {stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen");
+                    embed2.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Kapazität: **{stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen");
                 }
             }
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
