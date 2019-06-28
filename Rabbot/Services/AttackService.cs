@@ -117,6 +117,7 @@ namespace Rabbot.Services
                 var winChance = ((double)atkUser / (double)sum) * 100;
                 var chance = rnd.Next(1, 101);
                 EmbedBuilder embed = new EmbedBuilder();
+                var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)DcClient.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)DcClient.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                 if (chance <= winChance)
                 {
                     int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);
@@ -131,7 +132,10 @@ namespace Rabbot.Services
                             if (!Helper.IsFull(dbUser.Goats + amount, dbUser.Wins))
                                 embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!";
                             else
-                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!\nLeider ist **dein Stall voll**. Deswegen sind **{(dbUser.Goats + amount) - Helper.GetStall(dbUser.Wins).Capacity} Ziegen** geflüchtet.";
+                            {
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **gewonnen** und **{amount} Ziegen** erbeutet!\nLeider ist **dein Stall voll**. Deswegen sind **{(dbUser.Goats + amount) - Helper.GetStall(dbUser.Wins).Capacity} Ziegen** zu Rabbot geflüchtet.";
+                                rabbotUser.Goats += (dbUser.Goats + amount) - Helper.GetStall(dbUser.Wins).Capacity;
+                            }
                             await dcChannel.SendMessageAsync(null, false, embed.Build());
                         }
                     }
@@ -157,7 +161,10 @@ namespace Rabbot.Services
                             if (!Helper.IsFull(dbUser.Goats + amount, dbUser.Wins))
                                 embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..";
                             else
-                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..\nLeider ist {dcTarget.Nickname ?? dcTarget.Username}'s **Stall voll**. Deswegen sind **{(dbTarget.Goats + amount) - Helper.GetStall(dbTarget.Wins).Capacity} Ziegen** geflüchtet.";
+                            {
+                                embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..\nLeider ist {dcTarget.Nickname ?? dcTarget.Username}'s **Stall voll**. Deswegen sind **{(dbTarget.Goats + amount) - Helper.GetStall(dbTarget.Wins).Capacity} Ziegen** zu Rabbot geflüchtet.";
+                                rabbotUser.Goats += (dbTarget.Goats + amount) - Helper.GetStall(dbTarget.Wins).Capacity;
+                            }
                             await dcChannel.SendMessageAsync(null, false, embed.Build());
                         }
                     }

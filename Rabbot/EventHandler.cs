@@ -476,7 +476,11 @@ namespace Rabbot
                                     if (Helper.IsFull(dbUserfeature.Goats + sum, dbUserfeature.Wins))
                                     {
                                         if (dcUser != null)
-                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind dir **{sum - stall.Capacity} Ziegen** wieder **entlaufen**..";
+                                        {
+                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind **{sum - stall.Capacity} Ziegen** zu Rabbot **geflüchtet**..";
+                                            var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                                            rabbotUser.Goats += sum - stall.Capacity;
+                                        }
                                         dbUserfeature.Goats = stall.Capacity;
                                     }
                                     else
@@ -600,7 +604,7 @@ namespace Rabbot
                                                 }
                                         }
                                         if (exp != null)
-                                            if (!Helper.IsFull(exp.Goats, exp.Wins))
+                                            if (!Helper.IsFull(exp.Goats + 10, exp.Wins))
                                                 exp.Goats += 10;
                                         await db.SaveChangesAsync();
                                     }
