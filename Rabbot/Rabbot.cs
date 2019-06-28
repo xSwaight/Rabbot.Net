@@ -23,7 +23,6 @@ namespace Rabbot
     {
         private DiscordSocketClient _client;
         public static DiscordSocketClient Client;
-        private IConfigurationRoot _config;
 
         public async Task StartAsync()
         {
@@ -35,12 +34,6 @@ namespace Rabbot
                     .WriteTo.Console()
                     .CreateLogger();
 
-                //Create the configuration
-                var _builder = new ConfigurationBuilder()
-                    .SetBasePath(AppContext.BaseDirectory)
-                    .AddJsonFile(path: "config.json");
-                _config = _builder.Build();
-
                 var services = new ServiceCollection()
                     .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
                     {
@@ -48,7 +41,6 @@ namespace Rabbot
                         MessageCacheSize = 1000,
                         ExclusiveBulkDelete = true
                     }))
-                    .AddSingleton(_config)
                     .AddSingleton(new CommandService(new CommandServiceConfig
                     {
                         DefaultRunMode = RunMode.Async,

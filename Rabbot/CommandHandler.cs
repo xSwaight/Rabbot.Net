@@ -14,12 +14,10 @@ namespace Rabbot
         DiscordSocketClient _client;
         CommandService _commands;
         private readonly IServiceProvider _provider;
-        private readonly IConfigurationRoot _config;
         private readonly ILogger _logger;
 
-        public CommandHandler(IServiceProvider provider, IConfigurationRoot config, ILogger<CommandHandler> logger)
+        public CommandHandler(IServiceProvider provider, ILogger<CommandHandler> logger)
         {
-            _config = config;
             _provider = provider;
             _client = _provider.GetService<DiscordSocketClient>();
             _commands = _provider.GetService<CommandService>();

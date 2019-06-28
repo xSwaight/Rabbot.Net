@@ -15,12 +15,10 @@ namespace Rabbot.Services
     {
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
-        private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _services;
 
-        public StartupService(DiscordSocketClient discord, CommandService commands, IConfigurationRoot config, IServiceProvider services)
+        public StartupService(DiscordSocketClient discord, CommandService commands, IServiceProvider services)
         {
-            _config = config;
             _discord = discord;
             _commands = commands;
             _services = services;
@@ -28,7 +26,6 @@ namespace Rabbot.Services
 
         public async Task StartAsync()
         {
-            //string discordToken = _config["Token"];
             string discordToken = Config.bot.token;
             if (string.IsNullOrWhiteSpace(discordToken))
             {
