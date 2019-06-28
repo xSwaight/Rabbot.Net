@@ -216,7 +216,7 @@ namespace Rabbot.Commands
                     else
                     {
                         embed.Color = Color.Green;
-                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt!";
+                        embed.Description = $"{Context.User.Username} hat {user.Mention} **{amount} Ziege** geschenkt! Du kannst heute noch **{5 - senderUser.Trades} mal** traden.";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     }
                 }
