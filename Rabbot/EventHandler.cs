@@ -12,7 +12,6 @@ using Rabbot.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
 using Rabbot.API.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Rabbot
 {
