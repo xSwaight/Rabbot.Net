@@ -510,12 +510,12 @@ namespace Rabbot.Commands
         public async Task Stall(SocketUser user = null)
         {
             if (user == null)
-            {
                 user = Context.User;
-            }
+            if (user.IsBot)
+                return;
+
             using (swaightContext db = new swaightContext())
             {
-
                 var embed = new EmbedBuilder();
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var stall = Helper.GetStall(dbUser.Wins);
@@ -538,13 +538,13 @@ namespace Rabbot.Commands
         public async Task Stats(SocketUser user = null)
         {
             if (user == null)
-            {
                 user = Context.User;
-            }
+            if (user.IsBot)
+                return;
+
             var embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
             {
-
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
                 var stall = Helper.GetStall(dbUser.Wins);
