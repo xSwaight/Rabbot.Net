@@ -180,6 +180,44 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("love", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(60)]
+        public async Task Love(SocketUser user)
+        {
+            if (user == null)
+                user = Context.User;
+            if (user.IsBot)
+                return;
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Color = Color.Red;
+            embed.Title = "Lovemeter";
+            Random rnd = new Random();
+            var chance = rnd.Next(0, 101);
+            embed.Description = $"{Context.User.Mention} du passt mit {user.Mention} zu **{chance}%** zusammen!";
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+        }
+
+        [Command("gay", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(60)]
+        public async Task Gay(SocketUser user = null)
+        {
+            if (user == null)
+                user = Context.User;
+            if (user.IsBot)
+                return;
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Color = Color.Purple;
+            embed.Title = "Gaymeter";
+            Random rnd = new Random();
+            var chance = rnd.Next(0, 101);
+            embed.Description = $"{user.Mention} ist zu **{chance}%** schwul.";
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+        }
+
         [Command("hdf", RunMode = RunMode.Async)]
         public async Task Hdf()
         {
