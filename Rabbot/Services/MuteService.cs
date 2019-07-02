@@ -266,12 +266,20 @@ namespace Rabbot.Services
 
         private async Task SendPrivate(SocketGuild Guild, DateTime banUntil, string duration, SocketGuildUser user)
         {
-            var embedPrivate = new EmbedBuilder();
-            embedPrivate.WithDescription($"Du wurdest auf **{Guild.Name}** für **{duration}** gemuted.");
-            embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
-            embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {Guild.Name} Server.");
-            embedPrivate.WithColor(new Color(255, 0, 0));
-            await user.SendMessageAsync(null, false, embedPrivate.Build());
+            try
+            {
+                var embedPrivate = new EmbedBuilder();
+                embedPrivate.WithDescription($"Du wurdest auf **{Guild.Name}** für **{duration}** gemuted.");
+                embedPrivate.AddField("Gemuted bis", banUntil.ToShortDateString() + " " + banUntil.ToShortTimeString());
+                embedPrivate.WithFooter($"Bei einem ungerechtfertigten Mute kontaktiere bitte einen Admin vom {Guild.Name} Server.");
+                embedPrivate.WithColor(new Color(255, 0, 0));
+                await user.SendMessageAsync(null, false, embedPrivate.Build());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + " " + e.StackTrace);
+            }
+
         }
 
         private int GetBotRolePosition(SocketGuildUser bot)
