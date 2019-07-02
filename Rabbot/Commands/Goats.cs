@@ -431,13 +431,6 @@ namespace Rabbot.Commands
                     .ThenInclude(p => p.Item)
                     .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
 
-                if (features.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
                 if (features.Goats < 75)
                 {
                     embed.Color = Color.Red;
@@ -474,13 +467,6 @@ namespace Rabbot.Commands
                .ThenInclude(p => p.Item)
                .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
 
-                if (features.Locked == 1)
-                {
-                    embed.Color = Color.Red;
-                    embed.Description = $"**{Context.User.Mention} du hast gerade eine Shop Sperre!**";
-                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                    return;
-                }
                 if (features.Goats < 75)
                 {
                     embed.Color = Color.Red;
