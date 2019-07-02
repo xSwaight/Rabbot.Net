@@ -418,7 +418,7 @@ namespace Rabbot
                     trade.Trades = 0;
                 }
 
-                var attacks = db.Userfeatures.Where(p => p.Attacks > 0);
+                var attacks = db.Userfeatures;
                 foreach (var attack in attacks)
                 {
                     attack.Attacks = 0;

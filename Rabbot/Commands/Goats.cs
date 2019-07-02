@@ -86,9 +86,11 @@ namespace Rabbot.Commands
                     int bonus = rnd.Next(1, 11);
                     if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
                     {
+                        var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                         embed.Color = Color.Green;
-                        embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind wieder entlaufen..";
+                        embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind zu **Rabbot** geflüchtet..";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                        rabbotUser.Goats += (dbUser.Goats + goats) - stall.Capacity;
                         dbUser.Goats = stall.Capacity;
                     }
                     else
@@ -419,7 +421,6 @@ namespace Rabbot.Commands
 
         [Command("hirtenstab", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(10)]
         public async Task Hirtenstab()
         {
             using (swaightContext db = new swaightContext())
@@ -440,6 +441,15 @@ namespace Rabbot.Commands
                 }
 
                 var hirtenstab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
+
+                if (hirtenstab.Durability + 7 > 50)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du kannst maximal **50 Hirtenstäbe** tragen!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
                 if (hirtenstab != null)
                     hirtenstab.Durability += 5;
                 else
@@ -455,7 +465,6 @@ namespace Rabbot.Commands
 
         [Command("zaun", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(10)]
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
@@ -476,6 +485,15 @@ namespace Rabbot.Commands
                 }
 
                 var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
+
+                if (zaun.Durability + 7 > 50)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du kannst maximal **50 Stacheldrahtzäune** tragen!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
                 if (zaun != null)
                     zaun.Durability += 7;
                 else
@@ -602,14 +620,16 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var top25 = db.Userfeatures.Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
+                var top25 = db.Userfeatures.Include(p => p.User).Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var top in top25)
                 {
-                    var user = db.User.Where(p => p.Id == top.UserId).FirstOrDefault();
+                    if (!Context.Guild.Users.Where(p => p.Id == (ulong)top.User.Id).Any())
+                        continue;
+
                     var stall = Helper.GetStall(top.Wins);
-                    embed.AddField($"{counter}. {user.Name}", $"**{top.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
+                    embed.AddField($"{counter}. {top.User.Name}", $"**{top.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
                     counter++;
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());

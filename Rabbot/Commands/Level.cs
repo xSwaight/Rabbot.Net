@@ -112,6 +112,20 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("level")]
+        [BotCommand]
+        [Cooldown(60)]
+        public async Task LevelCmd()
+        {
+            string msg = "```";
+            foreach (var level in Helper.exp)
+            {
+                    msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
+            }
+            msg += "```";
+            await Context.Channel.SendMessageAsync(msg);
+        }
+
         [Command("musicrank", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(30)]

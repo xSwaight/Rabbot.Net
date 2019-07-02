@@ -170,13 +170,9 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Test()
         {
-
-            Emote emote = Emote.Parse("<:shtaco:555055295806701578>"); //Normal
-            Emote emote2 = Emote.Parse("<a:shtaco:555055295806701578>"); //Animated
-            //await Context.Channel.SendMessageAsync($"Hi {emote}");
             using (swaightContext db = new swaightContext())
             {
-                var test = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id);
+              
             }
         }
 

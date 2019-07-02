@@ -100,6 +100,7 @@ namespace Rabbot.Services
 
         public async Task SendLevelUp()
         {
+            var reward = Helper.GetReward((int)NewLevel);
             if (NewLevel > OldLevel && Guild.Level == 1)
             {
                 string path = "";
@@ -115,13 +116,24 @@ namespace Rabbot.Services
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                    await dcMessage.Channel.SendFileAsync(path);
+                    await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
                 }
                 File.Delete(path);
             }
 
             if (NewLevel > OldLevel)
             {
+                using (swaightContext db = new swaightContext())
+                {
+                    var feature = db.Userfeatures.Where(p => p.UserId == (long)dcMessage.Author.Id && p.ServerId == (long)dcGuild.Id).FirstOrDefault();
+
+                    if (Helper.IsFull(feature.Goats + reward, feature.Wins))
+                        feature.Goats = Helper.GetStall(feature.Wins).Capacity;
+                    else
+                        feature.Goats += reward;
+
+                    await db.SaveChangesAsync();
+                }
                 await SetRoles();
             }
         }
