@@ -20,14 +20,14 @@ namespace Rabbot.Commands
         [Command("player", RunMode = RunMode.Async)]
         [Cooldown(10)]
         [Summary("Zeigt Statistiken vom eingegebenen S4 Spieler an.")]
-        public async Task Player([Remainder]string arg)
+        public async Task Player([Remainder]string playername)
         {
 
-            if (!String.IsNullOrWhiteSpace(arg))
+            if (!String.IsNullOrWhiteSpace(playername))
             {
                 Player player = new Player();
                 ApiRequest DB = new ApiRequest();
-                player = await DB.GetPlayer(arg);
+                player = await DB.GetPlayer(playername);
                 if (player == null)
                 {
                     var embed = new EmbedBuilder();
@@ -72,14 +72,14 @@ namespace Rabbot.Commands
         [Command("clan", RunMode = RunMode.Async)]
         [Cooldown(10)]
         [Summary("Zeigt Statistiken zum eingegebenen S4 Clan an.")]
-        public async Task Clan([Remainder]string name)
+        public async Task Clan([Remainder]string clanname)
         {
 
-            if (!String.IsNullOrWhiteSpace(name))
+            if (!String.IsNullOrWhiteSpace(clanname))
             {
                 Clan clan = new Clan();
                 ApiRequest DB = new ApiRequest();
-                clan = await DB.GetClan(name);
+                clan = await DB.GetClan(clanname);
                 if (clan == null)
                 {
                     var embed = new EmbedBuilder();
@@ -112,12 +112,12 @@ namespace Rabbot.Commands
         [Command("playercard", RunMode = RunMode.Async)]
         [Cooldown(10)]
         [Summary("Gibt eine Grafik mit S4 Spielerdaten aus.")]
-        public async Task Playercard([Remainder]string arg)
+        public async Task Playercard([Remainder]string playername)
         {
 
             Player player = new Player();
             ApiRequest DB = new ApiRequest();
-            player = await DB.GetPlayer(arg);
+            player = await DB.GetPlayer(playername);
             if (player == null)
             {
                 var embed = new EmbedBuilder();
@@ -141,7 +141,7 @@ namespace Rabbot.Commands
                     DEATHMATCH = player.Kdrate.ToString()
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(arg), html, 300, 170);
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(playername), html, 300, 170);
                 await Context.Channel.SendFileAsync(path);
                 File.Delete(path);
             }

@@ -23,18 +23,21 @@ namespace Rabbot.Commands
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(30)]
+        [Summary("Zeigt diese Liste an.")]
         public async Task Help(int page = 1)
         {
             int pagesize = 15;
 
-            List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null).ToList();
+            List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null && p.Module.Name != "Administration").ToList();
 
-            if(page > commands.Count() / pagesize || page < 1)
+            if(page > Math.Ceiling((commands.Count() / (double)pagesize)) || page < 1)
                 return;
 
-            string help = $"**Page {page}/{(int)(commands.Count()/pagesize)}**\n\n";
+            string help = $"**Page {page}/{Math.Ceiling((commands.Count()/ (double)pagesize))}**\n\n";
 
-            foreach (var command in commands.OrderBy(p => p.Name).Skip(pagesize * page).Take(pagesize))
+            page--;
+
+            foreach (var command in commands.OrderBy(p => p.Name).Skip((pagesize * page)).Take(pagesize))
             {
                 string param = "";
                 foreach (var parameter in command.Parameters)
@@ -181,6 +184,7 @@ namespace Rabbot.Commands
 
         [Command("love", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Berechnet mit einer höchst komplexen Formel wie gut man zu dem markierten User passt.")]
         [Cooldown(60)]
         public async Task Love(SocketUser user)
         {
@@ -200,6 +204,7 @@ namespace Rabbot.Commands
 
         [Command("gay", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Berechnet mit einer höchst komplexen Formel wie schwul du bist, oder der markierte User ist.")]
         [Cooldown(60)]
         public async Task Gay(SocketUser user = null)
         {
@@ -218,6 +223,7 @@ namespace Rabbot.Commands
         }
 
         [Command("hdf", RunMode = RunMode.Async)]
+        [Summary("Nur nutzbar im Privatchat mit Rabbot. Mit diesem Command kann man die PNs von Rabbot an und ausschalten.")]
         public async Task Hdf()
         {
             if (!Context.IsPrivate)
@@ -240,6 +246,7 @@ namespace Rabbot.Commands
         }
 
         [Command("poll", RunMode = RunMode.Async)]
+        [Summary("Gibt dir die Möglichkeit eine Abstimmung zu starten.")]
         [Cooldown(100)]
         public async Task Poll()
         {

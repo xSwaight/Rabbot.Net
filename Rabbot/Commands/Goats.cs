@@ -306,7 +306,7 @@ namespace Rabbot.Commands
         [Command("angriff", RunMode = RunMode.Async)]
         [Alias("attack", "atk")]
         [BotCommand]
-        [Summary("Du kannst den Markierten User angreifen und Ziegen gewinnen oder verlieren.")]
+        [Summary("Du kannst den markierten User angreifen und Ziegen gewinnen oder verlieren.")]
         public async Task Angriff(IUser target)
         {
             Random rnd = new Random();

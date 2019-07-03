@@ -114,6 +114,7 @@ namespace Rabbot.Commands
 
         [Command("level")]
         [BotCommand]
+        [Summary("Zeigt alle Level und die dazugehörigen Rewards an.")]
         [Cooldown(60)]
         public async Task LevelCmd()
         {
