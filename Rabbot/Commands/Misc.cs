@@ -23,16 +23,19 @@ namespace Rabbot.Commands
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(30)]
-        public async Task Help()
+        public async Task Help(int page = 1)
         {
-            List<CommandInfo> commands = _commandService.Commands.ToList();
-            string help = "";
-            foreach (var command in commands.OrderBy(p => p.Name))
+            int pagesize = 15;
+
+            List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null).ToList();
+
+            if(page > commands.Count() / pagesize || page < 1)
+                return;
+
+            string help = $"**Page {page}/{(int)(commands.Count()/pagesize)}**\n\n";
+
+            foreach (var command in commands.OrderBy(p => p.Name).Skip(pagesize * page).Take(pagesize))
             {
-                if (command.Summary == null)
-                    continue;
-                if (command.Module.Name == "Administration")
-                    continue;
                 string param = "";
                 foreach (var parameter in command.Parameters)
                 {
