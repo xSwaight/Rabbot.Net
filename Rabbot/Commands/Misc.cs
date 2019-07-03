@@ -24,22 +24,24 @@ namespace Rabbot.Commands
         [BotCommand]
         [Cooldown(30)]
         [Summary("Zeigt diese Liste an.")]
-        public async Task Help(int page = 1)
+        public async Task Help(int seite = 1)
         {
             int pagesize = 15;
 
             List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null && p.Module.Name != "Administration").ToList();
 
-            if(page > Math.Ceiling((commands.Count() / (double)pagesize)) || page < 1)
+            if (seite > Math.Ceiling((commands.Count() / (double)pagesize)) || seite < 1)
                 return;
 
-            string help = $"**Page {page}/{Math.Ceiling((commands.Count()/ (double)pagesize))}**\n\n";
+            string help = $"**Seite {seite}/{Math.Ceiling((commands.Count() / (double)pagesize))}**\n\n`(Parameter) -> Optionaler Parameter`\n`[Parameter] -> Pflich Parameter`\n\n";
 
-            page--;
+            seite--;
 
-            foreach (var command in commands.OrderBy(p => p.Name).Skip((pagesize * page)).Take(pagesize))
+            foreach (var command in commands.OrderBy(p => p.Name).Skip((pagesize * seite)).Take(pagesize))
             {
                 string param = "";
+                string aliases = "";
+
                 foreach (var parameter in command.Parameters)
                 {
                     if (parameter.IsOptional)
@@ -48,7 +50,18 @@ namespace Rabbot.Commands
                         param += $"[{parameter}] ";
 
                 }
-                help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n{command.Summary}\n";
+
+                foreach (var alias in command.Aliases)
+                {
+                    if (alias != command.Name)
+                        aliases += $"{Config.bot.cmdPrefix}{alias} ";
+                }
+                aliases = aliases.TrimEnd();
+                if (!string.IsNullOrWhiteSpace(aliases))
+                    help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
+                else
+                    help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
+
             }
 
             await Context.Channel.SendMessageAsync(help);
@@ -178,7 +191,7 @@ namespace Rabbot.Commands
         {
             using (swaightContext db = new swaightContext())
             {
-              
+
             }
         }
 
