@@ -37,7 +37,7 @@ namespace Rabbot.Preconditions
 
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.Administrator)
+            if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.ManageRoles)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             var key = new CooldownInfo(context.User.Id, command.GetHashCode());
