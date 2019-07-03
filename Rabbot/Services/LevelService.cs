@@ -91,7 +91,16 @@ namespace Rabbot.Services
                     EXP.Attacks--;
                     if (dcMessage.Author is SocketGuildUser dcUser)
                         if (EXP.User.Notify == 1)
-                            dcUser.SendMessageAsync("Du hast dir heute durch deine **Aktivität** einen **extra Kampf** verdient!");
+                        {
+                            try
+                            {
+                                dcUser.SendMessageAsync("Du hast dir heute durch deine **Aktivität** einen **extra Kampf** verdient!");
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message + " " + e.StackTrace); ;
+                            }
+                        }
                 }
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();

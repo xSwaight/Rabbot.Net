@@ -530,33 +530,41 @@ namespace Rabbot
 
                             if (dbUser.Lastmessage.Value.ToShortDateString() != DateTime.Now.AddDays(-1).ToShortDateString() && !(DateTime.Now.ToShortDateString() == dbUser.Lastmessage.Value.ToShortDateString()))
                             {
-                                Random rnd = new Random();
-                                int deadGoats;
-                                var mainUser = db.User.Where(p => p.Id == dbUser.UserId).FirstOrDefault();
-                                if (dbUser.Goats > 4 && dbUser.Goats <= 15)
+                                try
                                 {
-                                    deadGoats = rnd.Next(5, dbUser.Goats + 1);
-                                    dbUser.Goats -= deadGoats;
-                                    if (mainUser.Notify == 1)
-                                        await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
-                                    await db.SaveChangesAsync();
+                                    Random rnd = new Random();
+                                    int deadGoats;
+                                    var mainUser = db.User.Where(p => p.Id == dbUser.UserId).FirstOrDefault();
+                                    if (dbUser.Goats > 4 && dbUser.Goats <= 15)
+                                    {
+                                        deadGoats = rnd.Next(5, dbUser.Goats + 1);
+                                        dbUser.Goats -= deadGoats;
+                                        if (mainUser.Notify == 1)
+                                            await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
+                                        await db.SaveChangesAsync();
+                                    }
+                                    else if (dbUser.Goats > 15)
+                                    {
+                                        deadGoats = rnd.Next(5, 16);
+                                        dbUser.Goats -= deadGoats;
+                                        if (mainUser.Notify == 1)
+                                            await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
+                                        await db.SaveChangesAsync();
+                                    }
                                 }
-                                else if (dbUser.Goats > 15)
+                                catch (Exception e)
                                 {
-                                    deadGoats = rnd.Next(5, 16);
-                                    dbUser.Goats -= deadGoats;
-                                    if (mainUser.Notify == 1)
-                                        await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
-                                    await db.SaveChangesAsync();
+                                    Console.WriteLine(e.Message + "\n" + e.StackTrace);
                                 }
+
                             }
                         }
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.Message + "\n" + e.StackTrace);
+                Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
             }
 
         }
@@ -595,12 +603,23 @@ namespace Rabbot
                                         {
                                             var msg = await msgs.FirstOrDefault() as IMessage;
                                             if (msg != null)
-                                                if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                            {
+                                                try
                                                 {
-                                                    var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
-                                                    if (exp != null)
-                                                        await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
+                                                    if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                                    {
+                                                        var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
+                                                        if (exp != null)
+                                                            await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
+                                                    }
                                                 }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                                                }
+ 
+                                            }
+
                                         }
                                         if (exp != null)
                                             if (!Helper.IsFull(exp.Goats + 10, exp.Wins))
