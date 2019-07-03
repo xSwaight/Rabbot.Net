@@ -129,6 +129,8 @@ namespace Rabbot
 
         public static Emote Sword = Emote.Parse("<a:sword:593493621400010795>");
         public static Emote Shield = Emote.Parse("<a:shield:593498755441885275>");
+        public static Emoji Yes = new Emoji("✅");
+        public static Emoji No = new Emoji("❌");
 
         public static string RemoveSpecialCharacters(string str)
         {

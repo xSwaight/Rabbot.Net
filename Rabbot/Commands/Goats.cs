@@ -569,8 +569,21 @@ namespace Rabbot.Commands
                 embed.WithTitle($"Statistiken von {myUser.Nickname ?? myUser.Username}");
                 embed.WithColor(new Color(241, 242, 222));
                 embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{dbUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{dbUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
-                embed.AddField($"Aktueller Stall", $"{stall.Name}");
+                var percent = ((double)dbUser.Goats / (double)stall.Capacity) * 100;
+                embed.AddField($"Aktueller Stall", $"{stall.Name} | **{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** / **{stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen (**{Math.Round(percent, 0)}%**)");
                 embed.AddField($"Heute Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
+
+                Emoji emote = null;
+                if(dbUser.Lastdaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
+                {
+                    emote = Helper.Yes;
+                }
+                else
+                {
+                    emote = Helper.No;
+                }
+
+                embed.AddField($"Daily", $"Heute abgeholt: {emote}");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
                 if (inventory.Count() != 0)
                 {
