@@ -80,14 +80,14 @@ namespace Rabbot
                 bool isActiveStab = false;
 
 
-                if(emote.Id == Helper.Shield.Id)
+                if (emote.Id == Helper.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                         return;
                     if (zaun == null)
                         return;
                 }
-                else if(emote.Id == Helper.Sword.Id)
+                else if (emote.Id == Helper.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                         return;
@@ -180,7 +180,7 @@ namespace Rabbot
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
 
-                if(emote.Id == Helper.Shield.Id)
+                if (emote.Id == Helper.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                     {
@@ -193,7 +193,7 @@ namespace Rabbot
                         return;
                     }
                 }
-                else if(emote.Id == Helper.Sword.Id)
+                else if (emote.Id == Helper.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                     {
@@ -221,7 +221,7 @@ namespace Rabbot
                         if (item.Value.ReactionCount >= 2)
                             isActiveZaun = true;
                     }
-                    else if(Emote.Id == Helper.Sword.Id)
+                    else if (Emote.Id == Helper.Sword.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveStab = true;
@@ -270,6 +270,25 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
+                if (db.Badwords.Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages)
+                {
+                    await newMessage.DeleteAsync();
+                    SocketGuild dcServer = ((SocketGuildChannel)newMessage.Channel).Guild;
+                    if (!db.Warning.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id).Any())
+                    {
+                        await db.Warning.AddAsync(new Warning { ServerId = (long)dcServer.Id, UserId = (long)newMessage.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
+                        await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
+                    }
+                    else
+                    {
+                        var warn = db.Warning.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id).FirstOrDefault();
+                        warn.Counter++;
+                        await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+                    }
+                    var myUser = newMessage.Author as SocketGuildUser;
+                    await Logging.Warning(myUser, newMessage);
+
+                }
                 if (message.Value.Content == newMessage.Content)
                     return;
                 var dcUser = message.Value.Author as SocketGuildUser;
@@ -617,7 +636,7 @@ namespace Rabbot
                                                 {
                                                     Console.WriteLine(e.Message + " " + e.StackTrace);
                                                 }
- 
+
                                             }
 
                                         }

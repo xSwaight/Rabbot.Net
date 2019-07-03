@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
@@ -192,6 +193,16 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
+            }
+
+            var result = Context.Guild.GetAuditLogsAsync(100).ToList().Result;
+            string list = "";
+            foreach (var logs in result)
+            {
+                foreach (var log in logs)
+                {
+                    list += $"{log.Action}\n";
+                }
             }
         }
 
