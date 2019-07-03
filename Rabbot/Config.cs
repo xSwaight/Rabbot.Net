@@ -39,6 +39,7 @@ namespace Rabbot
         public string token;
         public string apiToken;
         public string twitchToken;
+        public string twitchAccessToken;
         public string connectionString;
         public string cmdPrefix;
         public int expMultiplier;

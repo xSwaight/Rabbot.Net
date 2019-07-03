@@ -34,6 +34,7 @@ namespace Rabbot.API
                 _client = client;
                 API = new TwitchAPI();
                 API.Settings.ClientId = Config.bot.twitchToken;
+                API.Settings.AccessToken = Config.bot.twitchAccessToken;
 
                 Monitor = new LiveStreamMonitorService(API, 60);
                 List<string> channels = new List<string> { "swaight" };
