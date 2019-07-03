@@ -206,10 +206,21 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("active", RunMode = RunMode.Async)]
+        [RequireOwner]
+        public async Task Active(int days)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == (long)Context.Guild.Id);
+                await ReplyAsync($"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.");
+            }
+        }
+
         [Command("love", RunMode = RunMode.Async)]
         [BotCommand]
         [Summary("Berechnet mit einer höchst komplexen Formel wie gut man zu dem markierten User passt.")]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task Love(SocketUser user)
         {
             if (user == null)
@@ -229,7 +240,7 @@ namespace Rabbot.Commands
         [Command("gay", RunMode = RunMode.Async)]
         [BotCommand]
         [Summary("Berechnet mit einer höchst komplexen Formel wie schwul du bist, oder der markierte User ist.")]
-        [Cooldown(60)]
+        [Cooldown(30)]
         public async Task Gay(SocketUser user = null)
         {
             if (user == null)
