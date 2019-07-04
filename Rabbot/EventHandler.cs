@@ -502,7 +502,7 @@ namespace Rabbot
                                         {
                                             embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind **{sum - stall.Capacity} Ziegen** zu Rabbot **geflüchtet**..";
                                             var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
-                                            rabbotUser.Goats += sum - stall.Capacity;
+                                            rabbotUser.Goats += (sum + dbUserfeature.Goats) - stall.Capacity;
                                         }
                                         dbUserfeature.Goats = stall.Capacity;
                                     }
