@@ -130,6 +130,15 @@ namespace Rabbot.Commands
                         embed.Description = $"**Bonus**: Du hast einen **{item}** mit **{usage} Benutzungen** gefunden.";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     }
+                    else if(bonus == 3)
+                    {
+                        int fights = rnd.Next(1, 6);
+                        dbUser.Attacks -= fights;
+                        embed.Color = Color.LightOrange;
+                        string item = fights == 1 ? "Bonuskampf" : "Bonuskämpfe";
+                        embed.Description = $"**Bonus**: Du hast heute **{fights} {item}** gewonnen!";
+                        await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    }
                     await db.SaveChangesAsync();
                 }
                 else
@@ -451,7 +460,7 @@ namespace Rabbot.Commands
                 }
 
                 if (hirtenstab != null)
-                    hirtenstab.Durability += 5;
+                    hirtenstab.Durability += 7;
                 else
                     await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 });
 

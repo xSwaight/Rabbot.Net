@@ -592,82 +592,90 @@ namespace Rabbot
         {
             while (true)
             {
-                foreach (var guild in _client.Guilds)
+                try
                 {
-                    foreach (var user in guild.Users)
+                    foreach (var guild in _client.Guilds)
                     {
-                        if (user.Activity is SpotifyGame song)
+                        foreach (var user in guild.Users)
                         {
-                            using (swaightContext db = new swaightContext())
+                            if (user.Activity is SpotifyGame song)
                             {
-                                if (!db.Songlist.Where(p => p.Active == 1).Any())
-                                    continue;
-
-                                if (song.TrackUrl == db.Songlist.Where(p => p.Active == 1).FirstOrDefault().Link)
+                                using (swaightContext db = new swaightContext())
                                 {
-                                    var musicrank = db.Musicrank.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault() ?? db.Musicrank.AddAsync(new Musicrank { UserId = (long)user.Id, ServerId = (long)guild.Id, Sekunden = 0, Date = DateTime.Now }).Result.Entity;
-                                    if (musicrank.Date.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
+                                    if (!db.Songlist.Where(p => p.Active == 1).Any())
+                                        continue;
+
+                                    if (song.TrackUrl == db.Songlist.Where(p => p.Active == 1).FirstOrDefault().Link)
                                     {
-                                        musicrank.Sekunden = 0;
-                                        musicrank.Date = DateTime.Now;
-                                    }
-                                    musicrank.Sekunden += 10;
-                                    await db.SaveChangesAsync();
-                                    if (musicrank.Sekunden == 300)
-                                    {
-                                        var channel = await user.GetOrCreateDMChannelAsync();
-                                        var msgs = channel.GetMessagesAsync(1).Flatten();
-                                        var exp = db.Userfeatures.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
-                                        if (msgs != null)
+                                        var musicrank = db.Musicrank.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault() ?? db.Musicrank.AddAsync(new Musicrank { UserId = (long)user.Id, ServerId = (long)guild.Id, Sekunden = 0, Date = DateTime.Now }).Result.Entity;
+                                        if (musicrank.Date.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
                                         {
-                                            var msg = await msgs.FirstOrDefault() as IMessage;
-                                            if (msg != null)
+                                            musicrank.Sekunden = 0;
+                                            musicrank.Date = DateTime.Now;
+                                        }
+                                        musicrank.Sekunden += 10;
+                                        await db.SaveChangesAsync();
+                                        if (musicrank.Sekunden == 300)
+                                        {
+                                            var channel = await user.GetOrCreateDMChannelAsync();
+                                            var msgs = channel.GetMessagesAsync(1).Flatten();
+                                            var exp = db.Userfeatures.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                                            if (msgs != null)
                                             {
-                                                try
+                                                var msg = await msgs.FirstOrDefault() as IMessage;
+                                                if (msg != null)
                                                 {
-                                                    if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                                    try
                                                     {
-                                                        var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
-                                                        if (exp != null)
-                                                            await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
+                                                        if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
+                                                        {
+                                                            var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
+                                                            if (exp != null)
+                                                                await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
+                                                        }
                                                     }
-                                                }
-                                                catch (Exception e)
-                                                {
-                                                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                                                    catch (Exception e)
+                                                    {
+                                                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                                                    }
+
                                                 }
 
                                             }
-
+                                            if (exp != null)
+                                                if (!Helper.IsFull(exp.Goats + 10, exp.Wins))
+                                                    exp.Goats += 10;
+                                            await db.SaveChangesAsync();
                                         }
-                                        if (exp != null)
-                                            if (!Helper.IsFull(exp.Goats + 10, exp.Wins))
-                                                exp.Goats += 10;
-                                        await db.SaveChangesAsync();
                                     }
                                 }
                             }
                         }
                     }
+                    await Task.Delay(10000);
                 }
-                await Task.Delay(10000);
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace); ;
+                }
+
             }
         }
 
         private async Task CheckWarnings()
         {
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
                     WarnService warn = new WarnService(_client);
                     await warn.CheckWarnings();
                     await Task.Delay(1000);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message + " " + e.StackTrace);
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                }
             }
 
         }
@@ -676,9 +684,16 @@ namespace Rabbot
         {
             while (true)
             {
-                AttackService attacks = new AttackService(_client);
-                await attacks.CheckAttacks();
-                await Task.Delay(1000);
+                try
+                {
+                    AttackService attacks = new AttackService(_client);
+                    await attacks.CheckAttacks();
+                    await Task.Delay(1000);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                }
             }
         }
 
@@ -686,9 +701,16 @@ namespace Rabbot
         {
             while (true)
             {
-                MuteService mute = new MuteService(_client);
-                await mute.CheckMutes();
-                await Task.Delay(1000);
+                try
+                {
+                    MuteService mute = new MuteService(_client);
+                    await mute.CheckMutes();
+                    await Task.Delay(1000);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                }
             }
         }
 
