@@ -318,27 +318,32 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                var dcUser = message.Value.Author as SocketGuildUser;
-                if (dcUser.IsBot)
+                if (message.Value.Author == null)
                     return;
-                if (message.Value.Content.StartsWith(Config.bot.cmdPrefix))
-                    return;
-                var dcTextchannel = channel as SocketTextChannel;
-                var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
-                var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
-                if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
-                    return;
-                var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
-                if (dcTrashChannel == null)
-                    return;
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.WithAuthor(dcUser as IUser);
-                embed.Description = $"Nachricht von {dcUser.Mention} in {dcTextchannel.Mention} wurde gelöscht!";
-                embed.AddField($"Nachricht:", $"{message.Value.Content}");
-                DateTime msgTime = message.Value.Timestamp.DateTime.ToLocalTime();
-                embed.WithFooter($"Message ID: {message.Value.Id} • {msgTime.ToShortTimeString()} {msgTime.ToShortDateString()}");
-                embed.Color = new Color(255, 0, 0);
-                await dcTrashChannel.SendMessageAsync(null, false, embed.Build());
+
+                if (message.Value.Author is SocketGuildUser dcUser)
+                {
+                    if (dcUser.IsBot)
+                        return;
+                    if (message.Value.Content.StartsWith(Config.bot.cmdPrefix))
+                        return;
+                    var dcTextchannel = channel as SocketTextChannel;
+                    var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
+                    var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
+                    if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
+                        return;
+                    var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
+                    if (dcTrashChannel == null)
+                        return;
+                    EmbedBuilder embed = new EmbedBuilder();
+                    embed.WithAuthor(dcUser as IUser);
+                    embed.Description = $"Nachricht von {dcUser.Mention} in {dcTextchannel.Mention} wurde gelöscht!";
+                    embed.AddField($"Nachricht:", $"{message.Value.Content}");
+                    DateTime msgTime = message.Value.Timestamp.DateTime.ToLocalTime();
+                    embed.WithFooter($"Message ID: {message.Value.Id} • {msgTime.ToShortTimeString()} {msgTime.ToShortDateString()}");
+                    embed.Color = new Color(255, 0, 0);
+                    await dcTrashChannel.SendMessageAsync(null, false, embed.Build());
+                }
             }
         }
 
