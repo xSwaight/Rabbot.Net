@@ -318,7 +318,7 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                if (message.Value.Author == null)
+                if (message.Value == null)
                     return;
 
                 if (message.Value.Author is SocketGuildUser dcUser)
