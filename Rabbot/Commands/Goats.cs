@@ -451,6 +451,13 @@ namespace Rabbot.Commands
 
                 var hirtenstab = features.Inventory.FirstOrDefault(p => p.ItemId == 1);
 
+
+
+                if (hirtenstab != null)
+                    hirtenstab.Durability += 7;
+                else
+                    hirtenstab = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 }).Result.Entity;
+
                 if (hirtenstab.Durability + 7 > 50)
                 {
                     embed.Color = Color.Red;
@@ -458,11 +465,6 @@ namespace Rabbot.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-
-                if (hirtenstab != null)
-                    hirtenstab.Durability += 7;
-                else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 });
 
                 features.Goats -= 75;
                 await db.SaveChangesAsync();
@@ -495,6 +497,12 @@ namespace Rabbot.Commands
 
                 var zaun = features.Inventory.FirstOrDefault(p => p.ItemId == 2);
 
+
+                if (zaun != null)
+                    zaun.Durability += 7;
+                else
+                    zaun = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 }).Result.Entity;
+
                 if (zaun.Durability + 7 > 50)
                 {
                     embed.Color = Color.Red;
@@ -502,11 +510,6 @@ namespace Rabbot.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-
-                if (zaun != null)
-                    zaun.Durability += 7;
-                else
-                    await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 });
 
                 features.Goats -= 75;
                 await db.SaveChangesAsync();
