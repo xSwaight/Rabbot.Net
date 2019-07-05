@@ -130,7 +130,7 @@ namespace Rabbot.Commands
                         embed.Description = $"**Bonus**: Du hast einen **{item}** mit **{usage} Benutzungen** gefunden.";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     }
-                    else if(bonus == 3)
+                    else if (bonus == 3)
                     {
                         int fights = rnd.Next(1, 6);
                         dbUser.Attacks -= fights;
@@ -458,7 +458,7 @@ namespace Rabbot.Commands
                 else
                     hirtenstab = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 }).Result.Entity;
 
-                if (hirtenstab.Durability + 7 > 50)
+                if (hirtenstab.Durability > 50)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du kannst maximal **50 Hirtenstäbe** tragen!";
@@ -503,7 +503,7 @@ namespace Rabbot.Commands
                 else
                     zaun = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 }).Result.Entity;
 
-                if (zaun.Durability + 7 > 50)
+                if (zaun.Durability > 50)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du kannst maximal **50 Stacheldrahtzäune** tragen!";
@@ -586,9 +586,16 @@ namespace Rabbot.Commands
                 embed.AddField($"Heute Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
 
                 Emoji emote = null;
-                if(dbUser.Lastdaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
+                if (dbUser.Lastdaily != null)
                 {
-                    emote = Helper.Yes;
+                    if (dbUser.Lastdaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
+                    {
+                        emote = Helper.Yes;
+                    }
+                    else
+                    {
+                        emote = Helper.No;
+                    }
                 }
                 else
                 {
