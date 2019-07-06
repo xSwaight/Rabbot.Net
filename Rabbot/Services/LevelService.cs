@@ -94,7 +94,7 @@ namespace Rabbot.Services
                         {
                             try
                             {
-                                dcUser.SendMessageAsync("Du hast dir heute durch deine **Aktivität** einen **extra Kampf** verdient!");
+                                dcUser.SendMessageAsync($"Du hast dir heute durch deine **Aktivität** auf **{dcGuild.Name}** einen **extra Kampf** verdient!");
                             }
                             catch (Exception e)
                             {

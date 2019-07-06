@@ -137,8 +137,19 @@ namespace Rabbot.Commands
             {
 
                 var top10 = db.Musicrank.Where(p => p.ServerId == (long)Context.Guild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden).Take(10);
+                var song = db.Songlist.Where(p => p.Active == 1);
+                if (!song.Any())
+                {
+                    await Context.Channel.SendMessageAsync("Something went wrong! :(");
+                    return;
+                }
+
+                var link = song.FirstOrDefault().Link;
+                var songId = link.Substring(link.LastIndexOf("/") + 1, 22);
+
                 EmbedBuilder embed = new EmbedBuilder();
-                embed.Description = "Daily Musicboost Ranking";
+                embed.Title = "Daily Musicboost Ranking";
+                embed.Url = $"https://open.spotify.com/go?uri=spotify%3Atrack%3A{songId}&product=embed_v2";
                 embed.WithColor(new Color(239, 220, 7));
                 int i = 1;
                 foreach (var top in top10)
@@ -182,12 +193,7 @@ namespace Rabbot.Commands
                         Console.WriteLine(e.Message + " " + e.StackTrace);
                     }
                 }
-                var song = db.Songlist.Where(p => p.Active == 1);
-                if (!song.Any())
-                {
-                    await Context.Channel.SendMessageAsync("Something went wrong! :(", false);
-                    return;
-                }
+
                 embed.WithFooter($"Hör '{song.FirstOrDefault().Name}' auf Spotify und lass den Sekundencounter wachsen!");
                 await Context.Channel.SendMessageAsync($"Heutiger Song: {song.FirstOrDefault().Name}\n{song.FirstOrDefault().Link}", false, embed.Build());
             }

@@ -485,7 +485,14 @@ namespace Rabbot
                             var luck = rnd.Next(1, 101);
                             var botChannelId = db.Guild.Where(p => p.ServerId == (long)serverId).FirstOrDefault().Botchannelid;
                             var dcServer = _client.Guilds.Where(p => p.Id == (ulong)serverId).FirstOrDefault();
+
+                            if (dcServer == null)
+                                continue;
+
                             var dcBotChannel = dcServer.TextChannels.Where(p => p.Id == (ulong)botChannelId).FirstOrDefault();
+
+                            if (dcBotChannel == null || botChannelId == null)
+                                continue;
 
                             foreach (var item in myList)
                             {

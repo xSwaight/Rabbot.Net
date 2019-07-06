@@ -400,13 +400,13 @@ namespace Rabbot.Commands
 
                 string chance = $"**{Math.Round(winChance)}% {Context.User.Mention} - {target.Mention} {100 - Math.Round(winChance)}%**";
 
-                var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 dbUser.Locked = 1;
                 dbTarget.Locked = 1;
+                var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)target.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
-                await db.SaveChangesAsync();
                 await msg.AddReactionAsync(Helper.Sword);
                 await msg.AddReactionAsync(Helper.Shield);
+                await db.SaveChangesAsync();
             }
         }
 
