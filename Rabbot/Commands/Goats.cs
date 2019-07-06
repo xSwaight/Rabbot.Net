@@ -232,92 +232,16 @@ namespace Rabbot.Commands
             }
         }
 
-
-        //[Command("namechange", RunMode = RunMode.Async)]
-        //[BotCommand]
-        //public async Task Namechange(string newName)
-        //{
-        //    if (newName.Count() > 32)
-        //    {
-        //        await Context.Channel.SendMessageAsync($"{Context.User.Mention} der Name darf maximal **32 Zeichen** lang sein.");
-        //        return;
-        //    }
-        //    if (newName.Count() < 4)
-        //    {
-        //        await Context.Channel.SendMessageAsync($"{Context.User.Mention} der Name muss maximal **4 Zeichen** lang sein.");
-        //        return;
-        //    }
-        //    var test = new Regex("[\\]\\[]");
-        //    if (test.IsMatch(newName))
-        //    {
-        //        await Context.Channel.SendMessageAsync($"{Context.User.Mention} der Name enthält unerlaubte Zeichen!");
-        //        return;
-        //    }
-        //    using (swaightContext db = new swaightContext())
-        //    {
-        //        var user = Context.User as SocketGuildUser;
-        //        var dbUser = db.Experience.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Experience.AddAsync(new Experience { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0 }).Result.Entity;
-        //        if (dbUser.Goats >= 100)
-        //        {
-        //            dbUser.Goats -= 100;
-        //            await user.ModifyAsync(p => p.Nickname = newName);
-        //            dbUser.NamechangeUntil = DateTime.Now.AddDays(8);
-        //            await Context.Channel.SendMessageAsync($"{Context.User.Mention} dein Name wurde erfolgreich für **100 Ziegen** zu **{newName}** geändert!\nDein Namechange hält bis zum **{dbUser.NamechangeUntil.Value.ToShortDateString()} 00:00 Uhr**!");
-        //            await db.SaveChangesAsync();
-        //        }
-        //        else
-        //        {
-        //            await Context.Channel.SendMessageAsync($"{Context.User.Mention} dir fehlen leider **{100 - dbUser.Goats} Ziegen** um deinen Namen zu ändern!");
-        //        }
-        //    }
-        //}
-
-        //[Command("minuten", RunMode = RunMode.Async)]
-        //[BotCommand]
-        //[Cooldown(60)]
-        //public async Task Minuten(int amount)
-        //{
-        //    if (amount < 1)
-        //        return;
-
-        //    using (swaightContext db = new swaightContext())
-        //    {
-        //        var dbMusic = db.Musicrank.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.Musicrank.AddAsync(new Musicrank { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Date = DateTime.Now, Sekunden = 0 }).Result.Entity;
-        //        var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0 }).Result.Entity;
-
-        //        if (dbUser.Locked == 1)
-        //        {
-        //            await Context.Message.DeleteAsync();
-        //            var msg = await Context.Channel.SendMessageAsync($"**{Context.User.Mention} du hast gerade eine Shop Sperre!**");
-        //            await Task.Delay(3000);
-        //            await msg.DeleteAsync();
-        //            return;
-        //        }
-        //        if (dbUser.Goats >= amount)
-        //        {
-        //            if (dbMusic.Date.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
-        //            {
-        //                dbMusic.Date = DateTime.Now;
-        //                dbMusic.Sekunden = 0;
-        //            }
-        //            dbUser.Goats -= amount;
-        //            dbMusic.Sekunden += amount;
-        //            await db.SaveChangesAsync();
-        //            await Context.Channel.SendMessageAsync($"{Context.User.Mention} du hast dir erfolgreich **{amount} Minuten** im Musicrank gekauft!");
-        //        }
-        //        else
-        //        {
-        //            await Context.Channel.SendMessageAsync($"{Context.User.Mention} dir fehlen leider **{amount - dbUser.Goats} Ziegen**!");
-        //        }
-        //    }
-        //}
-
         [Command("angriff", RunMode = RunMode.Async)]
         [Alias("attack", "atk")]
         [BotCommand]
+        [Cooldown(1)]
         [Summary("Du kannst den markierten User angreifen und Ziegen gewinnen oder verlieren.")]
         public async Task Angriff(IUser target)
         {
+            if (Helper.AttackActive)
+                return;
+
             Random rnd = new Random();
             await Task.Delay(rnd.Next(1, 201));
             EmbedBuilder embed = new EmbedBuilder();
@@ -352,21 +276,6 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                //if (dbUser.Goats < userStall.MaxOutput)
-                //{
-                //    embed.Color = Color.Red;
-                //    embed.Description = $"{Context.User.Mention} du musst mindestens **{userStall.MaxOutput} Ziegen** haben um jemanden **angreifen** zu können!";
-                //    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                //    return;
-                //}
-                //if (dbTarget.Goats < targetStall.MaxOutput)
-                //{
-                //    embed.Color = Color.Red;
-                //    embed.Description = $"{Context.User.Mention} dein Opfer muss mindestens **{targetStall.MaxOutput} Ziegen** haben um **angegriffen** werden zu können!";
-                //    await Context.Channel.SendMessageAsync(null, false, embed.Build());
-                //    return;
-                //}
-
                 if (dbTarget.Locked == 1)
                 {
                     embed.Color = Color.Red;
@@ -381,7 +290,7 @@ namespace Rabbot.Commands
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-
+                Helper.AttackActive = true;
                 dbUser.Attacks++;
                 embed.Color = new Color(242, 255, 0);
                 embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {target.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
@@ -407,6 +316,7 @@ namespace Rabbot.Commands
                 await msg.AddReactionAsync(Helper.Sword);
                 await msg.AddReactionAsync(Helper.Shield);
                 await db.SaveChangesAsync();
+                Helper.AttackActive = false;
             }
         }
 
@@ -765,6 +675,140 @@ namespace Rabbot.Commands
                 }
                 embed.WithFooter("Glücksspiel kann süchtig machen! Sucht Hotline: 089 / 28 28 22");
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
+        }
+
+
+        [Command("spin", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(5)]
+        [Summary("Spin das Rad für 15 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
+        public async Task Spin()
+        {
+            Random random = new Random();
+            var glitch = Helper.glitch;
+            var diego = Helper.diego;
+            var shyguy = Helper.shyguy;
+            var goldenziege = Helper.goldenziege;
+
+            Emote slot1 = null;
+            Emote slot2 = null;
+            Emote slot3 = null;
+
+            IUserMessage msg = null;
+
+
+            using (swaightContext db = new swaightContext())
+            {
+                if (Helper.SpinActive)
+                    return;
+
+                var dbUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault();
+                if (dbUser == null)
+                    return;
+
+                if (dbUser.Locked == 1)
+                {
+                    await ReplyAsync($"{Context.User.Mention} du bist gerade in einem Angriff!");
+                    return;
+                }
+
+                if (dbUser.Goats < 15)
+                {
+                    await ReplyAsync($"{Context.User.Mention} du hast leider nicht ausreichend Ziegen!");
+                    return;
+                }
+
+                dbUser.Goats -= 20;
+                await db.SaveChangesAsync();
+                Helper.SpinActive = true;
+
+                for (int j = 0; j < 1; j++)
+                {
+
+                    int rnd1 = random.Next(10000, 20000);
+                    int rnd2 = random.Next(30000, 40000);
+                    int rnd3 = random.Next(50000, 60000);
+
+                    int magic1 = rnd1 % 500;
+                    int magic2 = rnd2 % 500;
+                    int magic3 = rnd3 % 500;
+
+                    Emote[] slots = new Emote[500];
+
+                    for (int i = 0; i < 190; i++)
+                        slots[i] = glitch;
+                    for (int i = 190; i < 320; i++)
+                        slots[i] = diego;
+                    for (int i = 320; i < 420; i++)
+                        slots[i] = shyguy;
+                    for (int i = 420; i < 500; i++)
+                        slots[i] = goldenziege;
+
+                    slot1 = slots[magic1];
+                    slot2 = slots[magic2];
+                    slot3 = slots[magic3];
+
+                    string output = $"{slot1} - {slot2} - {slot3}";
+                    if (Context.User is SocketGuildUser user)
+                    {
+                        EmbedBuilder embed = new EmbedBuilder();
+                        embed.Color = Color.DarkMagenta;
+                        embed.Title = $"Slot Machine für {user.Nickname ?? user.Username}";
+                        embed.AddField("Dein Spin", output);
+                        embed.WithFooter("Glücksspiel kann süchtig machen.");
+
+                        if (msg == null)
+                            msg = await ReplyAsync(null, false, embed.Build());
+                        else
+                            await msg.ModifyAsync(p => p.Embed = embed.Build());
+
+                        //await Task.Delay(500);
+                    }
+                    else
+                    {
+                        Helper.SpinActive = false;
+                        return;
+                    }
+                }
+
+
+                if ((slot1 == glitch) && (slot2 == glitch) && (slot3 == glitch))
+                {
+                    await ReplyAsync("**Du hast 30 Ziegen gewonnen!**");
+                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
+                        dbUser.Goats += 30;
+                }
+
+                else if ((slot1 == diego) && (slot2 == diego) && (slot3 == diego))
+                {
+                    await ReplyAsync("**Du hast 100 Ziegen gewonnen!**");
+                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
+                        dbUser.Goats += 100;
+
+                }
+
+                else if ((slot1 == shyguy) && (slot2 == shyguy) && (slot3 == shyguy))
+                {
+                    await ReplyAsync("**Du hast 200 Ziegen gewonnen!**");
+                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
+                        dbUser.Goats += 200;
+                }
+
+                else if ((slot1 == goldenziege) && (slot2 == goldenziege) && (slot3 == goldenziege))
+                {
+                    await ReplyAsync("**Du hast 500 Ziegen gewonnen!**");
+                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
+                        dbUser.Goats += 500;
+                }
+
+                else
+                {
+                    await ReplyAsync($"War wohl **nichts**.. {Helper.doggo}");
+                }
+
+                await db.SaveChangesAsync();
+                Helper.SpinActive = false;
             }
         }
     }

@@ -486,12 +486,12 @@ namespace Rabbot
                             var botChannelId = db.Guild.Where(p => p.ServerId == (long)serverId).FirstOrDefault().Botchannelid;
                             var dcServer = _client.Guilds.Where(p => p.Id == (ulong)serverId).FirstOrDefault();
 
-                            if (dcServer == null)
+                            if (dcServer == null || botChannelId == null)
                                 continue;
 
                             var dcBotChannel = dcServer.TextChannels.Where(p => p.Id == (ulong)botChannelId).FirstOrDefault();
 
-                            if (dcBotChannel == null || botChannelId == null)
+                            if (dcBotChannel == null)
                                 continue;
 
                             foreach (var item in myList)
@@ -507,7 +507,7 @@ namespace Rabbot
                                     {
                                         if (dcUser != null)
                                         {
-                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind **{sum - stall.Capacity} Ziegen** zu Rabbot **geflüchtet**..";
+                                            embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind **{(sum + dbUserfeature.Goats) - stall.Capacity} Ziegen** zu Rabbot **geflüchtet**..";
                                             var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                                             rabbotUser.Goats += (sum + dbUserfeature.Goats) - stall.Capacity;
                                         }
@@ -730,12 +730,16 @@ namespace Rabbot
         {
             if (msg.Author.IsBot)
                 return;
+
+            if (!(msg.Author is SocketGuildUser dcUser))
+                return;
+
             using (swaightContext db = new swaightContext())
             {
-                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(msg.Author as SocketGuildUser).GuildPermissions.ManageMessages)
+                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !dcUser.GuildPermissions.ManageMessages)
                 {
                     await msg.DeleteAsync();
-                    SocketGuild dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
+                    SocketGuild dcGuild = dcUser.Guild;
                     if (!db.Warning.Where(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id).Any())
                     {
                         await db.Warning.AddAsync(new Warning { ServerId = (long)dcGuild.Id, UserId = (long)msg.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
@@ -752,7 +756,7 @@ namespace Rabbot
                 }
                 else
                 {
-                    SocketGuild dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
+                    SocketGuild dcGuild = dcUser.Guild;
                     var dbUser = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
                     dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                     var feature = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
