@@ -334,6 +334,7 @@ namespace Rabbot.Commands
             embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
             embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
             embed.AddField($"{Config.bot.cmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
+            embed.AddField($"{Config.bot.cmdPrefix}namechange", $"Ändert den Namen\n**Preis: 100 Ziegen**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
@@ -559,7 +560,7 @@ namespace Rabbot.Commands
                         if (item.Inventory.Durability > 0)
                             items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         else
-                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate}**\n";
+                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate.Value.ToString("dd.MM.yyyy HH:mm")}**\n";
                         
                     }
                     embed.AddField($"Inventar", items);
@@ -616,6 +617,45 @@ namespace Rabbot.Commands
                     counter++;
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
+        }
+
+        [Command("namechange", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(10)]
+        [Summary("Du kannst dir für 100 Ziegen einen anderen Namen kaufen.")]
+        [RequireBotPermission(GuildPermission.ManageNicknames)]
+        public async Task Namechange([Remainder]string Name)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id);
+
+                if(dbUser.Goats < 100)
+                {
+                    await ReplyAsync("Du hast **leider** nicht ausreichend Ziegen.");
+                    return;
+                }
+
+                if(Name.Length > 32)
+                {
+                    await ReplyAsync("Der Name ist zu lang du **Kek**.");
+                    return;
+                }
+
+                if (Name.Contains("[GM]") || Name.Contains("[CM]") || Name.Contains("[PM]"))
+                {
+                    await ReplyAsync("**Nö.**");
+                    return;
+                }
+
+                if (Context.User is SocketGuildUser user)
+                {
+                    dbUser.Goats -= 100;
+                    await user.ModifyAsync(p => p.Nickname = Name);
+                    await ReplyAsync($"Dein Nickname wurde erfolgreich zu **{Name}** geändert!");
+                }
+                await db.SaveChangesAsync();
             }
         }
 
