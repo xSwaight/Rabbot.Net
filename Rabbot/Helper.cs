@@ -136,12 +136,205 @@ namespace Rabbot
         public static Emote goldenziege = Emote.Parse("<:goldengoat:597052540290465794>");
 
         public static Emote doggo = Emote.Parse("<:doggo:597065709339672576>");
+        public static Emote slot = Emote.Parse("<a:slot:597872810760732672>");
 
         public static Emoji Yes = new Emoji("✅");
         public static Emoji No = new Emoji("❌");
 
-        public static bool SpinActive = false;
+        public static Emoji thumbsUp = new Emoji("👍");
+        public static Emoji thumbsDown = new Emoji("👎");
+
         public static bool AttackActive = false;
+
+        public static List<Tuple<ulong, DateTime>> cooldown = new List<Tuple<ulong, DateTime>>();
+
+        public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, bool isNew = true)
+        {
+            Random random = new Random();
+            var glitch = Helper.glitch;
+            var diego = Helper.diego;
+            var shyguy = Helper.shyguy;
+            var goldenziege = Helper.goldenziege;
+
+            Emote slot1 = null;
+            Emote slot2 = null;
+            Emote slot3 = null;
+
+            IUserMessage msg = message;
+
+
+            if (msg != null && !(msg.Embeds.Count == 0))
+                if (msg.Author.Id != client.CurrentUser.Id)
+                    return;
+
+            using (swaightContext db = new swaightContext())
+            {
+
+                var dbUser = db.Userfeatures.Where(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                if (dbUser == null)
+                    return;
+
+                if (dbUser.Locked == 1)
+                {
+                    await channel.SendMessageAsync($"{user.Mention} du bist gerade in einem Angriff!");
+                    if (msg != null)
+                        await msg.RemoveAllReactionsAsync();
+                    return;
+                }
+
+                if (dbUser.Goats < 20)
+                {
+                    await channel.SendMessageAsync($"{user.Mention} du hast leider nicht ausreichend Ziegen!");
+                    if (msg != null)
+                        await msg.RemoveAllReactionsAsync();
+                    return;
+                }
+                int price = -20;
+                dbUser.Goats -= 20;
+                await db.SaveChangesAsync();
+
+
+                int chance = random.Next(1, 1001);
+
+                if (chance <= 880)
+                {
+                    int rnd1 = random.Next(10000, 20000);
+                    int rnd2 = random.Next(30000, 40000);
+                    int rnd3 = random.Next(50000, 60000);
+
+                    int magic1 = rnd1 % 500;
+                    int magic2 = rnd2 % 500;
+                    int magic3 = rnd3 % 500;
+
+                    Emote[] slots = new Emote[500];
+
+                    for (int i = 0; i < 230; i++)
+                        slots[i] = glitch;
+                    for (int i = 230; i < 420; i++)
+                        slots[i] = diego;
+                    for (int i = 420; i < 480; i++)
+                        slots[i] = shyguy;
+                    for (int i = 480; i < 500; i++)
+                        slots[i] = goldenziege;
+
+                    slot1 = slots[magic1];
+                    slot2 = slots[magic2];
+                    slot3 = slots[magic3];
+                }
+                else if (chance > 880 && chance <= 950)
+                {
+                    slot1 = glitch;
+                    slot2 = glitch;
+                    slot3 = glitch;
+                }
+                else if (chance > 950 && chance <= 990)
+                {
+                    slot1 = diego;
+                    slot2 = diego;
+                    slot3 = diego;
+                }
+                else if (chance > 990 && chance <= 997)
+                {
+                    slot1 = shyguy;
+                    slot2 = shyguy;
+                    slot3 = shyguy;
+                }
+                else if (chance > 997 && chance <= 1000)
+                {
+                    slot1 = goldenziege;
+                    slot2 = goldenziege;
+                    slot3 = goldenziege;
+                }
+
+
+                string output = $"{slot1} - {slot2} - {slot3}";
+
+                EmbedBuilder embed = new EmbedBuilder();
+                if (slot1 == slot2 && slot1 == slot3 && slot2 == slot3)
+                    embed.Color = Color.Gold;
+                else
+                    embed.Color = Color.DarkGrey;
+                embed.WithDescription($"**Slot Machine für {user.Nickname ?? user.Username}**\n\nDein Spin:\n\n{output}");
+                //embed.WithFooter("Glücksspiel kann süchtig machen.");
+
+                if ((slot1 == glitch) && (slot2 == glitch) && (slot3 == glitch))
+                {
+                    embed.AddField("Ergebnis", "**Du hast 30 Ziegen gewonnen!**");
+                    if (!IsFull(dbUser.Goats + 30, dbUser.Wins))
+                        dbUser.Goats += 30;
+                    price += 30;
+                }
+
+                else if ((slot1 == diego) && (slot2 == diego) && (slot3 == diego))
+                {
+                    embed.AddField("Ergebnis", "**Du hast 100 Ziegen gewonnen!**");
+                    if (!IsFull(dbUser.Goats + 100, dbUser.Wins))
+                        dbUser.Goats += 100;
+                    price += 100;
+
+                }
+
+                else if ((slot1 == shyguy) && (slot2 == shyguy) && (slot3 == shyguy))
+                {
+                    embed.AddField("Ergebnis", "**Du hast 200 Ziegen gewonnen!**");
+                    if (!IsFull(dbUser.Goats + 200, dbUser.Wins))
+                        dbUser.Goats += 200;
+                    price += 200;
+                }
+
+                else if ((slot1 == goldenziege) && (slot2 == goldenziege) && (slot3 == goldenziege))
+                {
+                    embed.AddField("Ergebnis", "**Du hast 500 Ziegen gewonnen!**");
+                    if (!IsFull(dbUser.Goats + 500, dbUser.Wins))
+                        dbUser.Goats += 500;
+                    price += 500;
+                }
+
+                else
+                {
+                    embed.AddField("Ergebnis", $"War wohl **nichts**.. {Helper.doggo}");
+                }
+
+                if (msg.Embeds.Any())
+                {
+                    string footer = "";
+                    if (msg.Embeds.First().Footer != null)
+                        footer = msg.Embeds.First().Footer.Value.Text;
+                    if (!string.IsNullOrEmpty(footer))
+                    {
+                        string[] numbers = Regex.Split(footer, @"(!?[+-]?\d+(\.\d+)?)");
+                        var spins = Convert.ToInt32(numbers[1]);
+                        var goats = Convert.ToInt32(numbers[3]);
+
+                        spins++;
+                        goats += price;
+
+
+                        var newFooter = $"Spins: {spins} | Gesamt: {goats} Ziegen";
+                        embed.WithFooter(newFooter);
+                    }
+
+                }
+                else
+                {
+                    var newFooter = $"Spins: 1 | Gesamt: {price} Ziegen";
+                    embed.WithFooter(newFooter);
+                }
+
+                if (isNew)
+                {
+                    msg = await channel.SendMessageAsync(null, false, embed.Build());
+                    await msg.AddReactionAsync(Helper.slot);
+                }
+                else
+                    await msg.ModifyAsync(p => p.Embed = embed.Build());
+
+                dbUser.Spins++;
+                dbUser.Gewinn += price;
+
+                await db.SaveChangesAsync();
+            }
+        }
 
         public static string RemoveSpecialCharacters(string str)
         {

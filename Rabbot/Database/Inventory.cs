@@ -9,6 +9,7 @@ namespace Rabbot.Database
         public int FeatureId { get; set; }
         public int ItemId { get; set; }
         public int Durability { get; set; }
+        public DateTime? ExpirationDate { get; set; }
 
         public virtual Userfeatures Feature { get; set; }
         public virtual Items Item { get; set; }

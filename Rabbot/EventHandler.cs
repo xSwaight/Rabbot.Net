@@ -30,6 +30,7 @@ namespace Rabbot
             new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
@@ -44,11 +45,97 @@ namespace Rabbot
         private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
         {
             await ResetItem(reaction, channel);
+
+            if (reaction.User.Value.IsBot)
+                return;
+            if (!reaction.Message.IsSpecified)
+                return;
+            if (!reaction.Message.Value.Embeds.Any())
+                return;
+            if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
+                return;
+            if (Helper.cooldown.Any(p => p.Item1 == reaction.UserId))
+                return;
+
+            if (reaction.Emote is Emote emote)
+            {
+                if (emote.Id == Helper.Sword.Id || emote.Id == Helper.Shield.Id)
+                    return;
+
+                if (emote.Id != Helper.slot.Id)
+                {
+                    await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                    return;
+                }
+            }
+            else
+            {
+                await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+            }
+
+            var guild = (channel as SocketGuildChannel).Guild;
+            var user = guild.Users.First(p => p.Id == reaction.UserId);
+            var username = user.Nickname ?? user.Username;
+            var msg = cache.Value;
+            if (user != null)
+            {
+                if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
+                {
+                    await Helper.UpdateSpin(channel, user, msg, _client, false);
+                    Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
+                    return;
+                }
+            }
+
+            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
         }
 
         private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
         {
             await SetItem(reaction, channel);
+
+            if (reaction.User.Value.IsBot)
+                return;
+            if (!reaction.Message.IsSpecified)
+                return;
+            if (!reaction.Message.Value.Embeds.Any())
+                return;
+            if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
+                return;
+            if (Helper.cooldown.Any(p => p.Item1 == reaction.UserId))
+                return;
+
+            if (reaction.Emote is Emote emote)
+            {
+                if (emote.Id == Helper.Sword.Id || emote.Id == Helper.Shield.Id)
+                    return;
+
+                if (emote.Id != Helper.slot.Id)
+                {
+                    await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+                    return;
+                }
+            }
+            else
+            {
+                await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+            }
+
+            var guild = (channel as SocketGuildChannel).Guild;
+            var user = guild.Users.First(p => p.Id == reaction.UserId);
+            var username = user.Nickname ?? user.Username;
+            var msg = cache.Value;
+            if (user != null)
+            {
+                if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
+                {
+                    await Helper.UpdateSpin(channel, user, msg, _client, false);
+                    Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
+                    return;
+                }
+            }
+
+            await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
         }
 
         private async Task ResetItem(SocketReaction reaction, ISocketMessageChannel channel)
@@ -391,6 +478,13 @@ namespace Rabbot
         {
             while (true)
             {
+
+                foreach (var item in Helper.cooldown.ToList())
+                {
+                    if (item.Item2 < DateTime.Now)
+                        Helper.cooldown.Remove(item);
+                }
+
                 using (swaightContext db = new swaightContext())
                 {
                     if (db.Currentday.Any())
@@ -726,6 +820,27 @@ namespace Rabbot
             }
         }
 
+        private async Task CheckItems()
+        {
+            while (true)
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    if (db.Inventory.Any(p => p.ExpirationDate != null))
+                    {
+                        foreach (var item in db.Inventory)
+                        {
+                            if (item.ExpirationDate < DateTime.Now)
+                                db.Inventory.Remove(item);
+
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+                await Task.Delay(1000);
+            }
+        }
+
         private async Task MessageReceived(SocketMessage msg)
         {
             if (msg.Author.IsBot)
@@ -733,6 +848,15 @@ namespace Rabbot
 
             if (!(msg.Author is SocketGuildUser dcUser))
                 return;
+
+            if(msg.Channel.Name.Contains("blog"))
+            {
+                if(msg is SocketUserMessage message)
+                {
+                    await message.AddReactionAsync(Helper.thumbsUp);
+                    await message.AddReactionAsync(Helper.thumbsDown);
+                }
+            }
 
             using (swaightContext db = new swaightContext())
             {

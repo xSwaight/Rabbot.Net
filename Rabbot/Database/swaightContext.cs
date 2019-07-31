@@ -209,7 +209,11 @@ namespace Rabbot.Database
                 entity.Property(e => e.Durability)
                     .HasColumnName("durability")
                     .HasColumnType("int(11)")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ExpirationDate)
+                    .HasColumnName("expirationDate")
+                    .HasColumnType("datetime");
 
                 entity.Property(e => e.FeatureId)
                     .HasColumnName("featureId")
@@ -502,6 +506,11 @@ namespace Rabbot.Database
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'1'");
 
+                entity.Property(e => e.Gewinn)
+                    .HasColumnName("gewinn")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.Goats)
                     .HasColumnName("goats")
                     .HasColumnType("int(11)");
@@ -531,6 +540,11 @@ namespace Rabbot.Database
                 entity.Property(e => e.ServerId)
                     .HasColumnName("serverId")
                     .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Spins)
+                    .HasColumnName("spins")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Trades)
                     .HasColumnName("trades")

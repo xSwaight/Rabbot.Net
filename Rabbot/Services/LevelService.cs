@@ -26,7 +26,7 @@ namespace Rabbot.Services
             using (swaightContext db = new swaightContext())
             {
                 Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
-                EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
+                EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
                 var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
@@ -50,10 +50,10 @@ namespace Rabbot.Services
                 if (textLenght >= 51 || random == 1)
                     exp = rnd.Next(60, 100);
 
-                var chance = rnd.Next(1, 6);
+                var chance = rnd.Next(1, 10);
                 if (chance == 3)
                 {
-                    exp *= rnd.Next(1, 11);
+                    exp *= rnd.Next(1, 5);
                 }
 
                 int multiplier = 1;
@@ -74,15 +74,18 @@ namespace Rabbot.Services
                 }
                 double dblExp = exp;
                 if (rank == 1)
-                    exp = (int)(dblExp * 1.8);
-                if (rank == 2)
                     exp = (int)(dblExp * 1.5);
-                if (rank == 3)
+                if (rank == 2)
                     exp = (int)(dblExp * 1.3);
+                if (rank == 3)
+                    exp = (int)(dblExp * 1.1);
 
                 if (dcMessage.Author is SocketGuildUser user)
                     if (user.Roles.Where(p => p.Name == "Nitro Booster").Any())
                         exp += (int)(exp * 1.5);
+
+                if(EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
+                    exp += (int)(exp * 1.5);
 
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;

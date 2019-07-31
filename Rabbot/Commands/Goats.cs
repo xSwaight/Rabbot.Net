@@ -324,17 +324,16 @@ namespace Rabbot.Commands
         [Command("shop", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        [Summary("Im Shop kannst du Items für Kämpfe kaufen.")]
+        [Summary("Im Shop kannst du Items für Kämpfe und EXP Bonus kaufen.")]
         public async Task Shop()
         {
             var embed = new EmbedBuilder();
             embed.WithTitle("Willkommen im Shop!");
             embed.WithDescription("Gönn dir.");
             embed.WithColor(new Color(241, 242, 222));
-            //embed.AddField($"{Config.bot.cmdPrefix}minuten [Anzahl]", $"Minuten im Musicrank\nPreis: 1 Ziege für 1 Minute");
-            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) 7 Benutzungen\nPreis: 75 Ziegen");
-            embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) 7 Benutzungen\nPreis: 75 Ziegen");
-            //embed.AddField($"{Config.bot.cmdPrefix}namechange [Name]", $"7 Tage Namechange\nPreis: 100 Ziegen");
+            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.bot.cmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
@@ -429,6 +428,43 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("expboost", RunMode = RunMode.Async)]
+        [BotCommand]
+        public async Task Expboost()
+        {
+            EmbedBuilder embed = new EmbedBuilder();
+            using (swaightContext db = new swaightContext())
+            {
+
+                var features = db.Userfeatures
+               .Include(p => p.Inventory)
+               .ThenInclude(p => p.Item)
+               .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
+                if (features.Goats < 250)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
+                var expBoost = features.Inventory.FirstOrDefault(p => p.ItemId == 3);
+
+
+                if (expBoost != null)
+                    expBoost.ExpirationDate = expBoost.ExpirationDate.Value.AddDays(1);
+                else
+                    expBoost = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 3, ExpirationDate = DateTime.Now.AddDays(1) }).Result.Entity;
+
+                features.Goats -= 250;
+                await db.SaveChangesAsync();
+                embed.Color = Color.Green;
+                embed.Description = $"{Context.User.Mention} du hast dir erfolgreich für **250 Ziegen** einen **EXP +50% Booster** gekauft.\nDu bekommst bei jeder Nachricht **+50%** mehr EXP für **24 Stunden**!";
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
+        }
+
         [Command("stall", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
@@ -493,7 +529,7 @@ namespace Rabbot.Commands
                 embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{dbUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{dbUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
                 var percent = ((double)dbUser.Goats / (double)stall.Capacity) * 100;
                 embed.AddField($"Aktueller Stall", $"{stall.Name} | **{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** / **{stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen (**{Math.Round(percent, 0)}%**)");
-                embed.AddField($"Heute Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
+                embed.AddField($"Heutige Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
 
                 Emoji emote = null;
                 if (dbUser.Lastdaily != null)
@@ -514,12 +550,17 @@ namespace Rabbot.Commands
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
+                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins}** | Gewinn Gesamt: **{dbUser.Gewinn}**");
                 if (inventory.Count() != 0)
                 {
                     string items = "";
                     foreach (var item in inventory)
                     {
-                        items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
+                        if (item.Inventory.Durability > 0)
+                            items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
+                        else
+                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate}**\n";
+                        
                     }
                     embed.AddField($"Inventar", items);
                 }
@@ -681,135 +722,12 @@ namespace Rabbot.Commands
 
         [Command("spin", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(5)]
-        [Summary("Spin das Rad für 15 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
+        [Cooldown(60)]
+        [Summary("Spin das Rad für 20 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
         public async Task Spin()
         {
-            Random random = new Random();
-            var glitch = Helper.glitch;
-            var diego = Helper.diego;
-            var shyguy = Helper.shyguy;
-            var goldenziege = Helper.goldenziege;
-
-            Emote slot1 = null;
-            Emote slot2 = null;
-            Emote slot3 = null;
-
-            IUserMessage msg = null;
-
-
-            using (swaightContext db = new swaightContext())
-            {
-                if (Helper.SpinActive)
-                    return;
-
-                var dbUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault();
-                if (dbUser == null)
-                    return;
-
-                if (dbUser.Locked == 1)
-                {
-                    await ReplyAsync($"{Context.User.Mention} du bist gerade in einem Angriff!");
-                    return;
-                }
-
-                if (dbUser.Goats < 15)
-                {
-                    await ReplyAsync($"{Context.User.Mention} du hast leider nicht ausreichend Ziegen!");
-                    return;
-                }
-
-                dbUser.Goats -= 20;
-                await db.SaveChangesAsync();
-                Helper.SpinActive = true;
-
-                for (int j = 0; j < 1; j++)
-                {
-
-                    int rnd1 = random.Next(10000, 20000);
-                    int rnd2 = random.Next(30000, 40000);
-                    int rnd3 = random.Next(50000, 60000);
-
-                    int magic1 = rnd1 % 500;
-                    int magic2 = rnd2 % 500;
-                    int magic3 = rnd3 % 500;
-
-                    Emote[] slots = new Emote[500];
-
-                    for (int i = 0; i < 190; i++)
-                        slots[i] = glitch;
-                    for (int i = 190; i < 320; i++)
-                        slots[i] = diego;
-                    for (int i = 320; i < 420; i++)
-                        slots[i] = shyguy;
-                    for (int i = 420; i < 500; i++)
-                        slots[i] = goldenziege;
-
-                    slot1 = slots[magic1];
-                    slot2 = slots[magic2];
-                    slot3 = slots[magic3];
-
-                    string output = $"{slot1} - {slot2} - {slot3}";
-                    if (Context.User is SocketGuildUser user)
-                    {
-                        EmbedBuilder embed = new EmbedBuilder();
-                        embed.Color = Color.DarkMagenta;
-                        embed.Title = $"Slot Machine für {user.Nickname ?? user.Username}";
-                        embed.AddField("Dein Spin", output);
-                        embed.WithFooter("Glücksspiel kann süchtig machen.");
-
-                        if (msg == null)
-                            msg = await ReplyAsync(null, false, embed.Build());
-                        else
-                            await msg.ModifyAsync(p => p.Embed = embed.Build());
-
-                        //await Task.Delay(500);
-                    }
-                    else
-                    {
-                        Helper.SpinActive = false;
-                        return;
-                    }
-                }
-
-
-                if ((slot1 == glitch) && (slot2 == glitch) && (slot3 == glitch))
-                {
-                    await ReplyAsync("**Du hast 30 Ziegen gewonnen!**");
-                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
-                        dbUser.Goats += 30;
-                }
-
-                else if ((slot1 == diego) && (slot2 == diego) && (slot3 == diego))
-                {
-                    await ReplyAsync("**Du hast 100 Ziegen gewonnen!**");
-                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
-                        dbUser.Goats += 100;
-
-                }
-
-                else if ((slot1 == shyguy) && (slot2 == shyguy) && (slot3 == shyguy))
-                {
-                    await ReplyAsync("**Du hast 200 Ziegen gewonnen!**");
-                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
-                        dbUser.Goats += 200;
-                }
-
-                else if ((slot1 == goldenziege) && (slot2 == goldenziege) && (slot3 == goldenziege))
-                {
-                    await ReplyAsync("**Du hast 500 Ziegen gewonnen!**");
-                    if (!Helper.IsFull(dbUser.Goats, dbUser.Wins))
-                        dbUser.Goats += 500;
-                }
-
-                else
-                {
-                    await ReplyAsync($"War wohl **nichts**.. {Helper.doggo}");
-                }
-
-                await db.SaveChangesAsync();
-                Helper.SpinActive = false;
-            }
+            var user = Context.User as SocketGuildUser;
+            await Helper.UpdateSpin(Context.Channel, user, Context.Message, Context.Client);
         }
     }
 }

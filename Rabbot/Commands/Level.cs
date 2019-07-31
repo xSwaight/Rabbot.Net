@@ -161,27 +161,15 @@ namespace Rabbot.Commands
                         switch (i)
                         {
                             case 1:
-                                if (time.Days > 0)
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Days}d {time.Hours}h {time.Minutes}m {time.Seconds}s (+80% EXP)");
-                                else
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+80% EXP)");
-                                break;
-                            case 2:
-                                if (time.Days > 0)
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Days}d {time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
-                                else
                                     embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
                                 break;
+                            case 2:
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (30% EXP)");
+                                break;
                             case 3:
-                                if (time.Days > 0)
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Days}d {time.Hours}h {time.Minutes}m {time.Seconds}s (+30% EXP)");
-                                else
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+30% EXP)");
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+10% EXP)");
                                 break;
                             default:
-                                if (time.Days > 0)
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Days}d {time.Hours}h {time.Minutes}m {time.Seconds}s");
-                                else
                                     embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s");
                                 break;
                         }

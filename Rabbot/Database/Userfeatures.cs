@@ -19,6 +19,8 @@ namespace Rabbot.Database
         public int Loses { get; set; }
         public int Trades { get; set; }
         public int? Attacks { get; set; }
+        public int Spins { get; set; }
+        public int Gewinn { get; set; }
         public int Gain { get; set; }
         public DateTime? Lastdaily { get; set; }
         public DateTime? Lastmessage { get; set; }
