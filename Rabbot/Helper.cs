@@ -148,7 +148,7 @@ namespace Rabbot
 
         public static List<Tuple<ulong, DateTime>> cooldown = new List<Tuple<ulong, DateTime>>();
 
-        public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, bool isNew = true)
+        public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, int setEinsatz, bool isNew = true)
         {
             Random random = new Random();
             var glitch = Helper.glitch;
@@ -174,6 +174,7 @@ namespace Rabbot
                 if (dbUser == null)
                     return;
 
+
                 if (dbUser.Locked == 1)
                 {
                     await channel.SendMessageAsync($"{user.Mention} du bist gerade in einem Angriff!");
@@ -182,15 +183,31 @@ namespace Rabbot
                     return;
                 }
 
-                if (dbUser.Goats < 20)
+                if (msg.Embeds.Any())
+                {
+                    string title = "";
+                    if (msg.Embeds.First().Footer != null)
+                    {
+                        title = msg.Embeds.First().Title;
+                    }
+                    if (!string.IsNullOrEmpty(title))
+                    {
+                        string[] titleText = Regex.Split(title, @"(!?[+-]?\d+(\.\d+)?)");
+                        if (Int32.TryParse(titleText[1], out int commitment))
+                            setEinsatz = commitment;
+                    }
+                }
+
+                if (dbUser.Goats < setEinsatz)
                 {
                     await channel.SendMessageAsync($"{user.Mention} du hast leider nicht ausreichend Ziegen!");
                     if (msg != null)
                         await msg.RemoveAllReactionsAsync();
                     return;
                 }
-                int price = -20;
-                dbUser.Goats -= 20;
+
+                int price = -setEinsatz;
+                dbUser.Goats -= setEinsatz;
                 await db.SaveChangesAsync();
 
 
@@ -255,39 +272,40 @@ namespace Rabbot
                 else
                     embed.Color = Color.DarkGrey;
                 embed.WithDescription($"**Slot Machine für {user.Nickname ?? user.Username}**\n\nDein Spin:\n\n{output}");
-                //embed.WithFooter("Glücksspiel kann süchtig machen.");
+                int einsatz = setEinsatz;
+                embed.WithTitle($"Einsatz: {einsatz} Ziegen");
 
                 if ((slot1 == glitch) && (slot2 == glitch) && (slot3 == glitch))
                 {
-                    embed.AddField("Ergebnis", "**Du hast 30 Ziegen gewonnen!**");
-                    if (!IsFull(dbUser.Goats + 30, dbUser.Wins))
-                        dbUser.Goats += 30;
-                    price += 30;
+                    if (!IsFull(dbUser.Goats + einsatz * 2, dbUser.Wins))
+                        dbUser.Goats += einsatz * 2;
+                    embed.AddField("Ergebnis", $"**Du hast {einsatz * 2} Ziegen gewonnen!**");
+                    price += einsatz * 2;
                 }
 
                 else if ((slot1 == diego) && (slot2 == diego) && (slot3 == diego))
                 {
-                    embed.AddField("Ergebnis", "**Du hast 100 Ziegen gewonnen!**");
-                    if (!IsFull(dbUser.Goats + 100, dbUser.Wins))
-                        dbUser.Goats += 100;
-                    price += 100;
+                    if (!IsFull(dbUser.Goats + einsatz * 5, dbUser.Wins))
+                        dbUser.Goats += einsatz * 5;
+                    embed.AddField("Ergebnis", $"**Du hast {einsatz * 5} Ziegen gewonnen!**");
+                    price += einsatz * 5;
 
                 }
 
                 else if ((slot1 == shyguy) && (slot2 == shyguy) && (slot3 == shyguy))
                 {
-                    embed.AddField("Ergebnis", "**Du hast 200 Ziegen gewonnen!**");
-                    if (!IsFull(dbUser.Goats + 200, dbUser.Wins))
-                        dbUser.Goats += 200;
-                    price += 200;
+                    if (!IsFull(dbUser.Goats + einsatz * 10, dbUser.Wins))
+                        dbUser.Goats += einsatz * 10;
+                    embed.AddField("Ergebnis", $"**Du hast {einsatz * 10} Ziegen gewonnen!**");
+                    price += einsatz * 10;
                 }
 
                 else if ((slot1 == goldenziege) && (slot2 == goldenziege) && (slot3 == goldenziege))
                 {
-                    embed.AddField("Ergebnis", "**Du hast 500 Ziegen gewonnen!**");
-                    if (!IsFull(dbUser.Goats + 500, dbUser.Wins))
-                        dbUser.Goats += 500;
-                    price += 500;
+                    if (!IsFull(dbUser.Goats + einsatz * 25, dbUser.Wins))
+                        dbUser.Goats += einsatz * 25;
+                    embed.AddField("Ergebnis", $"**Du hast {einsatz * 25} Ziegen gewonnen!**");
+                    price += einsatz * 25;
                 }
 
                 else
@@ -298,18 +316,19 @@ namespace Rabbot
                 if (msg.Embeds.Any())
                 {
                     string footer = "";
+                    string title = "";
                     if (msg.Embeds.First().Footer != null)
+                    {
                         footer = msg.Embeds.First().Footer.Value.Text;
+                        title = msg.Embeds.First().Title;
+                    }
                     if (!string.IsNullOrEmpty(footer))
                     {
                         string[] numbers = Regex.Split(footer, @"(!?[+-]?\d+(\.\d+)?)");
-                        var spins = Convert.ToInt32(numbers[1]);
-                        var goats = Convert.ToInt32(numbers[3]);
-
+                        Int32.TryParse(numbers[1], out int spins);
+                        Int32.TryParse(numbers[3], out int goats);
                         spins++;
                         goats += price;
-
-
                         var newFooter = $"Spins: {spins} | Gesamt: {goats} Ziegen";
                         embed.WithFooter(newFooter);
                     }
@@ -323,11 +342,18 @@ namespace Rabbot
 
                 if (isNew)
                 {
-                    msg = await channel.SendMessageAsync(null, false, embed.Build());
+                    string prices = $"**Über die Reaction kannst du erneut spinnen.**\n";
+                    prices += $"3x {glitch} -> Einsatz × 2\n";
+                    prices += $"3x {diego} -> Einsatz × 5\n";
+                    prices += $"3x {shyguy} -> Einsatz × 10\n";
+                    prices += $"3x {goldenziege} -> Einsatz × 25";
+                    msg = await channel.SendMessageAsync(prices, false, embed.Build());
                     await msg.AddReactionAsync(Helper.slot);
                 }
                 else
-                    await msg.ModifyAsync(p => p.Embed = embed.Build());
+                {
+                    await msg.ModifyAsync(p => { p.Embed = embed.Build(); p.Content = null; });
+                }
 
                 dbUser.Spins++;
                 dbUser.Gewinn += price;

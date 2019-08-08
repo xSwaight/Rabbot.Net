@@ -764,10 +764,15 @@ namespace Rabbot.Commands
         [BotCommand]
         [Cooldown(60)]
         [Summary("Spin das Rad für 20 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
-        public async Task Spin()
+        public async Task Spin(int einsatz)
         {
+            if (einsatz < 5 || einsatz > 200)
+            {
+                await ReplyAsync("Du musst mindestens **5 Ziegen** setzen und darfst maximal **200 Ziegen** setzen.");
+                return;
+            }
             var user = Context.User as SocketGuildUser;
-            await Helper.UpdateSpin(Context.Channel, user, Context.Message, Context.Client);
+            await Helper.UpdateSpin(Context.Channel, user, Context.Message, Context.Client, einsatz);
         }
     }
 }

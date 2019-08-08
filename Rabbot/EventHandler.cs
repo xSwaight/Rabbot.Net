@@ -81,7 +81,7 @@ namespace Rabbot
             {
                 if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                 {
-                    await Helper.UpdateSpin(channel, user, msg, _client, false);
+                    await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
                     Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
                     return;
                 }
@@ -129,7 +129,7 @@ namespace Rabbot
             {
                 if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                 {
-                    await Helper.UpdateSpin(channel, user, msg, _client, false);
+                    await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
                     Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
                     return;
                 }
