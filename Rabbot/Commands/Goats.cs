@@ -334,7 +334,7 @@ namespace Rabbot.Commands
             embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
             embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
             embed.AddField($"{Config.bot.cmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
-            embed.AddField($"{Config.bot.cmdPrefix}namechange", $"Ändert den Namen\n**Preis: 100 Ziegen**");
+            embed.AddField($"{Config.bot.cmdPrefix}namechange [Name]", $"Ändert den Namen\n**Preis: 100 Ziegen**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 

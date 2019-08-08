@@ -572,7 +572,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                await db.Badwords.AddAsync(new Badwords { BadWord = word });
+                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word) });
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
