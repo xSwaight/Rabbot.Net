@@ -22,7 +22,6 @@ namespace Rabbot.Preconditions
             CooldownLength = TimeSpan.FromSeconds(seconds);
             AdminsAreLimited = adminsAreLimited;
         }
-
         public struct CooldownInfo
         {
             public ulong UserId { get; }
@@ -47,15 +46,6 @@ namespace Rabbot.Preconditions
                 if (difference.Ticks > 0)
                 {
                     Task.Run(() => sendMessage(context, command));
-                    using (swaightContext db = new swaightContext())
-                    {
-                        var EXP = db.Userfeatures.Where(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id).FirstOrDefault();
-                        if (EXP != null && EXP.Exp > 500)
-                        {
-                            EXP.Exp -= 100;
-                        }
-                        db.SaveChanges();
-                    }
                     return Task.FromResult(PreconditionResult.FromError($"Command spammer detected: {context.User.Id} on {context.Guild.Id}"));
                 }
                 var time = DateTime.UtcNow.Add(CooldownLength);

@@ -551,7 +551,7 @@ namespace Rabbot.Commands
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins}** | Gewinn Gesamt: **{dbUser.Gewinn}**");
+                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Gewinn Gesamt: **{dbUser.Gewinn.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}**");
                 if (inventory.Count() != 0)
                 {
                     string items = "";
@@ -762,10 +762,16 @@ namespace Rabbot.Commands
 
         [Command("spin", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(60)]
+        [Cooldown(20)]
         [Summary("Spin das Rad für 20 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
-        public async Task Spin(int einsatz)
+        public async Task Spin(int einsatz = 0)
         {
+            if (einsatz == 0)
+            {
+                await ReplyAsync("Du musst einen Einsatz angeben und mindestens **5 Ziegen** bis **200 Ziegen** setzen.");
+                return;
+            }
+
             if (einsatz < 5 || einsatz > 200)
             {
                 await ReplyAsync("Du musst mindestens **5 Ziegen** setzen und darfst maximal **200 Ziegen** setzen.");

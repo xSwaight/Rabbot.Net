@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Rabbot.API.Models;
+using System.Collections.Concurrent;
 
 namespace Rabbot
 {
@@ -146,7 +147,7 @@ namespace Rabbot
 
         public static bool AttackActive = false;
 
-        public static List<Tuple<ulong, DateTime>> cooldown = new List<Tuple<ulong, DateTime>>();
+        public static ConcurrentDictionary<ulong, DateTime> cooldown = new ConcurrentDictionary<ulong, DateTime>();
 
         public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, int setEinsatz, bool isNew = true)
         {

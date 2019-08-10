@@ -54,8 +54,11 @@ namespace Rabbot
                 return;
             if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
                 return;
-            if (Helper.cooldown.Any(p => p.Item1 == reaction.UserId))
-                return;
+            if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime cooldownends))
+            {
+                if (cooldownends > DateTime.Now)
+                    return;
+            }
 
             if (reaction.Emote is Emote emote)
             {
@@ -82,7 +85,16 @@ namespace Rabbot
                 if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                 {
                     await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
-                    Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
+                    if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime endsAt))
+                    {
+                        var difference = endsAt.Subtract(DateTime.UtcNow);
+                        var time = DateTime.Now.AddSeconds(1);
+                        Helper.cooldown.TryUpdate(reaction.UserId, time, endsAt);
+                    }
+                    else
+                    {
+                        Helper.cooldown.TryAdd(reaction.UserId, DateTime.Now.AddSeconds(1));
+                    }
                     return;
                 }
             }
@@ -102,8 +114,11 @@ namespace Rabbot
                 return;
             if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
                 return;
-            if (Helper.cooldown.Any(p => p.Item1 == reaction.UserId))
-                return;
+            if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime cooldownends))
+            {
+                if (cooldownends > DateTime.Now)
+                    return;
+            }
 
             if (reaction.Emote is Emote emote)
             {
@@ -130,7 +145,16 @@ namespace Rabbot
                 if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                 {
                     await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
-                    Helper.cooldown.Add(new Tuple<ulong, DateTime>(user.Id, DateTime.Now.AddSeconds(1)));
+                    if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime endsAt))
+                    {
+                        var difference = endsAt.Subtract(DateTime.UtcNow);
+                        var time = DateTime.Now.AddSeconds(1);
+                        Helper.cooldown.TryUpdate(reaction.UserId, time, endsAt);
+                    }
+                    else
+                    {
+                        Helper.cooldown.TryAdd(reaction.UserId, DateTime.Now.AddSeconds(1));
+                    }
                     return;
                 }
             }
@@ -478,13 +502,6 @@ namespace Rabbot
         {
             while (true)
             {
-
-                foreach (var item in Helper.cooldown.ToList())
-                {
-                    if (item.Item2 < DateTime.Now)
-                        Helper.cooldown.Remove(item);
-                }
-
                 using (swaightContext db = new swaightContext())
                 {
                     if (db.Currentday.Any())
@@ -849,9 +866,9 @@ namespace Rabbot
             if (!(msg.Author is SocketGuildUser dcUser))
                 return;
 
-            if(msg.Channel.Name.Contains("blog"))
+            if (msg.Channel.Name.Contains("blog"))
             {
-                if(msg is SocketUserMessage message)
+                if (msg is SocketUserMessage message)
                 {
                     await message.AddReactionAsync(Helper.thumbsUp);
                     await message.AddReactionAsync(Helper.thumbsDown);
