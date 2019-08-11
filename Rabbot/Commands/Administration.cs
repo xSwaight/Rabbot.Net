@@ -567,7 +567,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("addBadword", RunMode = RunMode.Async)]
-        public async Task AddBadword(string word)
+        public async Task AddBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
@@ -587,7 +587,7 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delBadword", RunMode = RunMode.Async)]
-        public async Task DelBadword(string word)
+        public async Task DelBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
