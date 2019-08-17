@@ -108,6 +108,25 @@ namespace Rabbot
 
             if (reaction.User.Value.IsBot)
                 return;
+
+
+            if ((reaction.Emote.Name == Helper.thumbsUp.Name || reaction.Emote.Name == Helper.thumbsDown.Name) && reaction.Channel.Name.Contains("blog"))
+            {
+                var messages = await reaction.Channel.GetMessagesAsync(100).FlattenAsync();
+                foreach (IUserMessage message in messages)
+                {
+                    if (message.Id != reaction.MessageId)
+                        continue;
+
+                    if (message.Reactions.Any(p => p.Key.Name == Helper.thumbsDown.Name) && reaction.Emote.Name == Helper.thumbsUp.Name)
+                        await message.RemoveReactionAsync(Helper.thumbsDown, reaction.User.Value);
+                    if (message.Reactions.Any(p => p.Key.Name == Helper.thumbsUp.Name) && reaction.Emote.Name == Helper.thumbsDown.Name)
+                        await message.RemoveReactionAsync(Helper.thumbsUp, reaction.User.Value);
+
+                    return;
+                }
+            }
+
             if (!reaction.Message.IsSpecified)
                 return;
             if (!reaction.Message.Value.Embeds.Any())
@@ -396,8 +415,9 @@ namespace Rabbot
                         warn.Counter++;
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
+                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
                     var myUser = newMessage.Author as SocketGuildUser;
-                    await Logging.Warning(myUser, newMessage);
+                    await Logging.Warning(myUser, newMessage, badword);
 
                 }
                 if (message.Value.Content == newMessage.Content)
@@ -892,8 +912,9 @@ namespace Rabbot
                         warn.Counter++;
                         await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
+                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
                     var myUser = msg.Author as SocketGuildUser;
-                    await Logging.Warning(myUser, msg);
+                    await Logging.Warning(myUser, msg, badword);
                 }
                 else
                 {
@@ -929,7 +950,7 @@ namespace Rabbot
                     embed.AddField("User ID", user.Id.ToString(), true);
                     embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                     embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                    embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToShortDateString() + " " + user.JoinedAt.Value.DateTime.ToShortTimeString(), false);
+                    embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
                     await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
                 }
             }
@@ -954,7 +975,7 @@ namespace Rabbot
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToShortDateString() + " " + user.CreatedAt.DateTime.ToShortTimeString(), false);
+                embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
             }
         }

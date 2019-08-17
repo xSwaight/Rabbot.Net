@@ -208,12 +208,30 @@ namespace Rabbot.Commands
 
         [Command("active", RunMode = RunMode.Async)]
         [RequireOwner]
-        public async Task Active(int days)
+        public async Task Active(int days, string param = null)
         {
             using (swaightContext db = new swaightContext())
             {
                 var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == (long)Context.Guild.Id);
-                await ReplyAsync($"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.");
+                if (string.IsNullOrWhiteSpace(param))
+                    await ReplyAsync($"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.");
+                else
+                {
+                    string output = $"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.\n```";
+                    int counter = 1;
+                    foreach (var user in activeUsers.OrderByDescending(p => p.Lastmessage.Value))
+                    {
+                        output += $"{counter}. {user.User.Name} - {user.Lastmessage.Value.ToString("dd.MM.yyyy HH:mm")}\n";
+                        counter++;
+                    }
+                    output += "```";
+                    if(output.Length > 2000)
+                    {
+                        await ReplyAsync(output.Substring(0, 2000));
+                        return;
+                    }
+                    await ReplyAsync(output);
+                }
             }
         }
 

@@ -141,7 +141,7 @@ namespace Rabbot
             }
         }
 
-        public static async Task Warning(SocketGuildUser user, SocketMessage msg)
+        public static async Task Warning(SocketGuildUser user, SocketMessage msg, string badword)
         {
             using (swaightContext db = new swaightContext())
             {
@@ -153,6 +153,7 @@ namespace Rabbot
                     embed.WithDescription($"{user.Mention} wurde aufgrund folgender Nachricht verwarnt!");
                     embed.WithColor(new Color(255, 0, 0));
                     embed.AddField("Message", msg.Content.ToString(), false);
+                    embed.AddField("Badword", badword, false);
                     await user.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
                 }
             }
