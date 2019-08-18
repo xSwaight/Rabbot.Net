@@ -378,6 +378,12 @@ namespace Rabbot.Commands
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
+                    string progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | {neededLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
+                    if (level >= 80)
+                    {
+                        percent = 100;
+                        progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
+                    }
                     var ranks = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
@@ -397,7 +403,7 @@ namespace Rabbot.Commands
                         LEVEL = level.ToString(),
                         RANK = rank.ToString(),
                         EXP = exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
-                        PROGRESS = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | {neededLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}",
+                        PROGRESS = progress,
                         PERCENT = percent.ToString(),
                         GOATCOINS = goat.ToString("N0", new System.Globalization.CultureInfo("de-DE"))
                     });
