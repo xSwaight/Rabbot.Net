@@ -351,10 +351,18 @@ namespace Rabbot.Commands
                     .ThenInclude(p => p.Item)
                     .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
 
+                if (features.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
                 if (features.Goats < 75)
                 {
                     embed.Color = Color.Red;
-                    embed.Description = $"{Context.User.Mention} du hast nicht ausreichend Ziegen!";
+                    embed.Description = $"{Context.User.Mention} du hast nicht **ausreichend Ziegen**!";
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
@@ -396,6 +404,14 @@ namespace Rabbot.Commands
                .Include(p => p.Inventory)
                .ThenInclude(p => p.Item)
                .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+
+                if (features.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
 
                 if (features.Goats < 75)
                 {
@@ -442,6 +458,14 @@ namespace Rabbot.Commands
                .ThenInclude(p => p.Item)
                .FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
 
+                if (features.Locked == 1)
+                {
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
                 if (features.Goats < 250)
                 {
                     embed.Color = Color.Red;
@@ -454,9 +478,18 @@ namespace Rabbot.Commands
 
 
                 if (expBoost != null)
-                    expBoost.ExpirationDate = expBoost.ExpirationDate.Value.AddDays(1);
+                    if (expBoost.ExpirationDate.Value < DateTime.Now.AddDays(6))
+                        expBoost.ExpirationDate = expBoost.ExpirationDate.Value.AddDays(1);
+                    else
+                    {
+                        await ReplyAsync($"{Context.User.Mention} du kannst maximal **7 Tage** EXP Boost auf Vorrat kaufen!");
+                        return;
+                    }
                 else
+                {
                     expBoost = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 3, ExpirationDate = DateTime.Now.AddDays(1) }).Result.Entity;
+                }
+
 
                 features.Goats -= 250;
                 await db.SaveChangesAsync();
@@ -561,7 +594,7 @@ namespace Rabbot.Commands
                             items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         else
                             items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate.Value.ToString("dd.MM.yyyy HH:mm")}**\n";
-                        
+
                     }
                     embed.AddField($"Inventar", items);
                 }
@@ -631,13 +664,22 @@ namespace Rabbot.Commands
             {
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id);
 
-                if(dbUser.Goats < 100)
+                if (dbUser.Locked == 1)
+                {
+                    EmbedBuilder embed = new EmbedBuilder();
+                    embed.Color = Color.Red;
+                    embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
+                    await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                    return;
+                }
+
+                if (dbUser.Goats < 100)
                 {
                     await ReplyAsync("Du hast **leider** nicht ausreichend Ziegen.");
                     return;
                 }
 
-                if(Name.Length > 32)
+                if (Name.Length > 32)
                 {
                     await ReplyAsync("Der Name ist zu lang du **Kek**.");
                     return;
