@@ -379,7 +379,7 @@ namespace Rabbot.Commands
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
                     string progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | {neededLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
-                    if (level >= 80)
+                    if (level == Helper.exp.OrderByDescending(p => p.Key).First().Key)
                     {
                         percent = 100;
                         progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
