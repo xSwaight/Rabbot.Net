@@ -25,7 +25,7 @@ namespace Rabbot.Services
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
             using (swaightContext db = new swaightContext())
             {
-                Guild = db.Guild.Where(p => p.ServerId == (long)dcGuild.Id).FirstOrDefault() ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
+                Guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
                 EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 OldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
@@ -59,7 +59,7 @@ namespace Rabbot.Services
                 int multiplier = 1;
                 if (db.Event.Where(p => p.Status == 1).Any())
                 {
-                    var myEvent = db.Event.Where(p => p.Status == 1).FirstOrDefault();
+                    var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
                     multiplier = myEvent.Multiplier;
                 }
 
@@ -119,7 +119,7 @@ namespace Rabbot.Services
                 using (dcMessage.Channel.EnterTypingState())
                 {
                     var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
-                    var dcUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
+                    var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                     string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
                     var html = template.Render(new
                     {
@@ -137,7 +137,7 @@ namespace Rabbot.Services
             {
                 using (swaightContext db = new swaightContext())
                 {
-                    var feature = db.Userfeatures.Where(p => p.UserId == (long)dcMessage.Author.Id && p.ServerId == (long)dcGuild.Id).FirstOrDefault();
+                    var feature = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)dcMessage.Author.Id && p.ServerId == (long)dcGuild.Id);
 
                     if (Helper.IsFull(feature.Goats + reward, feature.Wins))
                         feature.Goats = Helper.GetStall(feature.Wins).Capacity;
@@ -156,24 +156,24 @@ namespace Rabbot.Services
             {
                 var roles = db.Roles.Where(p => p.ServerId == (long)dcGuild.Id);
 
-                var S4Id = roles.Where(x => x.Description == "S4").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
-                var ProId = roles.Where(x => x.Description == "Pro").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "ProId" };
-                var SemiId = roles.Where(x => x.Description == "Semi").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "SemiId" };
-                var AmateurId = roles.Where(x => x.Description == "Amateur").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "AmateurId" };
-                var RookieId = roles.Where(x => x.Description == "Rookie").FirstOrDefault() ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "RookieId" };
+                var S4Id = roles.FirstOrDefault(x => x.Description == "S4") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
+                var ProId = roles.FirstOrDefault(x => x.Description == "Pro") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Pro" };
+                var SemiId = roles.FirstOrDefault(x => x.Description == "Semi") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Semi" };
+                var AmateurId = roles.FirstOrDefault(x => x.Description == "Amateur") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Amateur" };
+                var RookieId = roles.FirstOrDefault(x => x.Description == "Rookie") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Rookie" };
 
-                var roleS4 = dcGuild.Roles.Where(p => p.Id == (ulong)S4Id.RoleId).FirstOrDefault();
-                var rolePro = dcGuild.Roles.Where(p => p.Id == (ulong)ProId.RoleId).FirstOrDefault();
-                var roleSemi = dcGuild.Roles.Where(p => p.Id == (ulong)SemiId.RoleId).FirstOrDefault();
-                var roleAmateur = dcGuild.Roles.Where(p => p.Id == (ulong)AmateurId.RoleId).FirstOrDefault();
-                var roleRookie = dcGuild.Roles.Where(p => p.Id == (ulong)RookieId.RoleId).FirstOrDefault();
+                var roleS4 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S4Id.RoleId);
+                var rolePro = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)ProId.RoleId);
+                var roleSemi = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)SemiId.RoleId);
+                var roleAmateur = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)AmateurId.RoleId);
+                var roleRookie = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)RookieId.RoleId);
 
                 if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {
-                    var myUser = dcGuild.Users.Where(p => p.Id == dcMessage.Author.Id).FirstOrDefault();
+                    var myUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                     if (NewLevel < 1)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
                             await myUser.RemoveRoleAsync(rolePro);
@@ -184,66 +184,66 @@ namespace Rabbot.Services
                     }
                     if (NewLevel >= 1 && NewLevel <= 19)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi" || p.Name == "Amateur").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                             await myUser.RemoveRoleAsync(roleAmateur);
                         }
-                        if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() == null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleRookie.Name) == null)
                             await myUser.AddRoleAsync(roleRookie);
                     }
                     if (NewLevel >= 20 && NewLevel <= 39)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "Rookie").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleRookie.Name) != null)
                             await myUser.RemoveRoleAsync(roleRookie);
-                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Semi").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                         }
-                        if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() == null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleAmateur.Name) == null)
                             await myUser.AddRoleAsync(roleAmateur);
                     }
                     if (NewLevel >= 40 && NewLevel <= 59)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "Amateur").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleAmateur.Name) != null)
                             await myUser.RemoveRoleAsync(roleAmateur);
-                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Pro" || p.Name == "Rookie").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleRookie);
                         }
-                        if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() == null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name) == null)
                             await myUser.AddRoleAsync(roleSemi);
                     }
                     if (NewLevel >= 60 && NewLevel <= 79)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "Semi").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name) != null)
                             await myUser.RemoveRoleAsync(roleSemi);
-                        if (myUser.Roles.Where(p => p.Name == "S4" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
                             await myUser.RemoveRoleAsync(roleAmateur);
                             await myUser.RemoveRoleAsync(roleRookie);
                         }
-                        if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() == null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) == null)
                             await myUser.AddRoleAsync(rolePro);
                     }
                     if (NewLevel >= 80)
                     {
-                        if (myUser.Roles.Where(p => p.Name == "Pro").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) != null)
                             await myUser.RemoveRoleAsync(rolePro);
-                        if (myUser.Roles.Where(p => p.Name == "Semi" || p.Name == "Amateur" || p.Name == "Rookie").FirstOrDefault() != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleSemi);
                             await myUser.RemoveRoleAsync(roleAmateur);
                             await myUser.RemoveRoleAsync(roleRookie);
                         }
-                        if (myUser.Roles.Where(p => p.Name == "S4").FirstOrDefault() == null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name) == null)
                             await myUser.AddRoleAsync(roleS4);
                     }
                 }

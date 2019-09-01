@@ -83,7 +83,7 @@ namespace Rabbot.API
 
                 using (swaightContext db = new swaightContext())
                 {
-                    var dbStream = db.Stream.Where(p => p.StreamId == Convert.ToInt64(e.Stream.Id)).FirstOrDefault();
+                    var dbStream = db.Stream.FirstOrDefault(p => p.StreamId == Convert.ToInt64(e.Stream.Id));
                     if (dbStream != null)
                         return;
 
@@ -94,10 +94,10 @@ namespace Rabbot.API
                     {
                         if (item.StreamchannelId != null)
                         {
-                            var guild = _client.Guilds.Where(p => p.Id == (ulong)item.ServerId).FirstOrDefault();
+                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)item.ServerId);
                             if (guild == null)
                                 continue;
-                            if (!(guild.Channels.Where(p => p.Id == (ulong)item.StreamchannelId).FirstOrDefault() is SocketTextChannel channel))
+                            if (!(guild.Channels.FirstOrDefault(p => p.Id == (ulong)item.StreamchannelId) is SocketTextChannel channel))
                                 continue;
 
                             var embed = new EmbedBuilder();

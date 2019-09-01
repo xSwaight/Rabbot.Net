@@ -104,12 +104,12 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var guild = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                var guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                 if (guild == null)
                     return;
-                var logChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.LogchannelId).FirstOrDefault();
-                var notificationChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.NotificationchannelId).FirstOrDefault();
-                var botcChannel = Context.Guild.TextChannels.Where(p => (long?)p.Id == guild.Botchannelid).FirstOrDefault();
+                var logChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.LogchannelId);
+                var notificationChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.NotificationchannelId);
+                var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.Botchannelid);
 
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"**Settings**");
@@ -283,7 +283,7 @@ namespace Rabbot.Commands
                 return;
             using (swaightContext db = new swaightContext())
             {
-                var user = db.User.Where(p => p.Id == (long)Context.User.Id).FirstOrDefault();
+                var user = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id);
                 if (user.Notify == 1)
                 {
                     user.Notify = 0;

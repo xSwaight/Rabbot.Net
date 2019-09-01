@@ -195,17 +195,17 @@ namespace Rabbot
                 if (!db.Attacks.Any())
                     return;
 
-                var dbAtk = db.Attacks.Where(p => p.MessageId == (long)reaction.MessageId).FirstOrDefault();
+                var dbAtk = db.Attacks.FirstOrDefault(p => p.MessageId == (long)reaction.MessageId);
                 if (dbAtk == null)
                     return;
 
-                var atkUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
-                var defUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+                var atkUserfeature = db.Userfeatures.FirstOrDefault(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId);
+                var defUserfeature = db.Userfeatures.FirstOrDefault(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId);
 
                 var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
                 var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
-                var zaun = inventoryTarget.Where(p => p.Item.Id == 2).FirstOrDefault();
-                var stab = inventoryUser.Where(p => p.Item.Id == 1).FirstOrDefault();
+                var zaun = inventoryTarget.FirstOrDefault(p => p.Item.Id == 2);
+                var stab = inventoryUser.FirstOrDefault(p => p.Item.Id == 1);
 
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
@@ -275,8 +275,8 @@ namespace Rabbot
                 var sum = userAtk + def;
                 var winChance = ((double)userAtk / (double)sum) * 100;
 
-                var atkUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.UserId).FirstOrDefault();
-                var defUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.TargetId).FirstOrDefault();
+                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.UserId);
+                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.TargetId);
 
                 string chance = $"**{Math.Round(winChance)}% {atkUser.Mention} - {defUser.Mention} {100 - Math.Round(winChance)}%**";
 
@@ -296,17 +296,17 @@ namespace Rabbot
                 if (!db.Attacks.Any())
                     return;
 
-                var dbAtk = db.Attacks.Where(p => p.MessageId == (long)reaction.MessageId).FirstOrDefault();
+                var dbAtk = db.Attacks.FirstOrDefault(p => p.MessageId == (long)reaction.MessageId);
                 if (dbAtk == null)
                     return;
 
-                var atkUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
-                var defUserfeature = db.Userfeatures.Where(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId).FirstOrDefault();
+                var atkUserfeature = db.Userfeatures.FirstOrDefault(p => p.UserId == dbAtk.UserId && p.ServerId == dbAtk.ServerId);
+                var defUserfeature = db.Userfeatures.FirstOrDefault(p => p.UserId == dbAtk.TargetId && p.ServerId == dbAtk.ServerId);
 
                 var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
                 var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
-                var zaun = inventoryTarget.Where(p => p.Item.Id == 2).FirstOrDefault();
-                var stab = inventoryUser.Where(p => p.Item.Id == 1).FirstOrDefault();
+                var zaun = inventoryTarget.FirstOrDefault(p => p.Item.Id == 2);
+                var stab = inventoryUser.FirstOrDefault(p => p.Item.Id == 1);
 
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
@@ -388,8 +388,8 @@ namespace Rabbot
                 var sum = userAtk + def;
                 var winChance = ((double)userAtk / (double)sum) * 100;
 
-                var atkUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.UserId).FirstOrDefault();
-                var defUser = dcGuild.Users.Where(p => p.Id == (ulong)dbAtk.TargetId).FirstOrDefault();
+                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.UserId);
+                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.TargetId);
 
                 string chance = $"**{Math.Round(winChance)}% {atkUser.Mention} - {defUser.Mention} {100 - Math.Round(winChance)}%**";
 
@@ -412,7 +412,7 @@ namespace Rabbot
                     }
                     else
                     {
-                        var warn = db.Warning.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id).FirstOrDefault();
+                        var warn = db.Warning.FirstOrDefault(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id);
                         warn.Counter++;
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
@@ -427,11 +427,11 @@ namespace Rabbot
                 if (dcUser.IsBot)
                     return;
                 var dcTextchannel = channel as SocketTextChannel;
-                var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
-                var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
+                var dbGuild = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcUser.Guild.Id);
+                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)dbGuild.ServerId);
                 if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
                     return;
-                var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
+                var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)dbGuild.TrashchannelId);
                 if (dcTrashChannel == null)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -460,11 +460,11 @@ namespace Rabbot
                     if (message.Value.Content.StartsWith(Config.bot.cmdPrefix))
                         return;
                     var dcTextchannel = channel as SocketTextChannel;
-                    var dbGuild = db.Guild.Where(p => p.ServerId == (long)dcUser.Guild.Id).FirstOrDefault();
-                    var dcGuild = _client.Guilds.Where(p => p.Id == (ulong)dbGuild.ServerId).FirstOrDefault();
+                    var dbGuild = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcUser.Guild.Id);
+                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)dbGuild.ServerId);
                     if (dbGuild.Trash == 0 || dbGuild.TrashchannelId == null)
                         return;
-                    var dcTrashChannel = dcGuild.TextChannels.Where(p => p.Id == (ulong)dbGuild.TrashchannelId).FirstOrDefault();
+                    var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)dbGuild.TrashchannelId);
                     if (dcTrashChannel == null)
                         return;
                     EmbedBuilder embed = new EmbedBuilder();
@@ -492,7 +492,7 @@ namespace Rabbot
 
         private async Task JoinedGuild(SocketGuild guild)
         {
-            if (guild.Roles.Where(p => p.Name == "Muted").Count() == 0)
+            if (!guild.Roles.Where(p => p.Name == "Muted").Any())
             {
                 var mutedPermission = new GuildPermissions(false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
                 await guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
@@ -500,17 +500,17 @@ namespace Rabbot
             var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
             foreach (var textChannel in guild.TextChannels)
             {
-                var muted = guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                var muted = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
                 await textChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
             foreach (var voiceChannel in guild.VoiceChannels)
             {
-                var muted = guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                var muted = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
                 await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
             using (swaightContext db = new swaightContext())
             {
-                var Guild = db.Guild.Where(p => p.ServerId == (long)guild.Id).FirstOrDefault();
+                var Guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)guild.Id);
                 if (Guild == null)
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)guild.Id });
@@ -585,7 +585,7 @@ namespace Rabbot
                     if (user.NamechangeUntil.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
                     {
                         user.NamechangeUntil = null;
-                        var dcUser = _client.Guilds.Where(p => p.Id == (ulong)user.ServerId).FirstOrDefault().Users.Where(p => p.Id == (ulong)user.UserId).FirstOrDefault() as SocketGuildUser;
+                        var dcUser = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)user.ServerId).Users.FirstOrDefault(p => p.Id == (ulong)user.UserId) as SocketGuildUser;
                         await dcUser.SendMessageAsync($"Dein Namechange zu **{dcUser.Nickname}** auf dem **{dcUser.Guild.Name}** Server ist abgelaufen.");
                         await dcUser.ModifyAsync(p => p.Nickname = null);
                     }
@@ -615,13 +615,13 @@ namespace Rabbot
 
                             Random rnd = new Random();
                             var luck = rnd.Next(1, 101);
-                            var botChannelId = db.Guild.Where(p => p.ServerId == (long)serverId).FirstOrDefault().Botchannelid;
-                            var dcServer = _client.Guilds.Where(p => p.Id == (ulong)serverId).FirstOrDefault();
+                            var botChannelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)serverId).Botchannelid;
+                            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)serverId);
 
                             if (dcServer == null || botChannelId == null)
                                 continue;
 
-                            var dcBotChannel = dcServer.TextChannels.Where(p => p.Id == (ulong)botChannelId).FirstOrDefault();
+                            var dcBotChannel = dcServer.TextChannels.FirstOrDefault(p => p.Id == (ulong)botChannelId);
 
                             if (dcBotChannel == null)
                                 continue;
@@ -630,8 +630,8 @@ namespace Rabbot
                             {
                                 if (item.Min <= luck && item.Max >= luck)
                                 {
-                                    var dcUser = dcServer.Users.Where(p => p.Id == (ulong)item.UserId).FirstOrDefault();
-                                    var dbUserfeature = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == item.UserId).FirstOrDefault();
+                                    var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)item.UserId);
+                                    var dbUserfeature = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcServer.Id && p.UserId == item.UserId);
                                     EmbedBuilder embed = new EmbedBuilder();
                                     embed.Color = Color.Green;
                                     var stall = Helper.GetStall(dbUserfeature.Wins);
@@ -640,7 +640,7 @@ namespace Rabbot
                                         if (dcUser != null)
                                         {
                                             embed.Description = $"Der **Gewinner** von **{sum} Ziegen** aus dem Pot ist {dcUser.Mention} mit einer Chance von **{item.Chance}%**!\nLeider passen in deinen Stall nur **{stall.Capacity} Ziegen**, deswegen sind **{(sum + dbUserfeature.Goats) - stall.Capacity} Ziegen** zu Rabbot **geflüchtet**..";
-                                            var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                                            var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                                             rabbotUser.Goats += (sum + dbUserfeature.Goats) - stall.Capacity;
                                         }
                                         dbUserfeature.Goats = stall.Capacity;
@@ -683,7 +683,7 @@ namespace Rabbot
                     {
                         foreach (var user in guild.Users)
                         {
-                            var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault();
+                            var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id);
                             if (dbUser == null)
                                 continue;
                             if (dbUser.Goats == 0)
@@ -697,7 +697,7 @@ namespace Rabbot
                                 {
                                     Random rnd = new Random();
                                     int deadGoats;
-                                    var mainUser = db.User.Where(p => p.Id == dbUser.UserId).FirstOrDefault();
+                                    var mainUser = db.User.FirstOrDefault(p => p.Id == dbUser.UserId);
                                     if (dbUser.Goats > 4 && dbUser.Goats <= 15)
                                     {
                                         deadGoats = rnd.Next(5, dbUser.Goats + 1);
@@ -749,9 +749,9 @@ namespace Rabbot
                                     if (!db.Songlist.Where(p => p.Active == 1).Any())
                                         continue;
 
-                                    if (song.TrackUrl == db.Songlist.Where(p => p.Active == 1).FirstOrDefault().Link)
+                                    if (song.TrackUrl == db.Songlist.FirstOrDefault(p => p.Active == 1).Link)
                                     {
-                                        var musicrank = db.Musicrank.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id).FirstOrDefault() ?? db.Musicrank.AddAsync(new Musicrank { UserId = (long)user.Id, ServerId = (long)guild.Id, Sekunden = 0, Date = DateTime.Now }).Result.Entity;
+                                        var musicrank = db.Musicrank.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id) ?? db.Musicrank.AddAsync(new Musicrank { UserId = (long)user.Id, ServerId = (long)guild.Id, Sekunden = 0, Date = DateTime.Now }).Result.Entity;
                                         if (musicrank.Date.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
                                         {
                                             musicrank.Sekunden = 0;
@@ -763,7 +763,7 @@ namespace Rabbot
                                         {
                                             var channel = await user.GetOrCreateDMChannelAsync();
                                             var msgs = channel.GetMessagesAsync(1).Flatten();
-                                            var exp = db.Userfeatures.Where(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                                            var exp = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id);
                                             if (msgs != null)
                                             {
                                                 var msg = await msgs.FirstOrDefault() as IMessage;
@@ -773,7 +773,7 @@ namespace Rabbot
                                                     {
                                                         if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
                                                         {
-                                                            var songToday = db.Songlist.Where(p => p.Active == 1).FirstOrDefault();
+                                                            var songToday = db.Songlist.FirstOrDefault(p => p.Active == 1);
                                                             if (exp != null)
                                                                 await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
                                                         }
@@ -911,9 +911,9 @@ namespace Rabbot
                     var myUser = msg.Author as SocketGuildUser;
                     await Logging.Warning(myUser, msg, badword);
                 }
-                var dbUser = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
+                var dbUser = db.User.FirstOrDefault(p => p.Id == (long)msg.Author.Id) ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
                 dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
-                var feature = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
+                var feature = db.Userfeatures.FirstOrDefault(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 feature.Lastmessage = DateTime.Now;
                 await db.SaveChangesAsync();
             }
@@ -928,13 +928,13 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Any())
                     return;
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Log == 0)
+                if (db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).Log == 0)
                     return;
                 else
                 {
-                    var channelId = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().LogchannelId;
+                    var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{user.Mention} left the server!");
                     embed.WithColor(new Color(255, 0, 0));
@@ -951,15 +951,15 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).Any())
                     return;
-                if (db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().Log == 0)
+                if (db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).Log == 0)
                     return;
 
-                var memberRole = _client.Guilds.Where(p => p.Id == user.Guild.Id).FirstOrDefault().Roles.Where(p => p.Name == "Mitglied").FirstOrDefault();
+                var memberRole = _client.Guilds.FirstOrDefault(p => p.Id == user.Guild.Id).Roles.FirstOrDefault(p => p.Name == "Mitglied");
                 if (memberRole != null)
                     await user.AddRoleAsync(memberRole);
-                var channelId = db.Guild.Where(p => p.ServerId == (long)user.Guild.Id).FirstOrDefault().LogchannelId;
+                var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"{user.Mention} joined the server!");
                 embed.WithColor(new Color(0, 255, 0));

@@ -154,11 +154,11 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");
-            if (s4Role.Count() == 0)
+            if (!s4Role.Any())
                 return;
 
-            var user = Context.Guild.Users.Where(p => p.Id == Context.User.Id).FirstOrDefault();
-            if (user.Roles.Where(p => p.Name == "S4 League").Count() != 0)
+            var user = Context.Guild.Users.FirstOrDefault(p => p.Id == Context.User.Id);
+            if (!user.Roles.Where(p => p.Name == "S4 League").Any())
                 return;
 
             await user.AddRoleAsync(s4Role.FirstOrDefault());

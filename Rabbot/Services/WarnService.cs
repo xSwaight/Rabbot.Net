@@ -41,9 +41,9 @@ namespace Rabbot.Services
                     }
                     if (warn.Counter >= 3)
                     {
-                        DcGuild = DcClient.Guilds.Where(p => p.Id == (ulong)warn.ServerId).FirstOrDefault();
-                        DcTargetUser = DcGuild.Users.Where(p => p.Id == (ulong)warn.UserId).FirstOrDefault();
-                        var dbUser = db.Userfeatures.Where(p => p.ServerId == warn.ServerId && p.UserId == warn.UserId).FirstOrDefault();
+                        DcGuild = DcClient.Guilds.FirstOrDefault(p => p.Id == (ulong)warn.ServerId);
+                        DcTargetUser = DcGuild.Users.FirstOrDefault(p => p.Id == (ulong)warn.UserId);
+                        var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == warn.ServerId && p.UserId == warn.UserId);
                         MuteService mute = new MuteService(DcClient);
                         await mute.MuteWarnedUser(DcTargetUser, DcGuild);
                         if (dbUser != null)
@@ -65,17 +65,11 @@ namespace Rabbot.Services
         {
             using (swaightContext db = new swaightContext())
             {
-                if (!db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).Any())
-                {
-                    await db.Warning.AddAsync(new Warning { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
-                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
-                }
-                else
-                {
-                    var warn = db.Warning.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
-                    warn.Counter++;
-                    await Context.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
-                }
+                var warn = db.Warning.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
+                warn.Counter++;
+                if (warn.Counter > 3)
+                    return;
+                await Context.Message.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                 await Logging.Warn(user, Context);
                 await db.SaveChangesAsync();
             }

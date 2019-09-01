@@ -22,7 +22,7 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 if (dbUser.Lastdaily != null)
                 {
                     if (dbUser.Lastdaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
@@ -59,7 +59,7 @@ namespace Rabbot.Commands
 
                 if (chance > 1)
                 {
-                    var dbUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
                     var stall = Helper.GetStall(dbUser.Wins);
                     if (jackpot <= 3)
                     {
@@ -86,7 +86,7 @@ namespace Rabbot.Commands
                     int bonus = rnd.Next(1, 11);
                     if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
                     {
-                        var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                        var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                         embed.Color = Color.Green;
                         embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind zu **Rabbot** geflüchtet..";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -162,7 +162,7 @@ namespace Rabbot.Commands
                 {
 
                     var embed = new EmbedBuilder();
-                    var senderUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var senderUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
                     if (senderUser.Goats < amount)
                     {
                         embed.Color = Color.Red;
@@ -178,7 +178,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var targetUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var targetUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Goats = 0, Exp = 0 }).Result.Entity;
                     if (targetUser == senderUser)
                     {
                         await Context.Channel.SendMessageAsync($"Nö.");
@@ -201,7 +201,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.Client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                     senderUser.Goats -= amount;
                     int fees = amount / 4;
                     if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
@@ -255,8 +255,8 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var dbTarget = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)target.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                var dbUser = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)target.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var targetStall = Helper.GetStall(dbTarget.Wins);
                 var userStall = Helper.GetStall(dbUser.Wins);
 
@@ -513,7 +513,7 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 var embed = new EmbedBuilder();
-                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var stall = Helper.GetStall(dbUser.Wins);
                 embed.WithTitle($"Stall von {user.Username}");
                 embed.WithDescription(stall.Name);
@@ -541,7 +541,7 @@ namespace Rabbot.Commands
             var embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
             {
-                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
                 var stall = Helper.GetStall(dbUser.Wins);
                 var atk = stall.Attack;
@@ -722,7 +722,7 @@ namespace Rabbot.Commands
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
-                    var myUser = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var myUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
                     if (myUser.Goats < amount)
                     {
                         embed.Color = Color.Red;
@@ -748,7 +748,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var myPot = db.Pot.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Pot.AddAsync(new Pot { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Goats = 0 }).Result.Entity;
+                    var myPot = db.Pot.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Pot.AddAsync(new Pot { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Goats = 0 }).Result.Entity;
                     if (amount + myPot.Goats > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
@@ -791,7 +791,7 @@ namespace Rabbot.Commands
                 foreach (var item in pot)
                 {
                     var chance = (double)item.Goats / (double)sum * 100;
-                    var user = db.User.Where(p => p.Id == item.UserId).FirstOrDefault();
+                    var user = db.User.FirstOrDefault(p => p.Id == item.UserId);
                     embed.Title = $"{sum.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen im Pot!";
                     embed.AddField($"{counter}. {user.Name}", $"**{item.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen | **{Math.Round(chance)}%** Chance");
                     counter++;

@@ -40,17 +40,17 @@ namespace Rabbot.Services
 
         public async Task AttackResult(Attacks attack)
         {
-            var dcServer = DcClient.Guilds.Where(p => p.Id == (ulong)attack.ServerId).FirstOrDefault();
+            var dcServer = DcClient.Guilds.FirstOrDefault(p => p.Id == (ulong)attack.ServerId);
             if (dcServer == null)
                 return;
-            var dcTarget = dcServer.Users.Where(p => p.Id == (ulong)attack.TargetId).FirstOrDefault();
-            var dcUser = dcServer.Users.Where(p => p.Id == (ulong)attack.UserId).FirstOrDefault();
-            var dcChannel = dcServer.Channels.Where(p => p.Id == (ulong)attack.ChannelId).FirstOrDefault() as ISocketMessageChannel;
+            var dcTarget = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.TargetId);
+            var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.UserId);
+            var dcChannel = dcServer.Channels.FirstOrDefault(p => p.Id == (ulong)attack.ChannelId) as ISocketMessageChannel;
 
             using (swaightContext db = new swaightContext())
             {
-                var dbTarget = db.Userfeatures.Where(p => p.ServerId == attack.ServerId && p.UserId == attack.TargetId).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
-                var dbUser = db.Userfeatures.Where(p => p.ServerId == attack.ServerId && p.UserId == attack.UserId).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.TargetId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.UserId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
                 var targetStallBefore = Helper.GetStall(dbTarget.Wins);
                 var userStallBefore = Helper.GetStall(dbUser.Wins);
                 var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
@@ -60,7 +60,7 @@ namespace Rabbot.Services
                 bool hirtenstab = false;
                 bool zaun = false;
 
-                var dcMessage = dcChannel.CachedMessages.Where(p => p.Id == (ulong)attack.MessageId).FirstOrDefault() as SocketUserMessage;
+                var dcMessage = dcChannel.CachedMessages.FirstOrDefault(p => p.Id == (ulong)attack.MessageId) as SocketUserMessage;
 
                 if (dcMessage != null)
                     foreach (var reaction in dcMessage.Reactions)
@@ -116,7 +116,7 @@ namespace Rabbot.Services
                 var winChance = ((double)atkUser / (double)sum) * 100;
                 var chance = rnd.Next(1, 101);
                 EmbedBuilder embed = new EmbedBuilder();
-                var rabbotUser = db.Userfeatures.Where(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)DcClient.CurrentUser.Id).FirstOrDefault() ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)DcClient.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)DcClient.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)DcClient.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                 if (chance <= winChance)
                 {
                     int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);

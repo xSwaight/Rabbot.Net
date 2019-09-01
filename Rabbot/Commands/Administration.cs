@@ -46,7 +46,7 @@ namespace Rabbot.Commands
                     var msgs = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
                     msgs = msgs.Where(x => x.Author.Id == user.Id).Take((int)amount);
                     await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
-                    var exp = db.Userfeatures.Where(p => p.UserId == (long)user.Id).FirstOrDefault();
+                    var exp = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id);
                     if (exp.Exp > (50 * amount))
                         exp.Exp -= (int)(50 * amount);
                     else
@@ -157,16 +157,16 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, LogchannelId = (long)Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.LogchannelId = (long)Context.Channel.Id;
                 }
-                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 1;
+                db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Log = 1;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -186,13 +186,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, Botchannelid = (long)Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.Botchannelid = (long)Context.Channel.Id;
                 }
                 await db.SaveChangesAsync();
@@ -214,13 +214,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, TrashchannelId = (long)Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.TrashchannelId = (long)Context.Channel.Id;
                     defaultChannel.Trash = 1;
                 }
@@ -242,13 +242,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, StreamchannelId = (long)Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.StreamchannelId = (long)Context.Channel.Id;
                 }
                 await db.SaveChangesAsync();
@@ -270,16 +270,16 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, NotificationchannelId = (long)Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.NotificationchannelId = (long)Context.Channel.Id;
                 }
-                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 1;
+                db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Notify = 1;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -299,16 +299,16 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.NotificationchannelId = null;
                 }
-                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 0;
+                db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Notify = 0;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -328,13 +328,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.Botchannelid = null;
                 }
                 await db.SaveChangesAsync();
@@ -356,13 +356,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.Botchannelid = null;
                     defaultChannel.Trash = 0;
                 }
@@ -385,16 +385,16 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Count() == 0)
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
                     defaultChannel.LogchannelId = null;
                 }
-                db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 0;
+                db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Log = 0;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -414,10 +414,10 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var currentNotify = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify;
+                var currentNotify = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Notify;
                 if (currentNotify == 0)
                 {
-                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 1;
+                    db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Notify = 1;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -429,7 +429,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Notify = 0;
+                    db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Notify = 0;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -450,10 +450,10 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var currentLog = db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log;
+                var currentLog = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Log;
                 if (currentLog == 0)
                 {
-                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 1;
+                    db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Log = 1;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -465,7 +465,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).FirstOrDefault().Log = 0;
+                    db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id).Log = 0;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -483,7 +483,7 @@ namespace Rabbot.Commands
         public async Task CreateMutedRole()
         {
             await Context.Message.DeleteAsync();
-            if (Context.Guild.Roles.Where(p => p.Name == "Muted").Count() == 0)
+            if (!Context.Guild.Roles.Where(p => p.Name == "Muted").Any())
             {
                 var mutedPermission = new GuildPermissions(false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
                 await Context.Guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
@@ -491,12 +491,12 @@ namespace Rabbot.Commands
             var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
             foreach (var textChannel in Context.Guild.TextChannels)
             {
-                var muted = Context.Guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                var muted = Context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
                 await textChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
             foreach (var voiceChannel in Context.Guild.VoiceChannels)
             {
-                var muted = Context.Guild.Roles.Where(p => p.Name == "Muted").FirstOrDefault();
+                var muted = Context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
                 await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
             const int delay = 2000;
@@ -515,7 +515,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var Experience = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).FirstOrDefault();
+                var Experience = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id);
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
                 if (Experience.Gain == 0)
@@ -559,7 +559,7 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                var Event = db.Event.Where(x => x.Id == eventId).FirstOrDefault();
+                var Event = db.Event.FirstOrDefault(x => x.Id == eventId);
                 Event.Status = 1;
                 await Context.Client.SetGameAsync($"{Event.Name} Event aktiv!", null, ActivityType.Watching);
                 await db.SaveChangesAsync();
@@ -601,7 +601,7 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 word = word.ToLower();
-                var badword = db.Badwords.Where(p => p.BadWord == Helper.ReplaceCharacter(word)).FirstOrDefault();
+                var badword = db.Badwords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word));
                 if (badword == null)
                     return;
 
