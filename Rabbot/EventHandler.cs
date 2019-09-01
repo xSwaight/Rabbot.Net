@@ -12,6 +12,7 @@ using Rabbot.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
 using Rabbot.API.Models;
+using System.Text.RegularExpressions;
 
 namespace Rabbot
 {
@@ -897,33 +898,23 @@ namespace Rabbot
 
             using (swaightContext db = new swaightContext())
             {
-                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !dcUser.GuildPermissions.ManageMessages)
+                SocketGuild dcGuild = dcUser.Guild;
+                if (db.Badwords.Any(p => Regex.Match(Helper.ReplaceCharacter(msg.Content), @"\b" + p.BadWord + @"\b", RegexOptions.IgnoreCase).Success && !dcUser.GuildPermissions.ManageMessages))
                 {
                     await msg.DeleteAsync();
-                    SocketGuild dcGuild = dcUser.Guild;
-                    if (!db.Warning.Where(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id).Any())
-                    {
-                        await db.Warning.AddAsync(new Warning { ServerId = (long)dcGuild.Id, UserId = (long)msg.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
-                        await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
-                    }
-                    else
-                    {
-                        var warn = db.Warning.Where(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id).FirstOrDefault();
-                        warn.Counter++;
-                        await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
-                    }
+                    var warn = db.Warning.FirstOrDefault(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = (long)dcGuild.Id, UserId = (long)msg.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
+                    warn.Counter++;
+                    if (warn.Counter > 3)
+                        return;
+                    await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
                     var myUser = msg.Author as SocketGuildUser;
                     await Logging.Warning(myUser, msg, badword);
                 }
-                else
-                {
-                    SocketGuild dcGuild = dcUser.Guild;
-                    var dbUser = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
-                    dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
-                    var feature = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
-                    feature.Lastmessage = DateTime.Now;
-                }
+                var dbUser = db.User.Where(p => p.Id == (long)msg.Author.Id).FirstOrDefault() ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
+                dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
+                var feature = db.Userfeatures.Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
+                feature.Lastmessage = DateTime.Now;
                 await db.SaveChangesAsync();
             }
             if (msg.Content.StartsWith(Config.bot.cmdPrefix))

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using PagedList;
 using Rabbot.Database;
 using Rabbot.Services;
 
@@ -572,6 +573,13 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
+                word = word.ToLower();
+                if (db.Badwords.Where(p => p.BadWord == word).Any())
+                {
+                    await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
+                    return;
+                }
+
                 await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word) });
                 await db.SaveChangesAsync();
 
@@ -592,7 +600,8 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (swaightContext db = new swaightContext())
             {
-                var badword = db.Badwords.Where(p => p.BadWord == word).FirstOrDefault();
+                word = word.ToLower();
+                var badword = db.Badwords.Where(p => p.BadWord == Helper.ReplaceCharacter(word)).FirstOrDefault();
                 if (badword == null)
                     return;
 
@@ -611,19 +620,24 @@ namespace Rabbot.Commands
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("badwords", RunMode = RunMode.Async)]
-        public async Task Badwords()
+        public async Task Badwords(int page = 1)
         {
-            await Context.Message.DeleteAsync();
+            if (page < 1)
+                return;
             using (swaightContext db = new swaightContext())
             {
-                var badwords = db.Badwords.ToList();
+                var badwords = db.Badwords.ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
+                if (page > badwords.PageCount)
+                    return;
                 var eb = new EmbedBuilder();
-                eb.WithDescription($"Alle Badwords: ");
                 eb.Color = new Color(90, 92, 96);
+                string output = "**Alle Badwords:**\n\n";
                 foreach (var badword in badwords)
                 {
-                    eb.AddField("ID: " + badword.Id.ToString(), badword.BadWord);
+                    output += $"**{badword.BadWord}**\n";
                 }
+                eb.WithDescription(output);
+                eb.WithTitle($"Seite {page} von {badwords.PageCount}");
                 await Context.Channel.SendMessageAsync(null, false, eb.Build());
             }
         }

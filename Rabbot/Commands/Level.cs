@@ -10,6 +10,7 @@ using Rabbot.ImageGenerator;
 using Microsoft.EntityFrameworkCore;
 using Rabbot.Preconditions;
 using System.Text;
+using Rabbot.Services;
 
 namespace Rabbot.Commands
 {
@@ -261,6 +262,47 @@ namespace Rabbot.Commands
         }
 
         [RequireOwner]
+        [Command("setlevel", RunMode = RunMode.Async)]
+        public async Task SetLevel(int level, IUser user = null)
+        {
+            await Context.Message.DeleteAsync();
+            const int delay = 2000;
+            using (swaightContext db = new swaightContext())
+            {
+                if (!Helper.exp.TryGetValue(level, out var levelInfo))
+                    return;
+                if (user != null)
+                {
+                    if (!db.User.Where(p => p.Id == (long)user.Id).Any())
+                    {
+                        db.User.Add(new User { Id = (long)user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                        await db.SaveChangesAsync();
+                    }
+                    var userEXP = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, ServerId = (long)Context.Guild.Id, UserId = (long)user.Id }).Result.Entity;
+
+                    userEXP.Exp = levelInfo.NeededEXP;
+                    await db.SaveChangesAsync();
+                    var embedUser = new EmbedBuilder();
+                    embedUser.WithDescription($"{user.Username} wurde erfolgreich auf Level {level} gesetzt.");
+                    embedUser.WithColor(new Color(90, 92, 96));
+                    IUserMessage msg = await ReplyAsync("", false, embedUser.Build());
+                    await Task.Delay(delay);
+                    await msg.DeleteAsync();
+                    return;
+                }
+                var experience = db.Userfeatures.Where(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault();
+                experience.Exp = levelInfo.NeededEXP;
+                await db.SaveChangesAsync();
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"{user.Username} wurde erfolgreich auf Level {level} gesetzt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireOwner]
         [Command("addEXP", RunMode = RunMode.Async)]
         public async Task AddExp(int exp, IUser user = null)
         {
@@ -271,6 +313,11 @@ namespace Rabbot.Commands
 
                 if (user != null)
                 {
+                    if (!db.User.Where(p => p.Id == (long)user.Id).Any())
+                    {
+                        db.User.Add(new User { Id = (long)user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                        await db.SaveChangesAsync();
+                    }
                     var userEXP = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, ServerId = (long)Context.Guild.Id, UserId = (long)user.Id }).Result.Entity;
                     userEXP.Exp += exp;
                     await db.SaveChangesAsync();
