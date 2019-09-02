@@ -25,7 +25,7 @@ namespace Rabbot.Preconditions
 
             using (swaightContext db = new swaightContext())
             {
-                if (!db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Any())
+                if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Any())
                 {
                     if (db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id).Botchannelid == null)
                         return Task.FromResult(PreconditionResult.FromSuccess());
