@@ -202,6 +202,21 @@ namespace Rabbot.Commands
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true);
                     await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleS4.Id, Description = "S4" });
                 }
+                if (roles.FirstOrDefault(p => p.Description == "S3") == null)
+                {
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S3", null, new Color(239, 69, 50), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleS4.Id, Description = "S3" });
+                }
+                if (roles.FirstOrDefault(p => p.Description == "S2") == null)
+                {
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S2", null, new Color(239, 69, 50), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleS4.Id, Description = "S2" });
+                }
+                if (roles.FirstOrDefault(p => p.Description == "S1") == null)
+                {
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S1", null, new Color(239, 69, 50), true);
+                    await db.Roles.AddAsync(new Roles { ServerId = (long)Context.Guild.Id, RoleId = (long)roleS4.Id, Description = "S1" });
+                }
                 if (roles.FirstOrDefault(p => p.Description == "Pro") == null)
                 {
                     Discord.Rest.RestRole rolePro = await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true);

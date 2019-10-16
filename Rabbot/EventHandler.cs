@@ -13,6 +13,7 @@ using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
 using Rabbot.API.Models;
 using System.Text.RegularExpressions;
+using Serilog.Core;
 
 namespace Rabbot
 {
@@ -34,6 +35,7 @@ namespace Rabbot
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
+            _client.GuildMemberUpdated += GuildMemberUpdated;
             _client.MessageReceived += MessageReceived;
             _client.MessageDeleted += MessageDeleted;
             _client.MessageUpdated += MessageUpdated;
@@ -41,6 +43,11 @@ namespace Rabbot
             _client.Connected += _client_Connected;
             _client.ReactionAdded += ReactionAdded;
             _client.ReactionRemoved += ReactionRemoved;
+        }
+
+        private async Task GuildMemberUpdated(SocketGuildUser oldUser, SocketGuildUser newUser)
+        {
+
         }
 
         private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
@@ -404,6 +411,11 @@ namespace Rabbot
                 if (db.Badwords.Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages)
                 {
                     await newMessage.DeleteAsync();
+                    var myUser = newMessage.Author as SocketGuildUser;
+                    if (db.Muteduser.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)myUser.Guild.Id).Any())
+                        return;
+                    if (myUser.Roles.Where(p => p.Name == "Muted").Any())
+                        return;
                     SocketGuild dcServer = ((SocketGuildChannel)newMessage.Channel).Guild;
                     if (!db.Warning.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id).Any())
                     {
@@ -417,7 +429,6 @@ namespace Rabbot
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
                     var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
-                    var myUser = newMessage.Author as SocketGuildUser;
                     await Logging.Warning(myUser, newMessage, badword);
 
                 }
@@ -899,16 +910,20 @@ namespace Rabbot
             using (swaightContext db = new swaightContext())
             {
                 SocketGuild dcGuild = dcUser.Guild;
-                if (db.Badwords.Any(p => Regex.Match(Helper.ReplaceCharacter(msg.Content), @"\b" + p.BadWord + @"\b", RegexOptions.IgnoreCase).Success && !dcUser.GuildPermissions.ManageMessages))
+                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
                 {
                     await msg.DeleteAsync();
+                    var myUser = msg.Author as SocketGuildUser;
+                    if (db.Muteduser.Where(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)myUser.Guild.Id).Any())
+                        return;
+                    if (myUser.Roles.Where(p => p.Name == "Muted").Any())
+                        return;
                     var warn = db.Warning.FirstOrDefault(p => p.UserId == (long)msg.Author.Id && p.ServerId == (long)dcGuild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = (long)dcGuild.Id, UserId = (long)msg.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
                     warn.Counter++;
                     if (warn.Counter > 3)
                         return;
                     await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
-                    var myUser = msg.Author as SocketGuildUser;
                     await Logging.Warning(myUser, msg, badword);
                 }
                 var dbUser = db.User.FirstOrDefault(p => p.Id == (long)msg.Author.Id) ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;

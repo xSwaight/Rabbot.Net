@@ -37,6 +37,8 @@ namespace Rabbot
     public struct BotConfig
     {
         public string token;
+        public string environment;
+        public string sentrydsn;
         public string apiToken;
         public string twitchToken;
         public string twitchAccessToken;

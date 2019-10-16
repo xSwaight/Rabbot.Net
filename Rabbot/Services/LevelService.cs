@@ -157,25 +157,34 @@ namespace Rabbot.Services
                 var roles = db.Roles.Where(p => p.ServerId == (long)dcGuild.Id);
 
                 var S4Id = roles.FirstOrDefault(x => x.Description == "S4") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S4" };
+                var S3Id = roles.FirstOrDefault(x => x.Description == "S3") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S3" };
+                var S2Id = roles.FirstOrDefault(x => x.Description == "S2") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S2" };
+                var S1Id = roles.FirstOrDefault(x => x.Description == "S1") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "S1" };
                 var ProId = roles.FirstOrDefault(x => x.Description == "Pro") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Pro" };
                 var SemiId = roles.FirstOrDefault(x => x.Description == "Semi") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Semi" };
                 var AmateurId = roles.FirstOrDefault(x => x.Description == "Amateur") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Amateur" };
                 var RookieId = roles.FirstOrDefault(x => x.Description == "Rookie") ?? new Roles { ServerId = (long)dcGuild.Id, RoleId = 0, Description = "Rookie" };
 
                 var roleS4 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S4Id.RoleId);
+                var roleS3 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S3Id.RoleId);
+                var roleS2 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S2Id.RoleId);
+                var roleS1 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S1Id.RoleId);
                 var rolePro = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)ProId.RoleId);
                 var roleSemi = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)SemiId.RoleId);
                 var roleAmateur = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)AmateurId.RoleId);
                 var roleRookie = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)RookieId.RoleId);
 
-                if (roleS4 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
+                if (roleS4 != null && roleS3 != null && roleS2 != null && roleS1 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {
                     var myUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                     if (NewLevel < 1)
                     {
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                             await myUser.RemoveRoleAsync(roleAmateur);
@@ -184,9 +193,12 @@ namespace Rabbot.Services
                     }
                     if (NewLevel >= 1 && NewLevel <= 19)
                     {
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                             await myUser.RemoveRoleAsync(roleAmateur);
@@ -198,9 +210,12 @@ namespace Rabbot.Services
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleRookie.Name) != null)
                             await myUser.RemoveRoleAsync(roleRookie);
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                         }
@@ -211,9 +226,12 @@ namespace Rabbot.Services
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleAmateur.Name) != null)
                             await myUser.RemoveRoleAsync(roleAmateur);
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == rolePro.Name || p.Name == roleRookie.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == rolePro.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
                             await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleRookie);
                         }
@@ -224,21 +242,75 @@ namespace Rabbot.Services
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name) != null)
                             await myUser.RemoveRoleAsync(roleSemi);
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
                             await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
                             await myUser.RemoveRoleAsync(roleAmateur);
                             await myUser.RemoveRoleAsync(roleRookie);
                         }
                         if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) == null)
                             await myUser.AddRoleAsync(rolePro);
                     }
-                    if (NewLevel >= 80)
+                    if (NewLevel >= 80 && NewLevel <= 96)
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) != null)
                             await myUser.RemoveRoleAsync(rolePro);
-                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS4.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
                         {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS1.Name) == null)
+                            await myUser.AddRoleAsync(roleS1);
+                    }
+                    if (NewLevel >= 97 && NewLevel <= 112)
+                    {
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS1.Name) != null)
+                            await myUser.RemoveRoleAsync(roleS1);
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleS3.Name || p.Name == roleS4.Name || p.Name == roleS1.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS3);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS2.Name) == null)
+                            await myUser.AddRoleAsync(roleS2);
+                    }
+                    if (NewLevel >= 113 && NewLevel <= 118)
+                    {
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS2.Name) != null)
+                            await myUser.RemoveRoleAsync(roleS2);
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleS2.Name || p.Name == roleS4.Name || p.Name == roleS1.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS4);
+                            await myUser.RemoveRoleAsync(roleS1);
+                            await myUser.RemoveRoleAsync(rolePro);
+                            await myUser.RemoveRoleAsync(roleSemi);
+                            await myUser.RemoveRoleAsync(roleAmateur);
+                            await myUser.RemoveRoleAsync(roleRookie);
+                        }
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS3.Name) == null)
+                            await myUser.AddRoleAsync(roleS3);
+                    }
+                    if (NewLevel >= 119)
+                    {
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleS3.Name) != null)
+                            await myUser.RemoveRoleAsync(roleS3);
+                        if (myUser.Roles.FirstOrDefault(p => p.Name == roleSemi.Name || p.Name == roleS2.Name || p.Name == roleS3.Name || p.Name == roleS1.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
+                        {
+                            await myUser.RemoveRoleAsync(roleS2);
+                            await myUser.RemoveRoleAsync(roleS1);
+                            await myUser.RemoveRoleAsync(rolePro);
                             await myUser.RemoveRoleAsync(roleSemi);
                             await myUser.RemoveRoleAsync(roleAmateur);
                             await myUser.RemoveRoleAsync(roleRookie);

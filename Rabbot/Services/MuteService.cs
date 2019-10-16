@@ -37,14 +37,14 @@ namespace Rabbot.Services
                     {
                         db.Muteduser.Remove(mute);
                         await db.SaveChangesAsync();
-                        break;
+                        continue;
                     }
 
                     MutedRole = DcGuild.Roles.FirstOrDefault(p => p.Name == "Muted");
                     if (MutedRole == null)
-                        return;
+                        continue;
                     if (DcGuild.CurrentUser == null)
-                        return;
+                        continue;
                     int position = GetBotRolePosition(DcGuild.CurrentUser);
                     DcTargetUser = DcGuild.Users.FirstOrDefault(p => p.Id == (ulong)mute.UserId);
                     if(DcTargetUser == null)
@@ -54,7 +54,7 @@ namespace Rabbot.Services
                             db.Muteduser.Remove(mute);
                             await db.SaveChangesAsync();
                         }
-                        return;
+                        continue;
                     }
 
                     if (DcGuild.CurrentUser.GuildPermissions.ManageRoles == true && position > MutedRole.Position)

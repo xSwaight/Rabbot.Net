@@ -8,6 +8,8 @@ using System;
 using Serilog;
 using Rabbot.Services;
 using Rabbot.API;
+using Serilog.Events;
+using Sentry;
 
 namespace Rabbot
 {
@@ -22,6 +24,13 @@ namespace Rabbot
             {
                 var _event = new EventHandler();
                 Log.Logger = new LoggerConfiguration()
+                    .WriteTo.Sentry(o =>
+                    {
+                        o.Dsn = new Dsn(Config.bot.sentrydsn);
+                        o.Environment = Config.bot.environment;
+                        o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
+                        o.MinimumEventLevel = LogEventLevel.Warning;
+                    })
                     .WriteTo.File("logs/rabbot.log", rollingInterval: RollingInterval.Day)
                     .WriteTo.Console()
                     .CreateLogger();
