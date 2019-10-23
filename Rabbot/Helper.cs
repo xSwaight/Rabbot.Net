@@ -130,7 +130,7 @@ namespace Rabbot
             { 82, new LevelInfo{NeededEXP = 6300000, Reward = 650 } },
             { 83, new LevelInfo{NeededEXP = 6600000, Reward = 660 } },
             { 84, new LevelInfo{NeededEXP = 6900000, Reward = 670 } },
-            { 85, new LevelInfo{NeededEXP = 7100000, Reward = 680 } },
+            { 85, new LevelInfo{NeededEXP = 7200000, Reward = 680 } },
             { 86, new LevelInfo{NeededEXP = 7500000, Reward = 690 } },
             { 87, new LevelInfo{NeededEXP = 7900000, Reward = 700 } },
             { 88, new LevelInfo{NeededEXP = 8300000, Reward = 710 } },
