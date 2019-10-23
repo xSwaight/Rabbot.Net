@@ -125,6 +125,22 @@ namespace Rabbot
             }
         }
 
+        public static async Task PsbatRole(SocketCommandContext context)
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var Guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id);
+                if (Guild.LogchannelId != null && Guild.Log == 1)
+                {
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogchannelId);
+                    var embed = new EmbedBuilder();
+                    embed.WithDescription($"{context.User.Mention} hat sich die PS & Bat Rolle gegeben.");
+                    embed.WithColor(new Color(0, 255, 0));
+                    await logchannel.SendMessageAsync("", false, embed.Build());
+                }
+            }
+        }
+
         public static async Task WarningMute(SocketGuildUser user)
         {
             using (swaightContext db = new swaightContext())

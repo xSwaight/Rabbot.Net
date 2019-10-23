@@ -158,11 +158,28 @@ namespace Rabbot.Commands
                 return;
 
             var user = Context.Guild.Users.FirstOrDefault(p => p.Id == Context.User.Id);
-            if (!user.Roles.Where(p => p.Name == "S4 League").Any())
+            if (user.Roles.Where(p => p.Name == "S4 League").Any())
                 return;
 
             await user.AddRoleAsync(s4Role.FirstOrDefault());
             await Logging.S4Role(Context);
+        }
+
+        [Command("psbat")]
+        [Summary("Gibt dir die PS & Bat Rolle.")]
+        public async Task Psbat()
+        {
+            await Context.Message.DeleteAsync();
+            var psbatRole = Context.Guild.Roles.Where(p => p.Name == "PS & Bat");
+            if (!psbatRole.Any())
+                return;
+
+            var user = Context.Guild.Users.FirstOrDefault(p => p.Id == Context.User.Id);
+            if (user.Roles.Where(p => p.Name == "PS & Bat").Any())
+                return;
+
+            await user.AddRoleAsync(psbatRole.FirstOrDefault());
+            await Logging.PsbatRole(Context);
         }
     }
 }
