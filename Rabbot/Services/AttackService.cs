@@ -157,7 +157,7 @@ namespace Rabbot.Services
                         if (dcChannel != null)
                         {
                             embed.Color = Color.Red;
-                            if (!Helper.IsFull(dbUser.Goats + amount, dbUser.Wins))
+                            if (!Helper.IsFull(dbTarget.Goats + amount, dbTarget.Wins))
                                 embed.Description = $"{dcUser.Mention} du hast den **Angriff** gegen {dcTarget.Mention} **verloren** und ihm/ihr **{amount} Ziegen** überlassen..";
                             else
                             {
