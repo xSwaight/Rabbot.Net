@@ -81,7 +81,7 @@ namespace Rabbot.Services
                     exp = (int)(dblExp * 1.1);
 
                 if (dcMessage.Author is SocketGuildUser user)
-                    if (user.Roles.Where(p => p.Name == "Nitro Booster").Any())
+                    if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub").Any())
                         exp += (int)(exp * 1.5);
 
                 if(EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)

@@ -515,6 +515,12 @@ namespace Rabbot.Database
                     .HasColumnName("goats")
                     .HasColumnType("int(11)");
 
+                entity.Property(e => e.HasLeft)
+                    .IsRequired()
+                    .HasColumnName("hasLeft")
+                    .HasColumnType("bit(1)")
+                    .HasDefaultValueSql("'b\\'0\\''");
+
                 entity.Property(e => e.Lastdaily)
                     .HasColumnName("lastdaily")
                     .HasColumnType("datetime");

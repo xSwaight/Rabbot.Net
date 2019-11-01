@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 
@@ -304,6 +305,61 @@ namespace Rabbot.Commands
         public async Task Poll()
         {
             await Context.Channel.SendMessageAsync("Gönn dir. https://www.strawpoll.me/");
+        }
+
+        [Command("checkleft", RunMode = RunMode.Async)]
+        [RequireOwner]
+        public async Task CheckLeftUsers()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var userfeatures = db.Userfeatures;
+                foreach (var userfeature in userfeatures)
+                {
+                    if(Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.ServerId).Any())
+                    {
+                        if (!Context.Client.Guilds.First(p => p.Id == (ulong)userfeature.ServerId).Users.Where(p => p.Id == (ulong)userfeature.UserId).Any())
+                            userfeature.HasLeft = true;
+                        else
+                            userfeature.HasLeft = false;
+                    }
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
+        [Command("timerank", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Summary("Zeigt eine Rangliste aller User nach Zeit an.")]
+        public async Task Ranking(int page = 1)
+        {
+            if (page < 1)
+                return;
+            using (swaightContext db = new swaightContext())
+            {
+                var users = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime).ToPagedList(page, 10);
+                if (page > users.PageCount)
+                    return;
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.Description = $"Time Ranking Seite {users.PageNumber}/{users.PageCount}";
+                embed.WithColor(new Color(239, 220, 7));
+                int i = users.PageSize * users.PageNumber - (users.PageSize - 1);
+                foreach (var user in users)
+                {
+                    try
+                    {
+                        var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
+                        embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
+                        i++;
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                    }
+                }
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
         }
 
         public ulong GetCrossSum(ulong n)

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Rabbot.Preconditions;
 using System.Text;
 using Rabbot.Services;
+using PagedList;
 
 namespace Rabbot.Commands
 {
@@ -19,19 +20,22 @@ namespace Rabbot.Commands
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]
-        [Cooldown(30)]
-        [Summary("Zeigt die Top 10 der User mit den meisten EXP an.")]
-        public async Task Ranking()
+        [Summary("Zeigt die Top User sortiert nach EXP an.")]
+        public async Task Ranking(int page = 1)
         {
+            if (page < 1)
+                return;
             using (swaightContext db = new swaightContext())
             {
 
-                var top10 = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp).Take(10);
+                var ranking = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
+                if (page > ranking.PageCount)
+                    return;
                 EmbedBuilder embed = new EmbedBuilder();
-                embed.Description = "Level Ranking";
+                embed.Description = $"Level Ranking Seite {ranking.PageNumber}/{ranking.PageCount}";
                 embed.WithColor(new Color(239, 220, 7));
-                int i = 1;
-                foreach (var top in top10)
+                int i = ranking.PageSize * ranking.PageNumber - (ranking.PageSize - 1);
+                foreach (var top in ranking)
                 {
                     try
                     {
@@ -117,10 +121,15 @@ namespace Rabbot.Commands
         [BotCommand]
         [Summary("Zeigt alle Level und die dazugehörigen Rewards an.")]
         [Cooldown(60)]
-        public async Task LevelCmd()
+        public async Task LevelCmd(int page = 1)
         {
-            string msg = "```";
-            foreach (var level in Helper.exp)
+            if (page < 1)
+                return;
+            var levels = Helper.exp.ToPagedList(page, 60);
+            if (page > levels.PageCount)
+                return;
+            string msg = $"```Seite {levels.PageNumber}/{levels.PageCount}\n";
+            foreach (var level in levels)
             {
                     msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
             }

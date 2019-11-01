@@ -147,12 +147,11 @@ namespace Rabbot.Commands
             }
         }
 
-
+        [BotCommand]
         [Command("s4")]
         [Summary("Gibt dir die S4 League Rolle.")]
         public async Task S4()
         {
-            await Context.Message.DeleteAsync();
             var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");
             if (!s4Role.Any())
                 return;
@@ -163,13 +162,14 @@ namespace Rabbot.Commands
 
             await user.AddRoleAsync(s4Role.FirstOrDefault());
             await Logging.S4Role(Context);
+            await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **S4 League** Rolle gegeben.");
         }
 
+        [BotCommand]
         [Command("psbat")]
         [Summary("Gibt dir die PS & Bat Rolle.")]
         public async Task Psbat()
         {
-            await Context.Message.DeleteAsync();
             var psbatRole = Context.Guild.Roles.Where(p => p.Name == "PS & Bat");
             if (!psbatRole.Any())
                 return;
@@ -180,6 +180,7 @@ namespace Rabbot.Commands
 
             await user.AddRoleAsync(psbatRole.FirstOrDefault());
             await Logging.PsbatRole(Context);
+            await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **PS & Bat** Rolle gegeben.");
         }
     }
 }

@@ -947,18 +947,23 @@ namespace Rabbot
                     return;
                 if (db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).Log == 0)
                     return;
-                else
+
+                var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"{user.Mention} left the server!");
+                embed.WithColor(new Color(255, 0, 0));
+                embed.AddField("User ID", user.Id.ToString(), true);
+                embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
+                embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
+                embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
+                await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+
+                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);
+                foreach (var leftUser in dbUser)
                 {
-                    var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
-                    var embed = new EmbedBuilder();
-                    embed.WithDescription($"{user.Mention} left the server!");
-                    embed.WithColor(new Color(255, 0, 0));
-                    embed.AddField("User ID", user.Id.ToString(), true);
-                    embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
-                    embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                    embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
-                    await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    leftUser.HasLeft = true;
                 }
+                await db.SaveChangesAsync();
             }
         }
 
@@ -983,6 +988,13 @@ namespace Rabbot
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
                 embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+
+                var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);
+                foreach (var joinedUser in dbUser)
+                {
+                    joinedUser.HasLeft = false;
+                }
+                await db.SaveChangesAsync();
             }
         }
     }

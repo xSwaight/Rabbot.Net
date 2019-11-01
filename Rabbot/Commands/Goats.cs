@@ -583,6 +583,8 @@ namespace Rabbot.Commands
                 }
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
+                var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
+                embed.AddField($"Discord beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
                 embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Gewinn Gesamt: **{dbUser.Gewinn.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}**");
                 if (inventory.Count() != 0)
@@ -637,7 +639,7 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var top25 = db.Userfeatures.Include(p => p.User).Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Wins).Take(25);
+                var top25 = db.Userfeatures.Include(p => p.User).Where(p => p.Wins != 0 && p.ServerId == (long)Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Wins).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var top in top25)

@@ -13,6 +13,7 @@ namespace Rabbot.Database
         public int Id { get; set; }
         public long? ServerId { get; set; }
         public long UserId { get; set; }
+        public bool? HasLeft { get; set; }
         public int? Exp { get; set; }
         public int Goats { get; set; }
         public int Wins { get; set; }
