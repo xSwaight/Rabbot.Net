@@ -240,9 +240,9 @@ namespace Rabbot.Commands
 
                 var embed = new EmbedBuilder();
                 embed.WithTitle($"S4 Remnants Spieler Statistiken (Daten seit dem {firstDate.Date.Value.ToString("dd.MM.yyyy")})");
-                embed.AddField($"Spieler Online", $"**{lastDate.Playercount} Spieler** ({lastDate.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
-                embed.AddField($"All Time Spieler Peak", $"**{playerPeak.Playercount} Spieler** ({playerPeak.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
-                embed.AddField($"Heutiger Spieler Peak", $"**{today.Max(p => p.Playercount)} Spieler** ({today.First(p => p.Playercount == today.Max(x => x.Playercount)).Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Spieler Online", $"**{lastDate.Playercount.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Spieler** ({lastDate.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"All Time Spieler Peak", $"**{playerPeak.Playercount.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Spieler** ({playerPeak.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Heutiger Spieler Peak", $"**{today.Max(p => p.Playercount).ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Spieler** ({today.First(p => p.Playercount == today.Max(x => x.Playercount)).Date.Value.ToString("dd.MM.yyyy HH:mm")})");
                 embed.AddField($"Täglicher Durchschnitt", $"**{Math.Floor(list.Average())}** Spieler");
                 embed.AddField($"Vergleich Durchschnitt ({percentOutputAvg}%)", $"{dayYesterday}: **{avgYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{avgLastWeek} Spieler**");
                 embed.AddField($"Vergleich Peak ({percentOutputPeak}%)", $"{dayYesterday}: **{peakYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{peakLastWeek} Spieler**");
