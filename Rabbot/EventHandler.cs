@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Rabbot.API.Models;
 using System.Text.RegularExpressions;
 using Serilog.Core;
+using Rabbot.API;
 
 namespace Rabbot
 {
@@ -33,6 +34,7 @@ namespace Rabbot
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.GuildMemberUpdated += GuildMemberUpdated;
@@ -530,6 +532,27 @@ namespace Rabbot
             }
         }
 
+        private async Task CheckPlayers()
+        {
+            while (true)
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    try
+                    {
+                        var onlinePlayers = ApiRequest.RemDB_APIRequest();
+                        if (int.TryParse(onlinePlayers, out int count))
+                        {
+                            await db.Remnantsplayer.AddAsync(new Remnantsplayer { Playercount = count, Date = DateTime.Now });
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    catch { }
+                }
+                await Task.Delay(60000);
+            }
+        }
+
         private async Task CheckDate()
         {
             while (true)
@@ -560,7 +583,6 @@ namespace Rabbot
 
         private async Task NewDay()
         {
-            await RipGoat();
             using (swaightContext db = new swaightContext())
             {
                 if (db.Songlist.Any())
@@ -684,65 +706,6 @@ namespace Rabbot
             }
         }
 
-        private async Task RipGoat()
-        {
-            try
-            {
-                using (swaightContext db = new swaightContext())
-                {
-                    foreach (var guild in _client.Guilds)
-                    {
-                        foreach (var user in guild.Users)
-                        {
-                            var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)guild.Id);
-                            if (dbUser == null)
-                                continue;
-                            if (dbUser.Goats == 0)
-                                continue;
-                            if (dbUser.Lastmessage == null)
-                                continue;
-
-                            if (dbUser.Lastmessage.Value.ToShortDateString() != DateTime.Now.AddDays(-1).ToShortDateString() && !(DateTime.Now.ToShortDateString() == dbUser.Lastmessage.Value.ToShortDateString()))
-                            {
-                                try
-                                {
-                                    Random rnd = new Random();
-                                    int deadGoats;
-                                    var mainUser = db.User.FirstOrDefault(p => p.Id == dbUser.UserId);
-                                    if (dbUser.Goats > 4 && dbUser.Goats <= 15)
-                                    {
-                                        deadGoats = rnd.Next(5, dbUser.Goats + 1);
-                                        dbUser.Goats -= deadGoats;
-                                        if (mainUser.Notify == 1)
-                                            await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
-                                        await db.SaveChangesAsync();
-                                    }
-                                    else if (dbUser.Goats > 15)
-                                    {
-                                        deadGoats = rnd.Next(5, 16);
-                                        dbUser.Goats -= deadGoats;
-                                        if (mainUser.Notify == 1)
-                                            await user.SendMessageAsync($"Hey, du musst mal auf deine Ziegen aufpassen und wieder auf **{guild.Name}** vorbei schauen..\nHeute sind wegen Inaktivität **{deadGoats} Ziegen** gestorben..\nFalls ich dich **nerve**, kannst du mich mit **'{Config.bot.cmdPrefix}hdf'** stumm schalten.");
-                                        await db.SaveChangesAsync();
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e.Message + "\n" + e.StackTrace);
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
-            }
-
-        }
-
         private async Task CheckSong()
         {
             while (true)
@@ -773,30 +736,8 @@ namespace Rabbot
                                         if (musicrank.Sekunden == 300)
                                         {
                                             var channel = await user.GetOrCreateDMChannelAsync();
-                                            var msgs = channel.GetMessagesAsync(1).Flatten();
                                             var exp = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)guild.Id && p.UserId == (long)user.Id);
-                                            if (msgs != null)
-                                            {
-                                                var msg = await msgs.FirstOrDefault() as IMessage;
-                                                if (msg != null)
-                                                {
-                                                    try
-                                                    {
-                                                        if (!(msg.Content.Contains("Glückwunsch, du hast einen Bonus") && msg.Timestamp.DateTime.ToShortDateString() == DateTime.Now.ToShortDateString()))
-                                                        {
-                                                            var songToday = db.Songlist.FirstOrDefault(p => p.Active == 1);
-                                                            if (exp != null)
-                                                                await channel.SendMessageAsync($"Glückwunsch, du hast einen Bonus von **10 Ziegen** für das Hören von '**{songToday.Name}**' erhalten!");
-                                                        }
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        Console.WriteLine(e.Message + " " + e.StackTrace);
-                                                    }
 
-                                                }
-
-                                            }
                                             if (exp != null)
                                                 if (!Helper.IsFull(exp.Goats + 10, exp.Wins))
                                                     exp.Goats += 10;
@@ -811,7 +752,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace); ;
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
                 }
 
             }

@@ -81,7 +81,7 @@ namespace Rabbot.Services
                     exp = (int)(dblExp * 1.1);
 
                 if (dcMessage.Author is SocketGuildUser user)
-                    if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub").Any())
+                    if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
                         exp += (int)(exp * 1.5);
 
                 if(EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
@@ -92,18 +92,6 @@ namespace Rabbot.Services
                 if (roundedEXP < EXP.Exp)
                 {
                     EXP.Attacks--;
-                    if (dcMessage.Author is SocketGuildUser dcUser)
-                        if (EXP.User.Notify == 1)
-                        {
-                            try
-                            {
-                                dcUser.SendMessageAsync($"Du hast dir heute durch deine **Aktivität** auf **{dcGuild.Name}** einen **extra Kampf** verdient!");
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e.Message + " " + e.StackTrace); ;
-                            }
-                        }
                 }
                 NewLevel = Helper.GetLevel(EXP.Exp);
                 db.SaveChanges();
@@ -120,7 +108,7 @@ namespace Rabbot.Services
                 {
                     var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
                     var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
-                    string name = (dcUser as IGuildUser).Nickname ?? dcMessage.Author.Username;
+                    string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
                     var html = template.Render(new
                     {
                         NAME = name,

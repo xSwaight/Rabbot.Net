@@ -4,13 +4,16 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Rabbot.API.Models;
 using Newtonsoft.Json.Linq;
+using System.Net;
+using System.IO;
+using System.Text;
 
 namespace Rabbot.API
 {
-    class ApiRequest
+    static class ApiRequest
     {
 
-        public async Task<string> APIRequestAsync(string url)
+        public static async Task<string> APIRequestAsync(string url)
         {
             try
             {
@@ -27,8 +30,36 @@ namespace Rabbot.API
             }
         }
 
+        public static string RemDB_APIRequest()
+        {
+            string url = "https://api.remdb.net/playercount";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-        public async Task<Player> GetPlayer(string name)
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Stream receiveStream = response.GetResponseStream();
+                StreamReader readStream = null;
+
+                if (response.CharacterSet == null)
+                {
+                    readStream = new StreamReader(receiveStream);
+                }
+                else
+                {
+                    readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
+                }
+
+                string data = readStream.ReadToEnd();
+
+                response.Close();
+                readStream.Close();
+                return data;
+            }
+            return "";
+        }
+
+        public static async Task<Player> GetPlayer(string name)
         {
             string URL = "https://api.s4db.net/player/" + name;
             var jsonResponse = await APIRequestAsync(URL);
@@ -41,7 +72,7 @@ namespace Rabbot.API
                 return player;
         }
 
-        public async Task<Clan> GetClan(string name)
+        public static async Task<Clan> GetClan(string name)
         {
             string URL = "https://api.s4db.net/clan/" + name;
             var jsonResponse = await APIRequestAsync(URL);
@@ -54,7 +85,7 @@ namespace Rabbot.API
                 return clan;
         }
 
-        public async Task<List<Server>> GetServer()
+        public static async Task<List<Server>> GetServer()
         {
             string URL = "https://api.s4db.net/server";
             var jsonResponse = await APIRequestAsync(URL);

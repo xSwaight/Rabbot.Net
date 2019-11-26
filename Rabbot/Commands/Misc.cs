@@ -226,7 +226,7 @@ namespace Rabbot.Commands
                         counter++;
                     }
                     output += "```";
-                    if(output.Length > 2000)
+                    if (output.Length > 2000)
                     {
                         await ReplyAsync(output.Substring(0, 2000));
                         return;
@@ -316,7 +316,7 @@ namespace Rabbot.Commands
                 var userfeatures = db.Userfeatures;
                 foreach (var userfeature in userfeatures)
                 {
-                    if(Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.ServerId).Any())
+                    if (Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.ServerId).Any())
                     {
                         if (!Context.Client.Guilds.First(p => p.Id == (ulong)userfeature.ServerId).Users.Where(p => p.Id == (ulong)userfeature.UserId).Any())
                             userfeature.HasLeft = true;
@@ -335,31 +335,45 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (swaightContext db = new swaightContext())
+            var users = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime).ToPagedList(page, 10);
+            if (page > users.PageCount)
+                return;
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.Description = $"Time Ranking Seite {users.PageNumber}/{users.PageCount}";
+            embed.WithColor(new Color(239, 220, 7));
+            int i = users.PageSize * users.PageNumber - (users.PageSize - 1);
+            foreach (var user in users)
             {
-                var users = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime).ToPagedList(page, 10);
-                if (page > users.PageCount)
-                    return;
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.Description = $"Time Ranking Seite {users.PageNumber}/{users.PageCount}";
-                embed.WithColor(new Color(239, 220, 7));
-                int i = users.PageSize * users.PageNumber - (users.PageSize - 1);
-                foreach (var user in users)
+                try
                 {
-                    try
-                    {
-                        var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
-                        embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
-                        i++;
+                    var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
+                    embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
+                    i++;
 
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message + " " + e.StackTrace);
-                    }
                 }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                }
             }
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+        }
+
+        [Command("sensitivity", RunMode = RunMode.Async)]
+        [BotCommand]
+        [RequireOwner]
+        public async Task CalculateXeroSensitivity(string sensitivity)
+        {
+            if (!double.TryParse(sensitivity.Replace(',', '.'), out double result))
+            {
+                await ReplyAsync("Invalid Input");
+                return;
+            }
+
+            double remSensitivity = result * 100;
+
+            double xero = (((0.2 * ((remSensitivity - 4700) / 5000)) + 0.2) * 150 * 100) / 100;
+            await ReplyAsync($"Xero Sensitivity: {xero.ToString("N2").Replace(',', '.')}");
         }
 
         public ulong GetCrossSum(ulong n)

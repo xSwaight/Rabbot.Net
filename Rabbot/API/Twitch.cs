@@ -37,7 +37,7 @@ namespace Rabbot.API
                 API.Settings.AccessToken = Config.bot.twitchAccessToken;
 
                 Monitor = new LiveStreamMonitorService(API, 60);
-                List<string> channels = new List<string> { "swaight" };
+                List<string> channels = new List<string> { "swaight", "cranbeere" };
                 Monitor.SetChannelsByName(channels);
 
                 Monitor.OnStreamOnline += Monitor_OnStreamOnline;
@@ -114,7 +114,11 @@ namespace Rabbot.API
                             embed.AddField("Viewers", e.Stream.ViewerCount, true);
                             var ThumbnailUrl = e.Stream.ThumbnailUrl.Replace("{width}", "1280").Replace("{height}", "720");
                             embed.WithImageUrl(ThumbnailUrl);
-                            await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! Ich bin live auf https://www.twitch.tv/{e.Channel} Schaut mal vorbei :)", false, embed.Build());
+                            if (e.Channel == "swaight")
+                                await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! Ich bin live auf https://www.twitch.tv/{e.Channel} Schaut mal vorbei :)", false, embed.Build());
+                            else
+                                await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! {user.DisplayName} ist live auf https://www.twitch.tv/{e.Channel} Schaut mal vorbei :)", false, embed.Build());
+
                         }
                     }
                 }

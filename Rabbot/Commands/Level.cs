@@ -398,7 +398,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt die benötigten EXP bis zum angegebenen Level an.")]
         public async Task Exp(int level)
         {
-            if (level > 80 || level < 1)
+            if (level > 119 || level < 1)
             {
                 await Context.Channel.SendMessageAsync("Nö.");
                 return;
@@ -436,7 +436,7 @@ namespace Rabbot.Commands
                 string path = "";
                 using (Context.Channel.EnterTypingState())
                 {
-                    string name = (user as IGuildUser).Nickname ?? user.Username;
+                    string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
                     var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                     int exp = dbUser.Exp ?? 0;
                     int goat = dbUser.Goats;

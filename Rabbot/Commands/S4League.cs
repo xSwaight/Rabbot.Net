@@ -26,8 +26,7 @@ namespace Rabbot.Commands
             if (!String.IsNullOrWhiteSpace(playername))
             {
                 Player player = new Player();
-                ApiRequest DB = new ApiRequest();
-                player = await DB.GetPlayer(playername);
+                player = await ApiRequest.GetPlayer(playername);
                 if (player == null)
                 {
                     var embed = new EmbedBuilder();
@@ -78,8 +77,7 @@ namespace Rabbot.Commands
             if (!String.IsNullOrWhiteSpace(clanname))
             {
                 Clan clan = new Clan();
-                ApiRequest DB = new ApiRequest();
-                clan = await DB.GetClan(clanname);
+                clan = await ApiRequest.GetClan(clanname);
                 if (clan == null)
                 {
                     var embed = new EmbedBuilder();
@@ -116,8 +114,7 @@ namespace Rabbot.Commands
         {
 
             Player player = new Player();
-            ApiRequest DB = new ApiRequest();
-            player = await DB.GetPlayer(playername);
+            player = await ApiRequest.GetPlayer(playername);
             if (player == null)
             {
                 var embed = new EmbedBuilder();
@@ -181,6 +178,75 @@ namespace Rabbot.Commands
             await user.AddRoleAsync(psbatRole.FirstOrDefault());
             await Logging.PsbatRole(Context);
             await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **PS & Bat** Rolle gegeben.");
+        }
+
+        [BotCommand]
+        [Command("remPlayer")]
+        public async Task Scrape(string name)
+        {
+            var player = RemScraper.Scrape(name);
+            if (player == null)
+            {
+                await ReplyAsync("Den Spieler gibts nicht, du **Kek**");
+                return;
+            }
+            var embed = new EmbedBuilder();
+            embed.WithTitle($"{player.Name} - Clan: {player.Clan}");
+            embed.WithDescription($"Level: {player.Level}\nMatches: {player.Matches} | Won: {player.Won} - Lost: {player.Lost}");
+            embed.Color = Color.DarkGreen;
+            await ReplyAsync(null, false, embed.Build());
+        }
+
+        [BotCommand]
+        [Summary("Zeigt Statistiken von S4 Remnants an.")]
+        [Command("remStats")]
+        public async Task RemStats()
+        {
+            using (swaightContext db = new swaightContext())
+            {
+                var dailyPlayer = db.Remnantsplayer.GroupBy(p => p.Date.Value.ToShortDateString());
+                var playerPeak = db.Remnantsplayer.OrderByDescending(p => p.Playercount).FirstOrDefault();
+                var firstDate = db.Remnantsplayer.OrderBy(p => p.Date).FirstOrDefault();
+                var lastDate = db.Remnantsplayer.OrderByDescending(p => p.Date).FirstOrDefault();
+                var list = new List<double>();
+                foreach (var daily in dailyPlayer)
+                {
+                    list.Add(daily.Average(p => p.Playercount));
+                }
+
+                var yesterday = dailyPlayer.FirstOrDefault(p => p.Key ==  DateTime.Now.AddDays(-1).ToShortDateString());
+                var today = dailyPlayer.FirstOrDefault(p => p.Key ==  DateTime.Now.ToShortDateString());
+                var lastWeek = dailyPlayer.FirstOrDefault(p => p.Key == DateTime.Now.AddDays(-8).ToShortDateString());
+
+                var culture = new System.Globalization.CultureInfo("de-DE");
+                var dayYesterday = culture.DateTimeFormat.GetDayName(DateTime.Now.AddDays(-1).DayOfWeek);
+                var dayLastWeek = culture.DateTimeFormat.GetDayName(DateTime.Now.AddDays(-8).DayOfWeek);
+
+                var avgYesteray = Math.Floor(yesterday.Average(p => p.Playercount));
+                var avgLastWeek = Math.Floor(lastWeek.Average(p => p.Playercount));
+
+                var peakYesteray = (double)yesterday.Max(p => p.Playercount);
+                var peakLastWeek = (double)lastWeek.Max(p => p.Playercount);
+
+                var percentAvg = Math.Floor(100 / avgLastWeek * avgYesteray) - 100;
+                var percentPeak = Math.Floor(100 / peakLastWeek * peakYesteray) - 100;
+
+                string percentOutputAvg = percentAvg.ToString();
+                string percentOutputPeak = percentPeak.ToString();
+                if (percentAvg > 0)
+                    percentOutputAvg = "+" + percentAvg;
+
+                var embed = new EmbedBuilder();
+                embed.WithTitle($"S4 Remnants Spieler Statistiken (Daten seit dem {firstDate.Date.Value.ToString("dd.MM.yyyy")})");
+                embed.AddField($"Spieler Online", $"**{lastDate.Playercount} Spieler** ({lastDate.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"All Time Spieler Peak", $"**{playerPeak.Playercount} Spieler** ({playerPeak.Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Heutiger Spieler Peak", $"**{today.Max(p => p.Playercount)} Spieler** ({today.First(p => p.Playercount == today.Max(x => x.Playercount)).Date.Value.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Täglicher Durchschnitt", $"**{Math.Floor(list.Average())}** Spieler");
+                embed.AddField($"Vergleich Durchschnitt ({percentOutputAvg}%)", $"{dayYesterday}: **{avgYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{avgLastWeek} Spieler**");
+                embed.AddField($"Vergleich Peak ({percentOutputPeak}%)", $"{dayYesterday}: **{peakYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{peakLastWeek} Spieler**");
+                embed.Color = Color.DarkGreen;
+                await ReplyAsync(null, false, embed.Build());
+            }
         }
     }
 }

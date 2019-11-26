@@ -25,6 +25,7 @@ namespace Rabbot.Database
         public virtual DbSet<Musicrank> Musicrank { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
         public virtual DbSet<Pot> Pot { get; set; }
+        public virtual DbSet<Remnantsplayer> Remnantsplayer { get; set; }
         public virtual DbSet<Roles> Roles { get; set; }
         public virtual DbSet<Songlist> Songlist { get; set; }
         public virtual DbSet<Stream> Stream { get; set; }
@@ -380,6 +381,24 @@ namespace Rabbot.Database
                     .WithMany(p => p.Pot)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("pot_ibfk_1");
+            });
+
+            modelBuilder.Entity<Remnantsplayer>(entity =>
+            {
+                entity.ToTable("remnantsplayer");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Playercount)
+                    .HasColumnName("playercount")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<Roles>(entity =>

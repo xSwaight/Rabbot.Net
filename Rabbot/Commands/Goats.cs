@@ -21,7 +21,7 @@ namespace Rabbot.Commands
         {
             using (swaightContext db = new swaightContext())
             {
-
+                var user = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id) ?? db.User.AddAsync(new User { Id = (long)Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 if (dbUser.Lastdaily != null)
                 {
@@ -584,7 +584,7 @@ namespace Rabbot.Commands
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
-                embed.AddField($"Discord beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
                 embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Gewinn Gesamt: **{dbUser.Gewinn.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}**");
                 if (inventory.Count() != 0)
