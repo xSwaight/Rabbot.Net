@@ -235,6 +235,8 @@ namespace Rabbot.Commands
                 string percentOutputPeak = percentPeak.ToString();
                 if (percentAvg > 0)
                     percentOutputAvg = "+" + percentAvg;
+                if (percentPeak > 0)
+                    percentOutputPeak = "+" + percentPeak;
 
                 var embed = new EmbedBuilder();
                 embed.WithTitle($"S4 Remnants Spieler Statistiken (Daten seit dem {firstDate.Date.Value.ToString("dd.MM.yyyy")})");
