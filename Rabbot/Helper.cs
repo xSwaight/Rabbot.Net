@@ -44,6 +44,60 @@ namespace Rabbot
             { 400, new Stall{Level = 26, Name = "Ziegenhof", Capacity = 30000, Attack = 15, Defense = 15, Jackpot = 1500, MaxOutput = 600, MaxPot = 15000  } }
         };
 
+        public static Dictionary<int, CombiLevel> combi = new Dictionary<int, CombiLevel> {
+            { 0, new CombiLevel{NeededEXP = 0 } },
+            { 1, new CombiLevel{NeededEXP = 10 } },
+            { 2, new CombiLevel{NeededEXP = 20 } },
+            { 3, new CombiLevel{NeededEXP = 30 } },
+            { 4, new CombiLevel{NeededEXP = 40 } },
+            { 5, new CombiLevel{NeededEXP = 50 } },
+            { 6, new CombiLevel{NeededEXP = 60 } },
+            { 7, new CombiLevel{NeededEXP = 70 } },
+            { 8, new CombiLevel{NeededEXP = 80 } },
+            { 9, new CombiLevel{NeededEXP = 90 } },
+            { 10, new CombiLevel{NeededEXP = 100 } },
+            { 11, new CombiLevel{NeededEXP = 120 } },
+            { 12, new CombiLevel{NeededEXP = 140 } },
+            { 13, new CombiLevel{NeededEXP = 160 } },
+            { 14, new CombiLevel{NeededEXP = 180 } },
+            { 15, new CombiLevel{NeededEXP = 200 } },
+            { 16, new CombiLevel{NeededEXP = 220 } },
+            { 17, new CombiLevel{NeededEXP = 240 } },
+            { 18, new CombiLevel{NeededEXP = 260 } },
+            { 19, new CombiLevel{NeededEXP = 280 } },
+            { 20, new CombiLevel{NeededEXP = 300 } },
+            { 21, new CombiLevel{NeededEXP = 340 } },
+            { 22, new CombiLevel{NeededEXP = 380 } },
+            { 23, new CombiLevel{NeededEXP = 420 } },
+            { 24, new CombiLevel{NeededEXP = 460 } },
+            { 25, new CombiLevel{NeededEXP = 500 } },
+            { 26, new CombiLevel{NeededEXP = 540 } },
+            { 27, new CombiLevel{NeededEXP = 580 } },
+            { 28, new CombiLevel{NeededEXP = 620 } },
+            { 29, new CombiLevel{NeededEXP = 660 } },
+            { 30, new CombiLevel{NeededEXP = 700 } },
+            { 31, new CombiLevel{NeededEXP = 780 } },
+            { 32, new CombiLevel{NeededEXP = 860 } },
+            { 33, new CombiLevel{NeededEXP = 940 } },
+            { 34, new CombiLevel{NeededEXP = 1020 } },
+            { 35, new CombiLevel{NeededEXP = 1100 } },
+            { 36, new CombiLevel{NeededEXP = 1180 } },
+            { 37, new CombiLevel{NeededEXP = 1260 } },
+            { 38, new CombiLevel{NeededEXP = 1340 } },
+            { 39, new CombiLevel{NeededEXP = 1420 } },
+            { 40, new CombiLevel{NeededEXP = 1500 } },
+            { 41, new CombiLevel{NeededEXP = 1660 } },
+            { 42, new CombiLevel{NeededEXP = 1820 } },
+            { 43, new CombiLevel{NeededEXP = 1980 } },
+            { 44, new CombiLevel{NeededEXP = 2140 } },
+            { 45, new CombiLevel{NeededEXP = 2300 } },
+            { 46, new CombiLevel{NeededEXP = 2460 } },
+            { 47, new CombiLevel{NeededEXP = 2620 } },
+            { 48, new CombiLevel{NeededEXP = 2620 } },
+            { 49, new CombiLevel{NeededEXP = 2780 } },
+            { 50, new CombiLevel{NeededEXP = 2940 } },
+        };
+
         public static Dictionary<int, LevelInfo> exp = new Dictionary<int, LevelInfo> {
             { 0, new LevelInfo{NeededEXP = 0, Reward = 0 } },
             { 1, new LevelInfo{NeededEXP = 300, Reward = 5 } },
@@ -463,6 +517,18 @@ namespace Rabbot
         {
             var myExp = exp.Where(y => y.Key <= level).Max(x => x.Value.Reward);
             return myExp;
+        }
+
+        public static uint GetCombiLevel(int? myExp)
+        {
+            var level = combi.Where(y => y.Value.NeededEXP <= myExp).Max(x => x.Key);
+            return (uint)level;
+        }
+
+        public static uint GetCombiEXP(int? level)
+        {
+            var myExp = combi.Where(y => y.Key <= level).Max(x => x.Value.NeededEXP);
+            return (uint)myExp;
         }
 
         public static string ToHumanReadable(this TimeSpan value)

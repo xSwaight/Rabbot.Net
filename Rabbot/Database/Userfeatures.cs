@@ -16,6 +16,7 @@ namespace Rabbot.Database
         public bool? HasLeft { get; set; }
         public int? Exp { get; set; }
         public int Goats { get; set; }
+        public int CombiExp { get; set; }
         public int Wins { get; set; }
         public int Loses { get; set; }
         public int Trades { get; set; }

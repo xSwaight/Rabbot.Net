@@ -84,7 +84,7 @@ namespace Rabbot.Services
                     if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
                         exp += (int)(exp * 1.5);
 
-                if(EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
+                if (EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
                     exp += (int)(exp * 1.5);
 
                 if (EXP.Gain == 1)
@@ -131,6 +131,23 @@ namespace Rabbot.Services
                         feature.Goats = Helper.GetStall(feature.Wins).Capacity;
                     else
                         feature.Goats += reward;
+
+
+                    var combis = db.Combi.Include(p => p.User).ThenInclude(p => p.Userfeatures).Include(p => p.CombiUser).ThenInclude(p => p.Userfeatures).Where(p => p.ServerId == (long)dcGuild.Id && (p.UserId == (long)dcMessage.Author.Id || p.CombiUserId == (long)dcMessage.Author.Id));
+
+                    foreach (var combi in combis)
+                    {
+                        if (combi.Accepted != true)
+                            continue;
+                        try
+                        {
+                            if (combi.CombiUserId == (long)dcMessage.Author.Id)
+                                combi.User.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id).CombiExp++;
+                            if (combi.UserId == (long)dcMessage.Author.Id)
+                                combi.CombiUser.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id).CombiExp++;
+                        }
+                        catch { }
+                    }
 
                     await db.SaveChangesAsync();
                 }

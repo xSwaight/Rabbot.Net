@@ -455,7 +455,7 @@ namespace Rabbot.Commands
                         percent = 100;
                         progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
                     }
-                    var ranks = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id).OrderByDescending(p => p.Exp);
+                    var ranks = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
                     {

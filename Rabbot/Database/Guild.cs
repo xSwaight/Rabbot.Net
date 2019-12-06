@@ -8,6 +8,7 @@ namespace Rabbot.Database
         public Guild()
         {
             Attacks = new HashSet<Attacks>();
+            Combi = new HashSet<Combi>();
             Musicrank = new HashSet<Musicrank>();
             Muteduser = new HashSet<Muteduser>();
             Pot = new HashSet<Pot>();
@@ -28,6 +29,7 @@ namespace Rabbot.Database
         public int Level { get; set; }
 
         public virtual ICollection<Attacks> Attacks { get; set; }
+        public virtual ICollection<Combi> Combi { get; set; }
         public virtual ICollection<Musicrank> Musicrank { get; set; }
         public virtual ICollection<Muteduser> Muteduser { get; set; }
         public virtual ICollection<Pot> Pot { get; set; }

@@ -17,6 +17,7 @@ namespace Rabbot.Database
 
         public virtual DbSet<Attacks> Attacks { get; set; }
         public virtual DbSet<Badwords> Badwords { get; set; }
+        public virtual DbSet<Combi> Combi { get; set; }
         public virtual DbSet<Currentday> Currentday { get; set; }
         public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
@@ -37,7 +38,8 @@ namespace Rabbot.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql(Config.bot.connectionString);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=localhost;database=swaight;user=root;");
             }
         }
 
@@ -102,6 +104,64 @@ namespace Rabbot.Database
                     .IsRequired()
                     .HasColumnName("badWord")
                     .HasColumnType("varchar(50)");
+            });
+
+            modelBuilder.Entity<Combi>(entity =>
+            {
+                entity.ToTable("combi");
+
+                entity.HasIndex(e => e.CombiUserId)
+                    .HasName("combiUserId");
+
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.Accepted)
+                    .IsRequired()
+                    .HasColumnName("accepted")
+                    .HasColumnType("bit(1)")
+                    .HasDefaultValueSql("'b\\'0\\''");
+
+                entity.Property(e => e.CombiUserId)
+                    .HasColumnName("combiUserId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.MessageId)
+                    .HasColumnName("messageId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnName("userId")
+                    .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.CombiUser)
+                    .WithMany(p => p.CombiCombiUser)
+                    .HasForeignKey(d => d.CombiUserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("combi_ibfk_3");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Combi)
+                    .HasForeignKey(d => d.ServerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("combi_ibfk_1");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.CombiUser)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("combi_ibfk_2");
             });
 
             modelBuilder.Entity<Currentday>(entity =>
@@ -513,6 +573,11 @@ namespace Rabbot.Database
 
                 entity.Property(e => e.Attacks)
                     .HasColumnName("attacks")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CombiExp)
+                    .HasColumnName("combiExp")
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
 

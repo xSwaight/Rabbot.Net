@@ -565,6 +565,12 @@ namespace Rabbot.Commands
                 embed.AddField($"Aktueller Stall", $"{stall.Name} | **{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** / **{stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen (**{Math.Round(percent, 0)}%**)");
                 embed.AddField($"Heutige Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
 
+                var combiLevel = Helper.GetCombiLevel(dbUser.CombiExp);
+                var neededExp1 = Helper.GetCombiEXP((int)combiLevel);
+                var neededExp2 = Helper.GetCombiEXP((int)combiLevel + 1);
+                var currentExp = dbUser.CombiExp - Helper.GetCombiEXP((int)combiLevel);
+                embed.AddField($"Combi", $" **Level: {combiLevel} | {currentExp}/{neededExp2} EXP**");
+
                 Emoji emote = null;
                 if (dbUser.Lastdaily != null)
                 {
