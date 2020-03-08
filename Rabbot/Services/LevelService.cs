@@ -116,7 +116,15 @@ namespace Rabbot.Services
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                    await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
+                    using (swaightContext db = new swaightContext())
+                    {
+                        var levelChannelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id)?.LevelchannelId;
+                        if (levelChannelId == null)
+                            await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
+                        else 
+                            await dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)levelChannelId)?.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
+
+                    }
                 }
                 File.Delete(path);
             }
@@ -259,7 +267,7 @@ namespace Rabbot.Services
                         if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) == null)
                             await myUser.AddRoleAsync(rolePro);
                     }
-                    if (NewLevel >= 80 && NewLevel <= 96)
+                    if (NewLevel >= 80 && NewLevel <= 95)
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == rolePro.Name) != null)
                             await myUser.RemoveRoleAsync(rolePro);
@@ -275,7 +283,7 @@ namespace Rabbot.Services
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleS1.Name) == null)
                             await myUser.AddRoleAsync(roleS1);
                     }
-                    if (NewLevel >= 97 && NewLevel <= 112)
+                    if (NewLevel >= 96 && NewLevel <= 112)
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleS1.Name) != null)
                             await myUser.RemoveRoleAsync(roleS1);

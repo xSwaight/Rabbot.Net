@@ -11,6 +11,7 @@ namespace Rabbot.Database
         public long CombiUserId { get; set; }
         public bool? Accepted { get; set; }
         public long? MessageId { get; set; }
+        public DateTime? Date { get; set; }
 
         public virtual User CombiUser { get; set; }
         public virtual Guild Server { get; set; }

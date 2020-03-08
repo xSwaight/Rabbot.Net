@@ -292,6 +292,62 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("setLevelChannel", RunMode = RunMode.Async)]
+        [Summary("Setzt den aktuellen Channel als Level Channel.")]
+        public async Task SetLevelChannel()
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
+                {
+                    await db.Guild.AddAsync(new Guild { ServerId = (long)Context.Guild.Id, NotificationchannelId = (long)Context.Channel.Id });
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
+                    defaultChannel.LevelchannelId = (long)Context.Channel.Id;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Level Channel wurde erfolgreich gesetzt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delLevelChannel", RunMode = RunMode.Async)]
+        [Summary("Löscht den Level Channel in den Einstellungen.")]
+        public async Task DelLevelChannel()
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Guild.Where(p => p.ServerId == (long)Context.Guild.Id).Any())
+                {
+                    return;
+                }
+                else
+                {
+                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
+                    defaultChannel.LevelchannelId = null;
+                }
+                await db.SaveChangesAsync();
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription("Level Channel wurde erfolgreich gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delNotification", RunMode = RunMode.Async)]
         [Summary("Löscht den Notification Channel in den Einstellungen.")]
         public async Task DelNotification()
@@ -574,13 +630,13 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 word = word.ToLower();
-                if (db.Badwords.Where(p => p.BadWord == word).Any())
+                if (db.Badwords.Where(p => p.BadWord == word && p.ServerId == (long)Context.Guild.Id).Any())
                 {
                     await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
                     return;
                 }
 
-                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word) });
+                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word) , ServerId = (long)Context.Guild.Id});
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -601,7 +657,7 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 word = word.ToLower();
-                var badword = db.Badwords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word));
+                var badword = db.Badwords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word) && p.ServerId == (long)Context.Guild.Id);
                 if (badword == null)
                     return;
 
@@ -626,7 +682,7 @@ namespace Rabbot.Commands
                 return;
             using (swaightContext db = new swaightContext())
             {
-                var badwords = db.Badwords.ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
+                var badwords = db.Badwords.Where(p => p.ServerId == (long)Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
                 if (page > badwords.PageCount)
                     return;
                 var eb = new EmbedBuilder();
@@ -639,6 +695,75 @@ namespace Rabbot.Commands
                 eb.WithDescription(output);
                 eb.WithTitle($"Seite {page} von {badwords.PageCount}");
                 await Context.Channel.SendMessageAsync(null, false, eb.Build());
+            }
+        }
+
+        [RequireOwner]
+        [Command("answers", RunMode = RunMode.Async)]
+        [Alias("antworten")]
+        public async Task Answers(int page = 1)
+        {
+            if (page < 1)
+                return;
+            using (swaightContext db = new swaightContext())
+            {
+                var answers = db.Randomanswer.ToList().ToPagedList(page, 25);
+                if (page > answers.PageCount)
+                    return;
+                var eb = new EmbedBuilder();
+                eb.Color = new Color(90, 92, 96);
+                string output = "**Alle Antworten:**\n\n";
+                foreach (var answer in answers)
+                {
+                    output += $"ID: {answer.Id} - **{answer.Answer}**\n\n";
+                }
+                eb.WithDescription(output);
+                eb.WithTitle($"Seite {page} von {answers.PageCount}");
+                await Context.Channel.SendMessageAsync(null, false, eb.Build());
+            }
+        }
+
+        [RequireOwner]
+        [Command("delAnswer", RunMode = RunMode.Async)]
+        public async Task DelAnswer(int id)
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                var answer = db.Randomanswer.FirstOrDefault(p => p.Id == id);
+                if (answer == null)
+                    return;
+
+                db.Randomanswer.Remove(answer);
+                await db.SaveChangesAsync();
+
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"'{answer.Answer}' wurde erfolgreich gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireOwner]
+        [Command("addAnswer", RunMode = RunMode.Async)]
+        public async Task AddAnswer([Remainder]string answer)
+        {
+            await Context.Message.DeleteAsync();
+            using (swaightContext db = new swaightContext())
+            {
+                await db.Randomanswer.AddAsync(new Randomanswer { Answer = answer });
+                await db.SaveChangesAsync();
+
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"'{answer}' wurde erfolgreich hinzugefügt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
             }
         }
     }

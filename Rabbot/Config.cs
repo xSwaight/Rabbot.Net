@@ -44,6 +44,7 @@ namespace Rabbot
         public string twitchAccessToken;
         public string connectionString;
         public string cmdPrefix;
+        public string officialPlayerURL;
         public int expMultiplier;
     }
 

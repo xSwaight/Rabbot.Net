@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -361,7 +362,6 @@ namespace Rabbot.Commands
 
         [Command("sensitivity", RunMode = RunMode.Async)]
         [BotCommand]
-        [RequireOwner]
         public async Task CalculateXeroSensitivity(string sensitivity)
         {
             if (!double.TryParse(sensitivity.Replace(',', '.'), out double result))
@@ -374,6 +374,38 @@ namespace Rabbot.Commands
 
             double xero = (((0.2 * ((remSensitivity - 4700) / 5000)) + 0.2) * 150 * 100) / 100;
             await ReplyAsync($"Xero Sensitivity: {xero.ToString("N2").Replace(',', '.')}");
+        }
+
+        [Command("say", RunMode = RunMode.Async)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        public async Task Say([Remainder]string message)
+        {
+            ISocketMessageChannel channel = Context.Channel;
+            if (TryGetChannel(message, Context, out ISocketMessageChannel newChannel, out string messageTag))
+            {
+                message = message.Replace(messageTag, string.Empty).Replace("  ", " ");
+                message = message.Replace("  ", " ");
+                channel = newChannel;
+            }
+            await Context.Message.DeleteAsync();
+            await channel.SendMessageAsync(message);
+        }
+
+        private bool TryGetChannel(string message, SocketCommandContext context, out ISocketMessageChannel channel, out string messageTag)
+        {
+            Regex regex = new Regex(@"<#[0-9!]{18,19}>");
+            var match = regex.Match(message);
+            var channelId = match.Value.Replace("<", string.Empty).Replace("#", string.Empty).Replace(">", string.Empty);
+            if (ulong.TryParse(channelId, out ulong result))
+            {
+                channel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == result) ?? context.Channel;
+                messageTag = match.Value;
+                return true;
+            }
+
+            channel = null;
+            messageTag = null;
+            return false;
         }
 
         public ulong GetCrossSum(ulong n)

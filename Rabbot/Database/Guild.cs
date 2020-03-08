@@ -8,6 +8,7 @@ namespace Rabbot.Database
         public Guild()
         {
             Attacks = new HashSet<Attacks>();
+            Badwords = new HashSet<Badwords>();
             Combi = new HashSet<Combi>();
             Musicrank = new HashSet<Musicrank>();
             Muteduser = new HashSet<Muteduser>();
@@ -23,12 +24,14 @@ namespace Rabbot.Database
         public long? Botchannelid { get; set; }
         public long? TrashchannelId { get; set; }
         public long? StreamchannelId { get; set; }
+        public long? LevelchannelId { get; set; }
         public int Notify { get; set; }
         public int Log { get; set; }
         public int Trash { get; set; }
         public int Level { get; set; }
 
         public virtual ICollection<Attacks> Attacks { get; set; }
+        public virtual ICollection<Badwords> Badwords { get; set; }
         public virtual ICollection<Combi> Combi { get; set; }
         public virtual ICollection<Musicrank> Musicrank { get; set; }
         public virtual ICollection<Muteduser> Muteduser { get; set; }

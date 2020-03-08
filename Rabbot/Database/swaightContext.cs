@@ -25,7 +25,9 @@ namespace Rabbot.Database
         public virtual DbSet<Items> Items { get; set; }
         public virtual DbSet<Musicrank> Musicrank { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
+        public virtual DbSet<Officialplayer> Officialplayer { get; set; }
         public virtual DbSet<Pot> Pot { get; set; }
+        public virtual DbSet<Randomanswer> Randomanswer { get; set; }
         public virtual DbSet<Remnantsplayer> Remnantsplayer { get; set; }
         public virtual DbSet<Roles> Roles { get; set; }
         public virtual DbSet<Songlist> Songlist { get; set; }
@@ -38,8 +40,7 @@ namespace Rabbot.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseMySql("server=localhost;database=swaight;user=root;");
+                optionsBuilder.UseMySql(Config.bot.connectionString);
             }
         }
 
@@ -98,12 +99,24 @@ namespace Rabbot.Database
             {
                 entity.ToTable("badwords");
 
+                entity.HasIndex(e => e.ServerId)
+                    .HasName("serverId");
+
                 entity.Property(e => e.Id).HasColumnType("int(11)");
 
                 entity.Property(e => e.BadWord)
                     .IsRequired()
                     .HasColumnName("badWord")
                     .HasColumnType("varchar(50)");
+
+                entity.Property(e => e.ServerId)
+                    .HasColumnName("serverId")
+                    .HasColumnType("bigint(20)");
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.Badwords)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("badwords_ibfk_1");
             });
 
             modelBuilder.Entity<Combi>(entity =>
@@ -132,6 +145,10 @@ namespace Rabbot.Database
                 entity.Property(e => e.CombiUserId)
                     .HasColumnName("combiUserId")
                     .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("date");
 
                 entity.Property(e => e.MessageId)
                     .HasColumnName("messageId")
@@ -220,6 +237,10 @@ namespace Rabbot.Database
                     .HasColumnName("level")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.LevelchannelId)
+                    .HasColumnName("levelchannelId")
+                    .HasColumnType("bigint(20)");
 
                 entity.Property(e => e.Log)
                     .HasColumnName("log")
@@ -405,6 +426,24 @@ namespace Rabbot.Database
                     .HasConstraintName("muteduser_ibfk_1");
             });
 
+            modelBuilder.Entity<Officialplayer>(entity =>
+            {
+                entity.ToTable("officialplayer");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Playercount)
+                    .HasColumnName("playercount")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+            });
+
             modelBuilder.Entity<Pot>(entity =>
             {
                 entity.ToTable("pot");
@@ -441,6 +480,20 @@ namespace Rabbot.Database
                     .WithMany(p => p.Pot)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("pot_ibfk_1");
+            });
+
+            modelBuilder.Entity<Randomanswer>(entity =>
+            {
+                entity.ToTable("randomanswer");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20)");
+
+                entity.Property(e => e.Answer)
+                    .IsRequired()
+                    .HasColumnName("answer")
+                    .HasColumnType("varchar(500)");
             });
 
             modelBuilder.Entity<Remnantsplayer>(entity =>

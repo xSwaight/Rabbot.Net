@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 using System;
@@ -22,7 +23,9 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 var user = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id) ?? db.User.AddAsync(new User { Id = (long)Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = (long)Context.User.Id, ServerId = (long)Context.Guild.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)Context.User.Id && p.ServerId == (long)Context.Guild.Id);
+                if (dbUser == null)
+                    return;
                 if (dbUser.Lastdaily != null)
                 {
                     if (dbUser.Lastdaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
@@ -162,7 +165,9 @@ namespace Rabbot.Commands
                 {
 
                     var embed = new EmbedBuilder();
-                    var senderUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.Guild.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var senderUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id);
+                    if (senderUser == null)
+                        return;
                     if (senderUser.Goats < amount)
                     {
                         embed.Color = Color.Red;
@@ -256,7 +261,9 @@ namespace Rabbot.Commands
             {
 
                 var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)target.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)target.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id);
+                if (dbUser == null)
+                    return;
                 var targetStall = Helper.GetStall(dbTarget.Wins);
                 var userStall = Helper.GetStall(dbUser.Wins);
 
@@ -513,7 +520,9 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
                 var embed = new EmbedBuilder();
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id);
+                if (dbUser == null)
+                    return;
                 var stall = Helper.GetStall(dbUser.Wins);
                 embed.WithTitle($"Stall von {user.Username}");
                 embed.WithDescription(stall.Name);
@@ -541,7 +550,9 @@ namespace Rabbot.Commands
             var embed = new EmbedBuilder();
             using (swaightContext db = new swaightContext())
             {
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id);
+                if (dbUser == null)
+                    return;
                 var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
                 var stall = Helper.GetStall(dbUser.Wins);
                 var atk = stall.Attack;
@@ -829,6 +840,43 @@ namespace Rabbot.Commands
             }
             var user = Context.User as SocketGuildUser;
             await Helper.UpdateSpin(Context.Channel, user, Context.Message, Context.Client, einsatz);
+        }
+
+        [Command("combiRanking", RunMode = RunMode.Async), Alias("combiranks")]
+        [BotCommand]
+        [Summary("Zeigt die Top User sortiert nach Combi EXP an.")]
+        public async Task CombiRanking(int page = 1)
+        {
+            if (page < 1)
+                return;
+            using (swaightContext db = new swaightContext())
+            {
+
+                var ranking = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
+                if (page > ranking.PageCount)
+                    return;
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.Description = $"Combi Ranking Seite {ranking.PageNumber}/{ranking.PageCount}";
+                embed.WithColor(new Color(239, 220, 7));
+                int i = ranking.PageSize * ranking.PageNumber - (ranking.PageSize - 1);
+                foreach (var top in ranking)
+                {
+                    try
+                    {
+                        uint level = Helper.GetCombiLevel(top.CombiExp);
+                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        int exp = (int)top.CombiExp;
+                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} EXP)");
+                        i++;
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                    }
+                }
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
         }
     }
 }

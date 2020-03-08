@@ -59,6 +59,29 @@ namespace Rabbot.API
             return "";
         }
 
+        public static int Official_APIRequest()
+        {
+            string url = Config.bot.officialPlayerURL;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Stream receiveStream = response.GetResponseStream();
+                StreamReader readStream = null;
+
+                readStream = new StreamReader(receiveStream, Encoding.GetEncoding("UTF-8"));
+                string data = readStream.ReadToEnd();
+
+                response.Close();
+                readStream.Close();
+                var playerCount = JsonConvert.DeserializeObject<OfficialPlayerCount>(data);
+                if (playerCount.Success)
+                    return playerCount.PlayerCount;
+            }
+            return 0;
+        }
+
         public static async Task<Player> GetPlayer(string name)
         {
             string URL = "https://api.s4db.net/player/" + name;

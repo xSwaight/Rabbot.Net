@@ -448,7 +448,8 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                if (db.Badwords.Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages)
+                SocketGuild dcServer = ((SocketGuildChannel)newMessage.Channel).Guild;
+                if (db.Badwords.Where(p => p.ServerId == (long)dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages)
                 {
                     await newMessage.DeleteAsync();
                     var myUser = newMessage.Author as SocketGuildUser;
@@ -456,7 +457,6 @@ namespace Rabbot
                         return;
                     if (myUser.Roles.Where(p => p.Name == "Muted").Any())
                         return;
-                    SocketGuild dcServer = ((SocketGuildChannel)newMessage.Channel).Guild;
                     if (!db.Warning.Where(p => p.UserId == (long)newMessage.Author.Id && p.ServerId == (long)dcServer.Id).Any())
                     {
                         await db.Warning.AddAsync(new Warning { ServerId = (long)dcServer.Id, UserId = (long)newMessage.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 1 });
@@ -468,7 +468,7 @@ namespace Rabbot
                         warn.Counter++;
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
                     }
-                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
+                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && p.ServerId == (long)dcServer.Id).BadWord;
                     await Logging.Warning(myUser, newMessage, badword);
 
                 }
@@ -578,14 +578,16 @@ namespace Rabbot
                 {
                     try
                     {
-                        var onlinePlayers = ApiRequest.RemDB_APIRequest();
-                        if (int.TryParse(onlinePlayers, out int count))
+                        var remnantsPlayers = ApiRequest.RemDB_APIRequest();
+                        var officialPlayers = ApiRequest.Official_APIRequest();
+                        await db.Officialplayer.AddAsync(new Officialplayer { Playercount = officialPlayers, Date = DateTime.Now });
+                        if (int.TryParse(remnantsPlayers, out int count))
                         {
                             await db.Remnantsplayer.AddAsync(new Remnantsplayer { Playercount = count, Date = DateTime.Now });
-                            await db.SaveChangesAsync();
                         }
+                        await db.SaveChangesAsync();
                     }
-                    catch { }
+                    catch (Exception e){ }
                 }
                 await Task.Delay(60000);
             }
@@ -889,7 +891,7 @@ namespace Rabbot
             using (swaightContext db = new swaightContext())
             {
                 SocketGuild dcGuild = dcUser.Guild;
-                if (db.Badwords.Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
+                if (db.Badwords.Where(p => p.ServerId == (long)dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
                 {
                     await msg.DeleteAsync();
                     var myUser = msg.Author as SocketGuildUser;
@@ -902,7 +904,7 @@ namespace Rabbot
                     if (warn.Counter > 3)
                         return;
                     await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
-                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)).BadWord;
+                    var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && p.ServerId == (long)dcGuild.Id).BadWord;
                     await Logging.Warning(myUser, msg, badword);
                 }
                 var dbUser = db.User.FirstOrDefault(p => p.Id == (long)msg.Author.Id) ?? db.User.AddAsync(new User { Id = (long)msg.Author.Id, Name = msg.Author.Username + "#" + msg.Author.Discriminator }).Result.Entity;
@@ -929,7 +931,8 @@ namespace Rabbot
 
                 var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
                 var embed = new EmbedBuilder();
-                embed.WithDescription($"{user.Mention} left the server!");
+                embed.WithTitle($"{user.Username + "#" + user.Discriminator} left the server!");
+                embed.WithDescription($"User Tag: {user.Mention}");
                 embed.WithColor(new Color(255, 0, 0));
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
@@ -960,7 +963,8 @@ namespace Rabbot
                     await user.AddRoleAsync(memberRole);
                 var channelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id).LogchannelId;
                 var embed = new EmbedBuilder();
-                embed.WithDescription($"{user.Mention} joined the server!");
+                embed.WithTitle($"{user.Username + "#" + user.Discriminator} joined the server!");
+                embed.WithDescription($"User Tag: {user.Mention}");
                 embed.WithColor(new Color(0, 255, 0));
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);

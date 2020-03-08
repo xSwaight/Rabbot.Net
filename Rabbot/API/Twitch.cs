@@ -18,14 +18,7 @@ namespace Rabbot.API
         DiscordSocketClient _client;
         public Twitch(DiscordSocketClient client)
         {
-            try
-            {
-                _ = ConfigLiveMonitorAsync(client);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message + " " + e.StackTrace);
-            }
+            _ = ConfigLiveMonitorAsync(client);
         }
         public async Task ConfigLiveMonitorAsync(DiscordSocketClient client)
         {

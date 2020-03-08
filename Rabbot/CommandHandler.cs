@@ -4,7 +4,10 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Rabbot.Database;
 using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Rabbot
@@ -33,13 +36,44 @@ namespace Rabbot
             if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.bot.cmdPrefix + "hdf")))
                 return;
             int argPos = 0;
-            if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos) || msg.HasMentionPrefix(_client.CurrentUser, ref argPos))
+            IResult result = null;
+            if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos))
             {
-                var result = await _commands.ExecuteAsync(context, argPos, _provider);
+                result = await _commands.ExecuteAsync(context, argPos, _provider);
                 await LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     Console.WriteLine(result.ErrorReason);
+                }
+            }
+            else
+            {
+                await SendAnswerIfTagged(msg.Content, context);
+            }
+
+            if (result != null && result.Error == CommandError.UnknownCommand)
+            {
+                await SendAnswerIfTagged(msg.Content, context);
+            }
+        }
+        private async Task SendAnswerIfTagged(string message, SocketCommandContext context)
+        {
+            Regex regex = new Regex(@"<@[0-9!]{18,19}>");
+            var match = regex.Match(message);
+            if (!match.Value.Contains(context.Client.CurrentUser.Id.ToString()))
+                return;
+
+            using (swaightContext db = new swaightContext())
+            {
+                if (!db.Randomanswer.Any())
+                    return;
+                using (context.Channel.EnterTypingState())
+                {
+                    var answerList = db.Randomanswer.ToList();
+                    var rnd = new Random();
+                    var index = rnd.Next(0, answerList.Count());
+                    await Task.Delay(rnd.Next(500, 2000));
+                    await context.Channel.SendMessageAsync(answerList[index].Answer);
                 }
             }
         }

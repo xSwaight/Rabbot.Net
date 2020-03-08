@@ -20,11 +20,27 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task addCombi(SocketGuildUser user)
         {
+            if (user.IsBot)
+            {
+                await ReplyAsync("Nö.");
+                return;
+            }
+            if (user.Id == Context.User.Id)
+            {
+                await ReplyAsync("Hättest du wohl gerne.");
+                return;
+            }
+
             using (swaightContext db = new swaightContext())
             {
                 if (db.Combi.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)Context.User.Id).Count() >= 5)
                 {
                     await ReplyAsync($"{Context.User.Mention} du hast bereits 5 bestehende Combis.");
+                    return;
+                }
+                if (db.Combi.Where(p => p.ServerId == (long)Context.Guild.Id && p.UserId == (long)user.Id).Count() >= 5)
+                {
+                    await ReplyAsync($"{user.Mention} hat bereits 5 bestehende Combis.");
                     return;
                 }
                 if (db.Combi.Any(p => p.ServerId == (long)Context.Guild.Id && (p.UserId == (long)Context.User.Id && p.CombiUserId == (long)user.Id) || p.CombiUserId == (long)Context.User.Id && p.UserId == (long)user.Id))
@@ -37,7 +53,7 @@ namespace Rabbot.Commands
                 embed.WithDescription($"Du hast Erfolgreich eine Combi Anfrage an {user.Mention} gestellt.");
                 embed.WithFooter("Die Anfrage kann über die Reactions angenommen oder abgelehnt werden.");
                 var msg = await ReplyAsync($"{user.Mention}", false, embed.Build());
-                await db.Combi.AddAsync(new Combi { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, CombiUserId = (long)user.Id, Accepted = false, MessageId = (long)msg.Id });
+                await db.Combi.AddAsync(new Combi { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, CombiUserId = (long)user.Id, Accepted = false, MessageId = (long)msg.Id, Date = DateTime.Now });
                 await db.SaveChangesAsync();
                 var emoteAccept = new Emoji("✅");
                 var emoteDeny = new Emoji("⛔");
@@ -68,9 +84,9 @@ namespace Rabbot.Commands
                         status = "Ausstehend";
 
                     if (combi.CombiUserId == (long)Context.User.Id)
-                        embed.AddField($"[{count}] {combi.User.Name}", $"Status: {status}");
+                        embed.AddField($"[{count}] {combi.User.Name}", $"Status: {status}\nBesteht seit: {combi.Date.Value.ToString("dd.MM.yyyy")}");
                     if (combi.UserId == (long)Context.User.Id)
-                        embed.AddField($"[{count}] {combi.CombiUser.Name}", $"Status: {status}");
+                        embed.AddField($"[{count}] {combi.CombiUser.Name}", $"Status: {status}\nBesteht seit: {combi.Date.Value.ToString("dd.MM.yyyy")}");
 
                     count++;
                 }
