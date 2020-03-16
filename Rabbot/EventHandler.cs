@@ -15,6 +15,8 @@ using Rabbot.API.Models;
 using System.Text.RegularExpressions;
 using Serilog.Core;
 using Rabbot.API;
+using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace Rabbot
 {
@@ -22,8 +24,16 @@ namespace Rabbot
     {
         DiscordSocketClient _client;
         CommandService _service;
+        private readonly ILogger<EventHandler> _logger;
 
-        public async Task InitializeAsync(DiscordSocketClient client)
+        public EventHandler(ILogger<EventHandler> logger, DiscordSocketClient client)
+        {
+            _logger = logger;
+            _client = client;
+            InitializeAsync(_client);
+        }
+
+        public void InitializeAsync(DiscordSocketClient client)
         {
             _client = client;
             _service = new CommandService();
@@ -37,7 +47,6 @@ namespace Rabbot
             new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
-            _client.GuildMemberUpdated += GuildMemberUpdated;
             _client.MessageReceived += MessageReceived;
             _client.MessageDeleted += MessageDeleted;
             _client.MessageUpdated += MessageUpdated;
@@ -45,11 +54,27 @@ namespace Rabbot
             _client.Connected += _client_Connected;
             _client.ReactionAdded += ReactionAdded;
             _client.ReactionRemoved += ReactionRemoved;
+            _client.UserUpdated += UserUpdated;
         }
 
-        private async Task GuildMemberUpdated(SocketGuildUser oldUser, SocketGuildUser newUser)
+        private async Task UserUpdated(SocketUser oldUser, SocketUser newUser)
         {
-
+            if (oldUser.Username != newUser.Username)
+            {
+                using (swaightContext db = new swaightContext())
+                {
+                    if (db.Namechanges.Where(p => p.UserId == (long)newUser.Id).OrderByDescending(p => p.Date).FirstOrDefault()?.NewName == oldUser.Username)
+                    {
+                        await db.Namechanges.AddAsync(new Namechanges { UserId = (long)newUser.Id, NewName = newUser.Username, Date = DateTime.Now });
+                    }
+                    else
+                    {
+                        await db.Namechanges.AddAsync(new Namechanges { UserId = (long)newUser.Id, NewName = oldUser.Username, Date = DateTime.Now.AddMinutes(-1) });
+                        await db.Namechanges.AddAsync(new Namechanges { UserId = (long)newUser.Id, NewName = newUser.Username, Date = DateTime.Now });
+                    }
+                    await db.SaveChangesAsync();
+                }
+            }
         }
 
         private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
@@ -587,7 +612,10 @@ namespace Rabbot
                         }
                         await db.SaveChangesAsync();
                     }
-                    catch (Exception e){ }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, e.Message);
+                    }
                 }
                 await Task.Delay(60000);
             }
@@ -740,7 +768,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
                 await db.SaveChangesAsync();
             }
@@ -792,9 +820,8 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
-
             }
         }
 
@@ -810,7 +837,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
             }
 
@@ -828,7 +855,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
             }
         }
@@ -845,7 +872,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
             }
         }
@@ -937,7 +964,13 @@ namespace Rabbot
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
+                TimeZoneInfo europeTimeZone;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time");
+                else
+                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+                DateTime europeTime = TimeZoneInfo.ConvertTimeFromUtc(user.JoinedAt.Value.DateTime, europeTimeZone);
+                embed.AddField("Joined Server at", europeTime.ToString("dd.MM.yyyy HH:mm"), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);
@@ -969,7 +1002,13 @@ namespace Rabbot
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToString("dd.MM.yyyy HH:mm"), false);
+                TimeZoneInfo europeTimeZone;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time");
+                else
+                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+                DateTime europeTime = TimeZoneInfo.ConvertTimeFromUtc(user.CreatedAt.DateTime, europeTimeZone);
+                embed.AddField("Joined Discord at", europeTime.ToString("dd.MM.yyyy HH:mm"), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);

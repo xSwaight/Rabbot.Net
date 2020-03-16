@@ -8,8 +8,10 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PagedList;
 using Rabbot.Database;
+using Rabbot.Models;
 using Rabbot.Preconditions;
 
 namespace Rabbot.Commands
@@ -18,8 +20,11 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly CommandService _commandService;
-        public Misc(CommandService commandService)
+        private readonly ILogger<Misc> _logger;
+
+        public Misc(ILogger<Misc> logger, CommandService commandService)
         {
+            _logger = logger;
             _commandService = commandService;
         }
 
@@ -192,11 +197,6 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Test()
         {
-            using (swaightContext db = new swaightContext())
-            {
-
-            }
-
             var result = Context.Guild.GetAuditLogsAsync(100).ToList().Result;
             string list = "";
             foreach (var logs in result)
@@ -354,7 +354,7 @@ namespace Rabbot.Commands
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message + " " + e.StackTrace);
+                    _logger.LogError(e, e.Message);
                 }
             }
             await Context.Channel.SendMessageAsync(null, false, embed.Build());

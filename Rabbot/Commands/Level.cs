@@ -12,11 +12,18 @@ using Rabbot.Preconditions;
 using System.Text;
 using Rabbot.Services;
 using PagedList;
+using Microsoft.Extensions.Logging;
 
 namespace Rabbot.Commands
 {
     public class Level : ModuleBase<SocketCommandContext>
     {
+        ILogger<Level> _logger;
+        public Level(ILogger<Level> logger)
+        {
+            _logger = logger;
+        }
+
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]
@@ -48,7 +55,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                        _logger.LogError(e, e.Message);
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -95,7 +102,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                        _logger.LogError(e, e.Message);
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -188,7 +195,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message + " " + e.StackTrace);
+                        _logger.LogError(e, e.Message);
                     }
                 }
 

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 using Rabbot.Database;
 using System;
 using System.Collections.Generic;
@@ -16,9 +17,14 @@ namespace Rabbot.API
         private LiveStreamMonitorService Monitor;
         private TwitchAPI API;
         DiscordSocketClient _client;
-        public Twitch(DiscordSocketClient client)
+        private readonly ILogger<Twitch> _logger;
+        public Twitch(ILogger<Twitch> logger, DiscordSocketClient client)
         {
-            _ = ConfigLiveMonitorAsync(client);
+            _logger = logger;
+            Task.Run(async () =>
+            {
+                await ConfigLiveMonitorAsync(client);
+            });
         }
         public async Task ConfigLiveMonitorAsync(DiscordSocketClient client)
         {
@@ -41,7 +47,7 @@ namespace Rabbot.API
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message + " " + e.StackTrace);
+                _logger.LogError(e, e.Message);
             }
         }
 
@@ -55,12 +61,15 @@ namespace Rabbot.API
         {
             try
             {
-                Task.Run(() => StreamOnline(e));
+                Task.Run(async () =>
+                {
+                    await StreamOnline(e);
+                });
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + " " + ex.StackTrace);
+                _logger.LogError(ex, ex.Message);
             }
         }
 
@@ -118,7 +127,7 @@ namespace Rabbot.API
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + " " + ex.StackTrace);
+                _logger.LogError(ex, ex.Message);
             }
         }
     }
