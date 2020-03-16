@@ -12,6 +12,7 @@ namespace Rabbot.Database
             CombiUser = new HashSet<Combi>();
             Musicrank = new HashSet<Musicrank>();
             Muteduser = new HashSet<Muteduser>();
+            Namechanges = new HashSet<Namechanges>();
             Pot = new HashSet<Pot>();
             Userfeatures = new HashSet<Userfeatures>();
             Warning = new HashSet<Warning>();
@@ -26,6 +27,7 @@ namespace Rabbot.Database
         public virtual ICollection<Combi> CombiUser { get; set; }
         public virtual ICollection<Musicrank> Musicrank { get; set; }
         public virtual ICollection<Muteduser> Muteduser { get; set; }
+        public virtual ICollection<Namechanges> Namechanges { get; set; }
         public virtual ICollection<Pot> Pot { get; set; }
         public virtual ICollection<Userfeatures> Userfeatures { get; set; }
         public virtual ICollection<Warning> Warning { get; set; }

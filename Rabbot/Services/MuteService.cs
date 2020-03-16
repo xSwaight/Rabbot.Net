@@ -22,7 +22,6 @@ namespace Rabbot.Services
         {
             DcClient = client;
         }
-
         public async Task CheckMutes()
         {
             using (swaightContext db = new swaightContext())
