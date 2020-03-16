@@ -10,20 +10,19 @@ using Rabbot.Services;
 using Rabbot.API;
 using Serilog.Events;
 using Sentry;
-using Microsoft.Extensions.Logging;
 
 namespace Rabbot
 {
     public class Rabbot
     {
         private DiscordSocketClient _client;
-        private ILogger<Rabbot> _logger;
         public static DiscordSocketClient Client;
 
         public async Task StartAsync()
         {
             try
             {
+                var _event = new EventHandler();
                 Log.Logger = new LoggerConfiguration()
                     .WriteTo.Sentry(o =>
                     {
@@ -54,7 +53,6 @@ namespace Rabbot
                     .AddSingleton<CommandHandler>()
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
-                    .AddSingleton<EventHandler>()
                     .AddSingleton<LoggingService>();
 
                 //Add logging     
@@ -72,16 +70,14 @@ namespace Rabbot
                 //Load up services
                 serviceProvider.GetRequiredService<CommandHandler>();
                 serviceProvider.GetRequiredService<Twitch>();
-                serviceProvider.GetRequiredService<EventHandler>();
 
-                _logger = serviceProvider.GetService<ILogger<Rabbot>>();
-
+                await _event.InitializeAsync(_client);
                 // Block this program until it is closed.
                 await Task.Delay(-1);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Console.WriteLine(e.Message + " " + e.StackTrace);
             }
 
         }

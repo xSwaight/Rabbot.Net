@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
@@ -15,12 +14,6 @@ namespace Rabbot.Commands
 {
     public class Goats : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger<Goats> _logger;
-
-        public Goats(ILogger<Goats> logger)
-        {
-            _logger = logger;
-        }
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]
@@ -795,7 +788,8 @@ namespace Rabbot.Commands
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+
+                Console.WriteLine(e.Message + e.StackTrace);
             }
 
         }
@@ -878,7 +872,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        Console.WriteLine(e.Message + " " + e.StackTrace);
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());

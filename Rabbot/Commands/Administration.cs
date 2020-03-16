@@ -766,36 +766,5 @@ namespace Rabbot.Commands
                 await m.DeleteAsync();
             }
         }
-
-        [RequireOwner]
-        [Command("namechanges", RunMode = RunMode.Async)]
-        public async Task Namechanges(IUser user, int page = 1)
-        {
-            if (page < 1)
-                return;
-            using (swaightContext db = new swaightContext())
-            {
-                var namechanges = db.Namechanges.Where(p => p.UserId == (long)user.Id).OrderByDescending(p => p.Date).ToList().ToPagedList(page, 25);
-                if (!namechanges.Any())
-                {
-                    await Context.Channel.SendMessageAsync($"Der User {user.Username} hat bislang noch keine Namechanges.");
-                    return;
-                }
-
-                if (page > namechanges.PageCount)
-                    return;
-                var eb = new EmbedBuilder();
-                eb.Color = new Color(90, 92, 96);
-                
-                string output = $"Seite {page} von {namechanges.PageCount}\n\n";
-                foreach (var namechange in namechanges)
-                {
-                    output += $"{namechange.Date.ToString("dd.MM.yyyy HH:mm")} - `{namechange.NewName}`\n";
-                }
-                eb.WithDescription(output);
-                eb.WithTitle($"**Alle Namechanges von: {user.Username}**");
-                await Context.Channel.SendMessageAsync(null, false, eb.Build());
-            }
-        }
     }
 }

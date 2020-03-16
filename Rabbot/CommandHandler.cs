@@ -43,7 +43,7 @@ namespace Rabbot
                 await LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
-                    _logger.LogWarning(result.ErrorReason);
+                    Console.WriteLine(result.ErrorReason);
                 }
             }
             else

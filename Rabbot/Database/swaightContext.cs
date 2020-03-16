@@ -25,7 +25,6 @@ namespace Rabbot.Database
         public virtual DbSet<Items> Items { get; set; }
         public virtual DbSet<Musicrank> Musicrank { get; set; }
         public virtual DbSet<Muteduser> Muteduser { get; set; }
-        public virtual DbSet<Namechanges> Namechanges { get; set; }
         public virtual DbSet<Officialplayer> Officialplayer { get; set; }
         public virtual DbSet<Pot> Pot { get; set; }
         public virtual DbSet<Randomanswer> Randomanswer { get; set; }
@@ -425,37 +424,6 @@ namespace Rabbot.Database
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("muteduser_ibfk_1");
-            });
-
-            modelBuilder.Entity<Namechanges>(entity =>
-            {
-                entity.ToTable("namechanges");
-
-                entity.HasIndex(e => e.UserId)
-                    .HasName("userId");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.Date)
-                    .HasColumnName("date")
-                    .HasColumnType("datetime");
-
-                entity.Property(e => e.NewName)
-                    .IsRequired()
-                    .HasColumnName("newName")
-                    .HasColumnType("varchar(50)");
-
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Namechanges)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("namechanges_ibfk_1");
             });
 
             modelBuilder.Entity<Officialplayer>(entity =>
