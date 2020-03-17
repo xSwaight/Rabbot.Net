@@ -11,11 +11,18 @@ using Rabbot.ImageGenerator;
 using Rabbot.API.Models;
 using Discord.WebSocket;
 using Rabbot.Preconditions;
+using Serilog;
 
 namespace Rabbot.Commands
 {
     public class S4League : ModuleBase<SocketCommandContext>
     {
+        private readonly ILogger _logger;
+
+        public S4League()
+        {
+            _logger = Log.ForContext<S4League>();
+        }
 
         [Command("player", RunMode = RunMode.Async)]
         [Cooldown(10)]

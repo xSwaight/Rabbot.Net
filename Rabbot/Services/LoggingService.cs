@@ -1,10 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Serilog;
 using System.Threading.Tasks;
 
 namespace Rabbot.Services
@@ -15,11 +12,11 @@ namespace Rabbot.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
 
-        public LoggingService(ILogger<LoggingService> logger, DiscordSocketClient discord, CommandService commands)
+        public LoggingService(DiscordSocketClient discord, CommandService commands)
         {
             _discord = discord;
             _commands = commands;
-            _logger = logger;
+            _logger = Log.ForContext<LoggingService>();
 
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;
@@ -29,36 +26,36 @@ namespace Rabbot.Services
         {
             string logText = $"{msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
 
-            switch (msg.Severity.ToString())
+            switch (msg.Severity)
             {
-                case "Critical":
+                case LogSeverity.Critical:
                     {
-                        _logger.LogCritical(logText);
+                        _logger.Fatal(logText);
                         break;
                     }
-                case "Warning":
+                case LogSeverity.Warning:
                     {
-                        _logger.LogWarning(logText);
+                        _logger.Warning(logText);
                         break;
                     }
-                case "Info":
+                case LogSeverity.Info:
                     {
-                        _logger.LogInformation(logText);
+                        _logger.Information(logText);
                         break;
                     }
-                case "Verbose":
+                case LogSeverity.Verbose:
                     {
-                        _logger.LogInformation(logText);
+                        _logger.Verbose(logText);
                         break;
                     }
-                case "Debug":
+                case LogSeverity.Debug:
                     {
-                        _logger.LogDebug(logText);
+                        _logger.Debug(logText);
                         break;
                     }
-                case "Error":
+                case LogSeverity.Error:
                     {
-                        _logger.LogError(logText);
+                        _logger.Error(logText);
                         break;
                     }
             }

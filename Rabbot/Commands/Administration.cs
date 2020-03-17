@@ -9,11 +9,18 @@ using Discord.WebSocket;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Services;
+using Serilog;
 
 namespace Rabbot.Commands
 {
     public class Administration : ModuleBase<SocketCommandContext>
     {
+        private readonly ILogger _logger;
+
+        public Administration()
+        {
+            _logger = Log.ForContext<Administration>();
+        }
 
         [Command("del", RunMode = RunMode.Async)]
         [Summary("Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).")]

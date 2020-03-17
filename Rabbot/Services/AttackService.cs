@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,10 @@ namespace Rabbot.Services
     {
         private DiscordSocketClient DcClient { get; set; }
 
+        private readonly ILogger _logger;
         public AttackService(DiscordSocketClient client)
         {
+            _logger = Log.ForContext<AttackService>();
             DcClient = client;
         }
 

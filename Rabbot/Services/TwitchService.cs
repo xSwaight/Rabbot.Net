@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.Logging;
 using Rabbot.Database;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +13,10 @@ namespace Rabbot.Services
     class TwitchService
     {
         DiscordSocketClient _client;
-        private readonly ILogger<TwitchService> _logger;
-        public TwitchService(ILogger<TwitchService> logger, DiscordSocketClient client)
+        private readonly ILogger _logger;
+        public TwitchService(DiscordSocketClient client)
         {
-            _logger = logger;
+            _logger = Log.ForContext<TwitchService>();
             _client = client;
             Task.Run(() =>
             {
@@ -35,11 +35,11 @@ namespace Rabbot.Services
 
                 this.OnStreamOnline += Twitch_OnStreamOnline;
                 new Task(async () => await CheckStreamStatus(twitchClient, usernames, 60), TaskCreationOptions.LongRunning).Start();
-                _logger.LogInformation($"{nameof(TwitchService)}: Loaded successfully");
+                _logger.Information($"{nameof(TwitchService)}: Loaded successfully");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                _logger.Error(e, $"Error while loading {nameof(TwitchService)}");
             }
         }
 
@@ -80,7 +80,7 @@ namespace Rabbot.Services
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error while checking Twitch streams");
                 }
 
             }
@@ -98,7 +98,7 @@ namespace Rabbot.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.Error(ex, $"Error while pushing event");
             }
         }
 
@@ -150,7 +150,7 @@ namespace Rabbot.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.Error(ex, $"Error while sending stream announcement");
             }
         }
 

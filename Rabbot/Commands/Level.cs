@@ -9,19 +9,17 @@ using Rabbot.Database;
 using Rabbot.ImageGenerator;
 using Microsoft.EntityFrameworkCore;
 using Rabbot.Preconditions;
-using System.Text;
-using Rabbot.Services;
 using PagedList;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Rabbot.Commands
 {
     public class Level : ModuleBase<SocketCommandContext>
     {
-        ILogger<Level> _logger;
-        public Level(ILogger<Level> logger)
+        private readonly ILogger _logger;
+        public Level()
         {
-            _logger = logger;
+            _logger = Log.ForContext<Level>();
         }
 
 
@@ -55,7 +53,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        _logger.Error(e, $"Error while adding fields to embed");
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -102,7 +100,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        _logger.Error(e, $"Error while adding fields to embed");
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -195,7 +193,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        _logger.Error(e, $"Error while adding fields to embed");
                     }
                 }
 

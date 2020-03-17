@@ -1,10 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Rabbot.Database;
+using Serilog;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -19,13 +18,13 @@ namespace Rabbot
         private readonly IServiceProvider _provider;
         private readonly ILogger _logger;
 
-        public CommandHandler(IServiceProvider provider, ILogger<CommandHandler> logger)
+        public CommandHandler(IServiceProvider provider)
         {
             _provider = provider;
             _client = _provider.GetService<DiscordSocketClient>();
             _commands = _provider.GetService<CommandService>();
             _client.MessageReceived += HandleCommandAsync;
-            _logger = logger;
+            _logger = Log.ForContext<CommandHandler>();
         }
 
         private async Task HandleCommandAsync(SocketMessage s)
@@ -43,7 +42,7 @@ namespace Rabbot
                 await LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
-                    _logger.LogWarning(result.ErrorReason);
+                    _logger.Warning(result.ErrorReason);
                 }
             }
             else
@@ -80,15 +79,17 @@ namespace Rabbot
 
         private async Task LogCommandUsage(SocketCommandContext context, IResult result)
         {
+            if (!result.IsSuccess)
+                return;
             if (context.Channel is IGuildChannel)
             {
                 var logTxt = $"User: [{context.User.Username}] Discord Server: [{context.Guild.Name}] -> [{context.Message.Content}]";
-                _logger.LogInformation(logTxt);
+                _logger.Information(logTxt);
             }
             else
             {
                 var logTxt = $"User: [{context.User.Username}] -> [{context.Message.Content}]";
-                _logger.LogInformation(logTxt);
+                _logger.Information(logTxt);
             }
         }
     }

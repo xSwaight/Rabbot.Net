@@ -8,11 +8,11 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Models;
 using Rabbot.Preconditions;
+using Serilog;
 
 namespace Rabbot.Commands
 {
@@ -20,11 +20,11 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly CommandService _commandService;
-        private readonly ILogger<Misc> _logger;
+        private readonly ILogger _logger;
 
-        public Misc(ILogger<Misc> logger, CommandService commandService)
+        public Misc(CommandService commandService)
         {
-            _logger = logger;
+            _logger = Log.ForContext<Misc>();
             _commandService = commandService;
         }
 
@@ -354,7 +354,7 @@ namespace Rabbot.Commands
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error while adding fields to embed");
                 }
             }
             await Context.Channel.SendMessageAsync(null, false, embed.Build());

@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,9 +19,12 @@ namespace Rabbot.Services
         private Muteduser MuteUser { get; set; }
         private SocketRole MutedRole { get; set; }
 
+        private readonly ILogger _logger;
+
         public WarnService(DiscordSocketClient client)
         {
             DcClient = client;
+            _logger = Log.ForContext<WarnService>();
         }
 
         public async Task CheckWarnings()

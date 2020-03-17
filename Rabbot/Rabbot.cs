@@ -1,5 +1,4 @@
-﻿using Discord.Net;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System.Threading.Tasks;
@@ -7,17 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using Serilog;
 using Rabbot.Services;
-using Rabbot.API;
 using Serilog.Events;
 using Sentry;
-using Microsoft.Extensions.Logging;
 
 namespace Rabbot
 {
     public class Rabbot
     {
-        private DiscordSocketClient _client;
-        private ILogger<Rabbot> _logger;
         public static DiscordSocketClient Client;
 
         public async Task StartAsync()
@@ -40,7 +35,7 @@ namespace Rabbot
                     .CreateLogger();
 
                 var services = new ServiceCollection()
-                    .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
+                    .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                     {
                         LogLevel = LogSeverity.Verbose,
                         MessageCacheSize = 1000,
@@ -57,8 +52,8 @@ namespace Rabbot
                     .AddSingleton<CommandHandler>()
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
-                    .AddSingleton<EventHandler>()
-                    .AddSingleton<LoggingService>();
+                    .AddSingleton<LoggingService>()
+                    .AddSingleton<EventHandler>();
 
                 //Add logging     
                 ConfigureServices(services);
@@ -77,14 +72,13 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<TwitchService>();
                 serviceProvider.GetRequiredService<EventHandler>();
 
-                _logger = serviceProvider.GetService<ILogger<Rabbot>>();
 
                 // Block this program until it is closed.
                 await Task.Delay(-1);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Log.Fatal(e, "Startup failed");
             }
 
         }

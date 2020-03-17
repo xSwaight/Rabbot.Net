@@ -2,10 +2,10 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +15,11 @@ namespace Rabbot.Commands
 {
     public class Goats : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger<Goats> _logger;
+        private readonly ILogger _logger;
 
-        public Goats(ILogger<Goats> logger)
+        public Goats()
         {
-            _logger = logger;
+            _logger = Log.ForContext<Goats>();
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -795,7 +795,7 @@ namespace Rabbot.Commands
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                _logger.Error(e, $"Error in command {nameof(Pot)}");
             }
 
         }
@@ -878,7 +878,7 @@ namespace Rabbot.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        _logger.Error(e, $"Error in command {nameof(CombiRanking)}");
                     }
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());

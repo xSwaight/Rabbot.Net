@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.Preconditions;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,13 @@ namespace Rabbot.Commands
 {
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
+        private readonly ILogger _logger;
+
+        public CombiCmd()
+        {
+            _logger = Log.ForContext<CombiCmd>();
+        }
+
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]
         [Summary("Erstellt eine Combi Anfrage an den markierten User.")]

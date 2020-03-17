@@ -1,22 +1,17 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Rabbot.Database;
 using Rabbot.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
 using Rabbot.API.Models;
-using System.Text.RegularExpressions;
-using Serilog.Core;
 using Rabbot.API;
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Rabbot
 {
@@ -24,11 +19,11 @@ namespace Rabbot
     {
         DiscordSocketClient _client;
         CommandService _service;
-        private readonly ILogger<EventHandler> _logger;
+        private readonly ILogger _logger;
 
-        public EventHandler(ILogger<EventHandler> logger, DiscordSocketClient client)
+        public EventHandler(DiscordSocketClient client)
         {
-            _logger = logger;
+            _logger = Log.ForContext<EventHandler>();
             _client = client;
             InitializeAsync(_client);
         }
@@ -45,7 +40,7 @@ namespace Rabbot
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
-            _logger.LogInformation($"{nameof(EventHandler)}: Loaded successfully");
+            _logger.Information($"{nameof(EventHandler)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
@@ -615,7 +610,7 @@ namespace Rabbot
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.Message);
+                        _logger.Error(e, $"Error while checking playercounts");
                     }
                 }
                 await Task.Delay(60000);
@@ -769,7 +764,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error in {nameof(NewDay)}");
                 }
                 await db.SaveChangesAsync();
             }
@@ -821,7 +816,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error in {nameof(CheckSong)}");
                 }
             }
         }
@@ -838,7 +833,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error in {nameof(CheckWarnings)}");
                 }
             }
 
@@ -856,7 +851,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error in {nameof(CheckAttacks)}");
                 }
             }
         }
@@ -873,7 +868,7 @@ namespace Rabbot
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.Message);
+                    _logger.Error(e, $"Error in {nameof(CheckBannedUsers)}");
                 }
             }
         }

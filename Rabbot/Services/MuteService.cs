@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,9 +19,11 @@ namespace Rabbot.Services
         private Muteduser MuteUser { get; set; }
         private SocketRole MutedRole { get; set; }
 
+        private readonly ILogger _logger;
         public MuteService(DiscordSocketClient client)
         {
             DcClient = client;
+            _logger = Log.ForContext<MuteService>();
         }
         public async Task CheckMutes()
         {
@@ -75,7 +78,7 @@ namespace Rabbot.Services
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine(e.Message);
+                                _logger.Error(e, $"Error while adding roles");
                             }
                         }
                         else
@@ -98,7 +101,7 @@ namespace Rabbot.Services
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e.Message);
+                                    _logger.Error(e, $"Error while removing roles");
                                 }
                             }
                         }
@@ -276,7 +279,7 @@ namespace Rabbot.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message + " " + e.StackTrace);
+                _logger.Error(e, $"Failed to send a private message");
             }
 
         }

@@ -3,6 +3,7 @@ using Discord.Commands;
 using MediaToolkit;
 using MediaToolkit.Model;
 using Rabbot.Services;
+using Serilog;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -13,10 +14,12 @@ namespace Rabbot.Commands
     public class Music : ModuleBase<SocketCommandContext>
     {
         private readonly AudioService _service;
+        private readonly ILogger _logger;
 
         public Music(AudioService service)
         {
             _service = service;
+            _logger = Log.ForContext<Music>();
         }
 
         [RequireOwner]
