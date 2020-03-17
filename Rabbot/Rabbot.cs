@@ -13,8 +13,7 @@ namespace Rabbot
 {
     public class Rabbot
     {
-        public static DiscordSocketClient Client;
-
+        DiscordSocketClient _client;
         public async Task StartAsync()
         {
             try
@@ -35,7 +34,7 @@ namespace Rabbot
                     .CreateLogger();
 
                 var services = new ServiceCollection()
-                    .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
+                    .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
                     {
                         LogLevel = LogSeverity.Verbose,
                         MessageCacheSize = 1000,
@@ -72,6 +71,7 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<TwitchService>();
                 serviceProvider.GetRequiredService<EventHandler>();
 
+                new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 
                 // Block this program until it is closed.
                 await Task.Delay(-1);
@@ -85,6 +85,30 @@ namespace Rabbot
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(configure => configure.AddSerilog());
+        }
+
+        private void RunConsoleCommand()
+        {
+            while (true)
+            {
+                try
+                {
+                    string input = Console.ReadLine();
+                    switch (input)
+                    {
+                        case "servers":
+                            Log.Information($"Connected Servers: {string.Join(", ", _client.Guilds)}");
+                            break;
+                        default:
+                            Log.Information($"Command '{input}' not found");
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Error while running a console command");
+                }
+            }
         }
     }
 }
