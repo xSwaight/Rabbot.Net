@@ -50,7 +50,7 @@ namespace Rabbot
                         CaseSensitiveCommands = false,
                         ThrowOnError = false
                     }))
-                    .AddSingleton<Twitch>()
+                    .AddSingleton<TwitchService>()
                     .AddSingleton<CommandHandler>()
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
@@ -71,7 +71,7 @@ namespace Rabbot
 
                 //Load up services
                 serviceProvider.GetRequiredService<CommandHandler>();
-                serviceProvider.GetRequiredService<Twitch>();
+                serviceProvider.GetRequiredService<TwitchService>();
                 serviceProvider.GetRequiredService<EventHandler>();
 
                 _logger = serviceProvider.GetService<ILogger<Rabbot>>();

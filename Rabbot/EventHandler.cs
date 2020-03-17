@@ -45,6 +45,7 @@ namespace Rabbot
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
+            _logger.LogInformation($"{nameof(EventHandler)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;

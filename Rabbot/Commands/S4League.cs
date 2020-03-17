@@ -308,6 +308,7 @@ namespace Rabbot.Commands
                         }
                         embedOfficial.Color = Color.DarkRed;
                         await ReplyAsync(null, false, embedOfficial.Build());
+                        return;
                     }
                     else
                     {
