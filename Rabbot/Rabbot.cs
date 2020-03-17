@@ -31,6 +31,9 @@ namespace Rabbot
                         o.Environment = Config.bot.environment;
                         o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
                         o.MinimumEventLevel = LogEventLevel.Warning;
+                        o.SendDefaultPii = true;
+                        o.AttachStacktrace = true;
+
                     })
                     .WriteTo.File("logs/rabbot.log", rollingInterval: RollingInterval.Day)
                     .WriteTo.Console()
