@@ -14,6 +14,11 @@ namespace Rabbot
     public class Rabbot
     {
         DiscordSocketClient _client;
+        private readonly ILogger _logger;
+        public Rabbot()
+        {
+            _logger = Log.ForContext<Rabbot>();
+        }
         public async Task StartAsync()
         {
             try
@@ -32,7 +37,6 @@ namespace Rabbot
                     .WriteTo.File("logs/rabbot.log", rollingInterval: RollingInterval.Day)
                     .WriteTo.Console()
                     .CreateLogger();
-
                 var services = new ServiceCollection()
                     .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
                     {
@@ -78,7 +82,7 @@ namespace Rabbot
             }
             catch (Exception e)
             {
-                Log.Fatal(e, "Startup failed");
+                _logger.Fatal(e, "Startup failed");
             }
 
         }
@@ -97,16 +101,16 @@ namespace Rabbot
                     switch (input)
                     {
                         case "servers":
-                            Log.Information($"Connected Servers: {string.Join(", ", _client.Guilds)}");
+                            _logger.Information($"Connected Servers: {string.Join(", ", _client.Guilds)}");
                             break;
                         default:
-                            Log.Information($"Command '{input}' not found");
+                            _logger.Information($"Command '{input}' not found");
                             break;
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Error while running a console command");
+                    _logger.Error(e, "Error while running a console command");
                 }
             }
         }

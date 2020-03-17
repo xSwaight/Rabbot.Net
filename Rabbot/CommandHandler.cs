@@ -39,7 +39,7 @@ namespace Rabbot
             if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos))
             {
                 result = await _commands.ExecuteAsync(context, argPos, _provider);
-                await LogCommandUsage(context, result);
+                LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     _logger.Warning(result.ErrorReason);
@@ -77,7 +77,7 @@ namespace Rabbot
             }
         }
 
-        private async Task LogCommandUsage(SocketCommandContext context, IResult result)
+        private void LogCommandUsage(SocketCommandContext context, IResult result)
         {
             if (!result.IsSuccess)
                 return;
