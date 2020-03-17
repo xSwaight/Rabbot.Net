@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.ImageGenerator;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.IO;
 using System.Linq;
@@ -20,10 +21,9 @@ namespace Rabbot.Services
         public uint OldLevel { get; set; }
         public uint NewLevel { get; set; }
 
-        private readonly ILogger _logger;
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(LevelService));
         public LevelService(SocketMessage msg)
         {
-            _logger = Log.ForContext<LevelService>();
             dcMessage = msg as SocketUserMessage;
             dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
             using (swaightContext db = new swaightContext())

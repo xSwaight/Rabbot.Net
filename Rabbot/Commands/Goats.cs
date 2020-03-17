@@ -6,6 +6,7 @@ using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +16,7 @@ namespace Rabbot.Commands
 {
     public class Goats : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger _logger;
-
-        public Goats()
-        {
-            _logger = Log.ForContext<Goats>();
-        }
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Goats));
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]

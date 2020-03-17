@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,7 +17,7 @@ namespace Rabbot
         DiscordSocketClient _client;
         CommandService _commands;
         private readonly IServiceProvider _provider;
-        private readonly ILogger _logger;
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(CommandHandler));
 
         public CommandHandler(IServiceProvider provider)
         {
@@ -24,7 +25,6 @@ namespace Rabbot
             _client = _provider.GetService<DiscordSocketClient>();
             _commands = _provider.GetService<CommandService>();
             _client.MessageReceived += HandleCommandAsync;
-            _logger = Log.ForContext<CommandHandler>();
         }
 
         private async Task HandleCommandAsync(SocketMessage s)

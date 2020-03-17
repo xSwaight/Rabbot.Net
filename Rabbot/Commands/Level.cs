@@ -11,17 +11,13 @@ using Microsoft.EntityFrameworkCore;
 using Rabbot.Preconditions;
 using PagedList;
 using Serilog;
+using Serilog.Core;
 
 namespace Rabbot.Commands
 {
     public class Level : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger _logger;
-        public Level()
-        {
-            _logger = Log.ForContext<Level>();
-        }
-
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Level));
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]

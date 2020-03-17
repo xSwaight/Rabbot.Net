@@ -10,17 +10,13 @@ using PagedList;
 using Rabbot.Database;
 using Rabbot.Services;
 using Serilog;
+using Serilog.Core;
 
 namespace Rabbot.Commands
 {
     public class Administration : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger _logger;
-
-        public Administration()
-        {
-            _logger = Log.ForContext<Administration>();
-        }
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Administration));
 
         [Command("del", RunMode = RunMode.Async)]
         [Summary("Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).")]

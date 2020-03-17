@@ -12,17 +12,13 @@ using Rabbot.API.Models;
 using Discord.WebSocket;
 using Rabbot.Preconditions;
 using Serilog;
+using Serilog.Core;
 
 namespace Rabbot.Commands
 {
     public class S4League : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger _logger;
-
-        public S4League()
-        {
-            _logger = Log.ForContext<S4League>();
-        }
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(S4League));
 
         [Command("player", RunMode = RunMode.Async)]
         [Cooldown(10)]

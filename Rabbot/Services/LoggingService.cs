@@ -2,13 +2,14 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Serilog;
+using Serilog.Core;
 using System.Threading.Tasks;
 
 namespace Rabbot.Services
 {
     public class LoggingService
     {
-        private readonly ILogger _logger;
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(LoggingService));
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
 
@@ -16,7 +17,6 @@ namespace Rabbot.Services
         {
             _discord = discord;
             _commands = commands;
-            _logger = Log.ForContext<LoggingService>();
 
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;

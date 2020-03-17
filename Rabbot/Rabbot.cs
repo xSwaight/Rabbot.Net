@@ -8,17 +8,14 @@ using Serilog;
 using Rabbot.Services;
 using Serilog.Events;
 using Sentry;
+using Serilog.Core;
 
 namespace Rabbot
 {
     public class Rabbot
     {
         DiscordSocketClient _client;
-        private readonly ILogger _logger;
-        public Rabbot()
-        {
-            _logger = Log.ForContext<Rabbot>();
-        }
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Rabbot));
         public async Task StartAsync()
         {
             try
@@ -28,12 +25,13 @@ namespace Rabbot
                     {
                         o.Dsn = new Dsn(Config.bot.sentrydsn);
                         o.Environment = Config.bot.environment;
-                        o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
+                        o.MinimumBreadcrumbLevel = LogEventLevel.Verbose;
                         o.MinimumEventLevel = LogEventLevel.Warning;
                         o.SendDefaultPii = true;
                         o.AttachStacktrace = true;
 
                     })
+                    .MinimumLevel.Verbose()
                     .WriteTo.File("logs/rabbot.log", rollingInterval: RollingInterval.Day)
                     .WriteTo.Console()
                     .CreateLogger();

@@ -4,6 +4,7 @@ using MediaToolkit;
 using MediaToolkit.Model;
 using Rabbot.Services;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,12 +15,11 @@ namespace Rabbot.Commands
     public class Music : ModuleBase<SocketCommandContext>
     {
         private readonly AudioService _service;
-        private readonly ILogger _logger;
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Music));
 
         public Music(AudioService service)
         {
             _service = service;
-            _logger = Log.ForContext<Music>();
         }
 
         [RequireOwner]

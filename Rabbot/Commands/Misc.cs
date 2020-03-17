@@ -13,6 +13,7 @@ using Rabbot.Database;
 using Rabbot.Models;
 using Rabbot.Preconditions;
 using Serilog;
+using Serilog.Core;
 
 namespace Rabbot.Commands
 {
@@ -20,11 +21,10 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly CommandService _commandService;
-        private readonly ILogger _logger;
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Misc));
 
         public Misc(CommandService commandService)
         {
-            _logger = Log.ForContext<Misc>();
             _commandService = commandService;
         }
 

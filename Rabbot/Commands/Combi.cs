@@ -5,22 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.Preconditions;
 using Serilog;
+using Serilog.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Rabbot.Commands
 {
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
-        private readonly ILogger _logger;
-
-        public CombiCmd()
-        {
-            _logger = Log.ForContext<CombiCmd>();
-        }
+        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(CombiCmd));
 
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]
