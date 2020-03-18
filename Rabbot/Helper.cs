@@ -15,36 +15,36 @@ namespace Rabbot
 {
     public static class Helper
     {
-        public static Dictionary<int, Stall> stall = new Dictionary<int, Stall> {
-            { 0, new Stall{Level = 1, Name = "Wiese Lv. 1", Capacity = 2000, Attack = 1, Defense = 1, Jackpot = 150, MaxOutput = 40, MaxPot = 1000 } },
-            { 2, new Stall{Level = 2, Name = "Wiese Lv. 2", Capacity = 2400, Attack = 1, Defense = 1, Jackpot = 200, MaxOutput = 45, MaxPot = 1200  } },
-            { 5, new Stall{Level = 3, Name = "Wiese Lv. 3", Capacity = 2800, Attack = 2, Defense = 2, Jackpot = 250, MaxOutput = 50, MaxPot = 1400  } },
-            { 10, new Stall{Level = 4, Name = "Wiese Lv. 4", Capacity = 3200, Attack = 2, Defense = 2, Jackpot = 300, MaxOutput = 55, MaxPot = 1600  } },
-            { 15, new Stall{Level = 5, Name = "Wiese Lv. 5", Capacity = 3600, Attack = 3, Defense = 3, Jackpot = 350, MaxOutput = 60, MaxPot = 1800  } },
-            { 20, new Stall{Level = 6, Name = "Unterstand Lv. 1", Capacity = 4000, Attack = 3, Defense = 3, Jackpot = 400, MaxOutput = 70, MaxPot = 2000  } },
-            { 25, new Stall{Level = 7, Name = "Unterstand Lv. 2", Capacity = 4400, Attack = 4, Defense = 4, Jackpot = 450, MaxOutput = 80, MaxPot = 2200  } },
-            { 30, new Stall{Level = 8, Name = "Unterstand Lv. 3", Capacity = 4800, Attack = 4, Defense = 4, Jackpot = 500, MaxOutput = 90, MaxPot = 2400  } },
-            { 35, new Stall{Level = 9, Name = "Unterstand Lv. 4", Capacity = 5200, Attack = 5, Defense = 5, Jackpot = 550, MaxOutput = 100, MaxPot = 2600  } },
-            { 40, new Stall{Level = 10, Name = "Unterstand Lv. 5", Capacity = 5600, Attack = 5, Defense = 5, Jackpot = 600, MaxOutput = 110, MaxPot = 2800  } },
-            { 50, new Stall{Level = 11, Name = "Schuppen Lv. 1", Capacity = 6000, Attack = 6, Defense = 6, Jackpot = 650, MaxOutput = 130, MaxPot = 3000  } },
-            { 60, new Stall{Level = 12, Name = "Schuppen Lv. 2", Capacity = 6400, Attack = 6, Defense = 6, Jackpot = 700, MaxOutput = 150, MaxPot = 3200  } },
-            { 70, new Stall{Level = 13, Name = "Schuppen Lv. 3", Capacity = 6800, Attack = 7, Defense = 7, Jackpot = 750, MaxOutput = 170, MaxPot = 3400  } },
-            { 80, new Stall{Level = 14, Name = "Schuppen Lv. 4", Capacity = 7200, Attack = 7, Defense = 7, Jackpot = 800, MaxOutput = 190, MaxPot = 3600  } },
-            { 90, new Stall{Level = 15, Name = "Schuppen Lv. 5", Capacity = 7600, Attack = 8, Defense = 8, Jackpot = 850, MaxOutput = 210, MaxPot = 3800  } },
-            { 100, new Stall{Level = 16, Name = "Kleiner Stall Lv. 1", Capacity = 8000, Attack = 8, Defense = 8, Jackpot = 900, MaxOutput = 240, MaxPot = 4000  } },
-            { 120, new Stall{Level = 17, Name = "Kleiner Stall Lv. 2", Capacity = 8400, Attack = 9, Defense = 9, Jackpot = 950, MaxOutput = 270, MaxPot = 4200  } },
-            { 140, new Stall{Level = 18, Name = "Kleiner Stall Lv. 3", Capacity = 8800, Attack = 9, Defense = 9, Jackpot = 1000, MaxOutput = 300, MaxPot = 4400  } },
-            { 160, new Stall{Level = 19, Name = "Kleiner Stall Lv. 4", Capacity = 9200, Attack = 10, Defense = 10, Jackpot = 1050, MaxOutput = 330, MaxPot = 4600  } },
-            { 180, new Stall{Level = 20, Name = "Kleiner Stall Lv. 5", Capacity = 9600, Attack = 10, Defense = 10, Jackpot = 1100, MaxOutput = 360, MaxPot = 4800  } },
-            { 200, new Stall{Level = 21, Name = "Großer Stall Lv. 1", Capacity = 10000, Attack = 11, Defense = 11, Jackpot = 1150, MaxOutput = 400, MaxPot = 5000 } },
-            { 240, new Stall{Level = 22, Name = "Großer Stall Lv. 2", Capacity = 10400, Attack = 11, Defense = 11, Jackpot = 1200, MaxOutput = 440, MaxPot = 5200  } },
-            { 280, new Stall{Level = 23, Name = "Großer Stall Lv. 3", Capacity = 10800, Attack = 12, Defense = 12, Jackpot = 1250, MaxOutput = 480, MaxPot = 5400  } },
-            { 320, new Stall{Level = 24, Name = "Großer Stall Lv. 4", Capacity = 13000, Attack = 12, Defense = 12, Jackpot = 1300, MaxOutput = 520, MaxPot = 6500  } },
-            { 360, new Stall{Level = 25, Name = "Großer Stall Lv. 5", Capacity = 16000, Attack = 13, Defense = 13, Jackpot = 1350, MaxOutput = 560, MaxPot = 8000  } },
-            { 400, new Stall{Level = 26, Name = "Ziegenhof", Capacity = 30000, Attack = 15, Defense = 15, Jackpot = 1500, MaxOutput = 600, MaxPot = 15000  } }
+        public readonly static Dictionary<int, Stall> stall = new Dictionary<int, Stall> {
+            { 0, new Stall{Level = 1, Name = "Wiese Lv. 1", Capacity = 2000, Attack = 1, Defense = 1, Jackpot = 500, MaxOutput = 40, MaxPot = 1000 } },
+            { 2, new Stall{Level = 2, Name = "Wiese Lv. 2", Capacity = 2400, Attack = 1, Defense = 1, Jackpot = 600, MaxOutput = 45, MaxPot = 1200  } },
+            { 5, new Stall{Level = 3, Name = "Wiese Lv. 3", Capacity = 2800, Attack = 2, Defense = 2, Jackpot = 700, MaxOutput = 50, MaxPot = 1400  } },
+            { 10, new Stall{Level = 4, Name = "Wiese Lv. 4", Capacity = 3200, Attack = 2, Defense = 2, Jackpot = 800, MaxOutput = 55, MaxPot = 1600  } },
+            { 15, new Stall{Level = 5, Name = "Wiese Lv. 5", Capacity = 3600, Attack = 3, Defense = 3, Jackpot = 900, MaxOutput = 60, MaxPot = 1800  } },
+            { 20, new Stall{Level = 6, Name = "Unterstand Lv. 1", Capacity = 4000, Attack = 3, Defense = 3, Jackpot = 1000, MaxOutput = 70, MaxPot = 2000  } },
+            { 25, new Stall{Level = 7, Name = "Unterstand Lv. 2", Capacity = 4400, Attack = 4, Defense = 4, Jackpot = 1100, MaxOutput = 80, MaxPot = 2200  } },
+            { 30, new Stall{Level = 8, Name = "Unterstand Lv. 3", Capacity = 4800, Attack = 4, Defense = 4, Jackpot = 1200, MaxOutput = 90, MaxPot = 2400  } },
+            { 35, new Stall{Level = 9, Name = "Unterstand Lv. 4", Capacity = 5200, Attack = 5, Defense = 5, Jackpot = 1300, MaxOutput = 100, MaxPot = 2600  } },
+            { 40, new Stall{Level = 10, Name = "Unterstand Lv. 5", Capacity = 5600, Attack = 5, Defense = 5, Jackpot = 1400, MaxOutput = 110, MaxPot = 2800  } },
+            { 50, new Stall{Level = 11, Name = "Schuppen Lv. 1", Capacity = 6000, Attack = 6, Defense = 6, Jackpot = 1500, MaxOutput = 130, MaxPot = 3000  } },
+            { 60, new Stall{Level = 12, Name = "Schuppen Lv. 2", Capacity = 6400, Attack = 6, Defense = 6, Jackpot = 1600, MaxOutput = 150, MaxPot = 3200  } },
+            { 70, new Stall{Level = 13, Name = "Schuppen Lv. 3", Capacity = 6800, Attack = 7, Defense = 7, Jackpot = 1700, MaxOutput = 170, MaxPot = 3400  } },
+            { 80, new Stall{Level = 14, Name = "Schuppen Lv. 4", Capacity = 7200, Attack = 7, Defense = 7, Jackpot = 1800, MaxOutput = 190, MaxPot = 3600  } },
+            { 90, new Stall{Level = 15, Name = "Schuppen Lv. 5", Capacity = 7600, Attack = 8, Defense = 8, Jackpot = 1900, MaxOutput = 210, MaxPot = 3800  } },
+            { 100, new Stall{Level = 16, Name = "Kleiner Stall Lv. 1", Capacity = 8000, Attack = 8, Defense = 8, Jackpot = 2000, MaxOutput = 240, MaxPot = 4000  } },
+            { 120, new Stall{Level = 17, Name = "Kleiner Stall Lv. 2", Capacity = 8400, Attack = 9, Defense = 9, Jackpot = 2100, MaxOutput = 270, MaxPot = 4200  } },
+            { 140, new Stall{Level = 18, Name = "Kleiner Stall Lv. 3", Capacity = 8800, Attack = 9, Defense = 9, Jackpot = 2200, MaxOutput = 300, MaxPot = 4400  } },
+            { 160, new Stall{Level = 19, Name = "Kleiner Stall Lv. 4", Capacity = 9200, Attack = 10, Defense = 10, Jackpot = 2300, MaxOutput = 330, MaxPot = 4600  } },
+            { 180, new Stall{Level = 20, Name = "Kleiner Stall Lv. 5", Capacity = 9600, Attack = 10, Defense = 10, Jackpot = 2400, MaxOutput = 360, MaxPot = 4800  } },
+            { 200, new Stall{Level = 21, Name = "Großer Stall Lv. 1", Capacity = 10000, Attack = 11, Defense = 11, Jackpot = 2500, MaxOutput = 400, MaxPot = 5000 } },
+            { 240, new Stall{Level = 22, Name = "Großer Stall Lv. 2", Capacity = 10400, Attack = 11, Defense = 11, Jackpot = 2600, MaxOutput = 440, MaxPot = 5200  } },
+            { 280, new Stall{Level = 23, Name = "Großer Stall Lv. 3", Capacity = 10800, Attack = 12, Defense = 12, Jackpot = 2700, MaxOutput = 480, MaxPot = 5400  } },
+            { 320, new Stall{Level = 24, Name = "Großer Stall Lv. 4", Capacity = 13000, Attack = 12, Defense = 12, Jackpot = 2800, MaxOutput = 520, MaxPot = 6500  } },
+            { 360, new Stall{Level = 25, Name = "Großer Stall Lv. 5", Capacity = 16000, Attack = 13, Defense = 13, Jackpot = 2900, MaxOutput = 560, MaxPot = 8000  } },
+            { 400, new Stall{Level = 26, Name = "Ziegenhof", Capacity = 30000, Attack = 15, Defense = 15, Jackpot = 3000, MaxOutput = 600, MaxPot = 15000  } }
         };
 
-        public static Dictionary<int, CombiLevel> combi = new Dictionary<int, CombiLevel> {
+        public readonly static Dictionary<int, CombiLevel> combi = new Dictionary<int, CombiLevel> {
             { 0, new CombiLevel{NeededEXP = 0 } },
             { 1, new CombiLevel{NeededEXP = 5 } },
             { 2, new CombiLevel{NeededEXP = 10 } },
@@ -98,7 +98,7 @@ namespace Rabbot
             { 50, new CombiLevel{NeededEXP = 1550 } },
         };
 
-        public static Dictionary<int, LevelInfo> exp = new Dictionary<int, LevelInfo> {
+        public readonly static Dictionary<int, LevelInfo> exp = new Dictionary<int, LevelInfo> {
             { 0, new LevelInfo{NeededEXP = 0, Reward = 0 } },
             { 1, new LevelInfo{NeededEXP = 300, Reward = 5 } },
             { 2, new LevelInfo{NeededEXP = 600, Reward = 5 } },
@@ -221,26 +221,26 @@ namespace Rabbot
             { 119, new LevelInfo{NeededEXP = 24800000, Reward = 2000 } }
         };
 
-        public static Emote Sword = Emote.Parse("<a:sword:593493621400010795>");
+        public readonly static Emote Sword = Emote.Parse("<a:sword:593493621400010795>");
         public static Emote Shield = Emote.Parse("<a:shield:593498755441885275>");
 
-        public static Emote glitch = Emote.Parse("<:glitch:597053743623700490>");
-        public static Emote diego = Emote.Parse("<:diego:597054124294668290>");
-        public static Emote shyguy = Emote.Parse("<:shyguy:597053511951187968>");
-        public static Emote goldenziege = Emote.Parse("<:goldengoat:597052540290465794>");
+        public readonly static Emote glitch = Emote.Parse("<:glitch:597053743623700490>");
+        public readonly static Emote diego = Emote.Parse("<:diego:597054124294668290>");
+        public readonly static Emote shyguy = Emote.Parse("<:shyguy:597053511951187968>");
+        public readonly static Emote goldenziege = Emote.Parse("<:goldengoat:597052540290465794>");
 
-        public static Emote doggo = Emote.Parse("<:doggo:597065709339672576>");
-        public static Emote slot = Emote.Parse("<a:slot:597872810760732672>");
+        public readonly static Emote doggo = Emote.Parse("<:doggo:597065709339672576>");
+        public readonly static Emote slot = Emote.Parse("<a:slot:597872810760732672>");
 
-        public static Emoji Yes = new Emoji("✅");
+        public readonly static Emoji Yes = new Emoji("✅");
         public static Emoji No = new Emoji("❌");
 
-        public static Emoji thumbsUp = new Emoji("👍");
-        public static Emoji thumbsDown = new Emoji("👎");
+        public readonly static Emoji thumbsUp = new Emoji("👍");
+        public readonly static Emoji thumbsDown = new Emoji("👎");
 
         public static bool AttackActive = false;
 
-        public static ConcurrentDictionary<ulong, DateTime> cooldown = new ConcurrentDictionary<ulong, DateTime>();
+        public readonly static ConcurrentDictionary<ulong, DateTime> cooldown = new ConcurrentDictionary<ulong, DateTime>();
 
         public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, int setEinsatz, bool isNew = true)
         {

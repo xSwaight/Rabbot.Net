@@ -59,6 +59,8 @@ namespace Rabbot
             {
                 using (swaightContext db = new swaightContext())
                 {
+                    if (db.User.FirstOrDefault(p => p.Id == (long)newUser.Id) == null)
+                        await db.User.AddAsync(new User {Id = (long)newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
                     if (db.Namechanges.Where(p => p.UserId == (long)newUser.Id).OrderByDescending(p => p.Date).FirstOrDefault()?.NewName == oldUser.Username)
                     {
                         await db.Namechanges.AddAsync(new Namechanges { UserId = (long)newUser.Id, NewName = newUser.Username, Date = DateTime.Now });
@@ -542,7 +544,9 @@ namespace Rabbot
                     EmbedBuilder embed = new EmbedBuilder();
                     embed.WithAuthor(dcUser as IUser);
                     embed.Description = $"Nachricht von {dcUser.Mention} in {dcTextchannel.Mention} wurde gelöscht!";
-                    embed.AddField($"Nachricht:", $"{message.Value.Content}");
+                    var attachment = message.Value?.Attachments;
+                    var attachmentlink = attachment?.FirstOrDefault()?.Url;
+                    embed.AddField($"Nachricht:", $"{message.Value?.Content} {(attachmentlink != null ? $"\nAttachment: {attachmentlink}" : $"")}");
                     DateTime msgTime = message.Value.Timestamp.DateTime.ToLocalTime();
                     embed.WithFooter($"Message ID: {message.Value.Id} • {msgTime.ToShortTimeString()} {msgTime.ToShortDateString()}");
                     embed.Color = new Color(255, 0, 0);

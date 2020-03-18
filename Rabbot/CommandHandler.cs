@@ -42,7 +42,7 @@ namespace Rabbot
                 LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
-                    _logger.Warning(result.ErrorReason);
+                    _logger.Information(result.ErrorReason);
                 }
             }
             else
@@ -83,7 +83,7 @@ namespace Rabbot
                 return;
             if (context.Channel is IGuildChannel)
             {
-                var logTxt = $"User: [{context.User.Username}] Discord Server: [{context.Guild.Name}] -> [{context.Message.Content}]";
+                var logTxt = $"User: [{context.User.Username}] Server: [{context.Guild.Name}] Channel: [{context.Channel.Name}] -> [{context.Message.Content}]";
                 _logger.Information(logTxt);
             }
             else

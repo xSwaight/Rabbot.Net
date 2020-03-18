@@ -192,7 +192,10 @@ namespace Rabbot.Services
 
                 if (roleS4 != null && roleS3 != null && roleS2 != null && roleS1 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {
-                    var myUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage?.Author.Id);
+                    var myUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage?.Author?.Id);
+                    if (myUser == null)
+                        return;
+
                     if (NewLevel < 1)
                     {
                         if (myUser.Roles.FirstOrDefault(p => p.Name == roleS4.Name || p.Name == roleS3.Name || p.Name == roleS2.Name || p.Name == roleS1.Name || p.Name == rolePro.Name || p.Name == roleSemi.Name || p.Name == roleAmateur.Name || p.Name == roleRookie.Name) != null)
