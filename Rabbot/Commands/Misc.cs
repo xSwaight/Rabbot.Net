@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using PagedList;
 using Rabbot.Database;
+using Rabbot.ImageGenerator;
 using Rabbot.Models;
 using Rabbot.Preconditions;
 using Serilog;
@@ -326,6 +328,30 @@ namespace Rabbot.Commands
                     }
                 }
                 await db.SaveChangesAsync();
+            }
+        }
+
+        [Command("protect", RunMode = RunMode.Async), Alias("corona")]
+        [BotCommand]
+        [Cooldown(10)]
+        public async Task Protect(IUser user = null)
+        {
+            if (user == null)
+                user = Context.User;
+
+            using (Context.Channel.EnterTypingState())
+            {
+                string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 1024);
+                if (profilePicture == null)
+                    profilePicture = user.GetDefaultAvatarUrl();
+                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Templates/corona.html");
+                var html = template.Render(new
+                {
+                    AVATAR = profilePicture
+                });
+
+                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username) + "_Corona", html, 616, 616, ImageGenerator.ImageFormat.Png);
+                await Context.Channel.SendFileAsync(path);
             }
         }
 

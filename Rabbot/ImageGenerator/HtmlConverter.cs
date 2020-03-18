@@ -99,7 +99,7 @@ namespace Rabbot.ImageGenerator
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --encoding unicode --width {width} --height {height} -f {imageFormat} \"{url}\" \"{filename}\"")
+            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --transparent --encoding unicode --width {width} --height {height} -f {imageFormat} \"{url}\" \"{filename}\"")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
