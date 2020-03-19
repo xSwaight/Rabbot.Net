@@ -85,6 +85,8 @@ namespace Rabbot
                 return;
             if (!reaction.Message.Value.Embeds.Any())
                 return;
+            if (reaction.Message.Value.Embeds.First().Description == null)
+                return;
             if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
                 return;
             if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime cooldownends))
@@ -199,6 +201,8 @@ namespace Rabbot
                     if (!reaction.Message.IsSpecified)
                         return;
                     if (!reaction.Message.Value.Embeds.Any())
+                        return;
+                    if (reaction.Message.Value.Embeds.First().Description == null)
                         return;
                     if (!reaction.Message.Value.Embeds.First().Description.Contains("Slot Machine"))
                         return;
