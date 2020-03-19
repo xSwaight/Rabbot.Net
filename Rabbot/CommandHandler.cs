@@ -58,8 +58,8 @@ namespace Rabbot
         private async Task SendAnswerIfTagged(string message, SocketCommandContext context)
         {
             Regex regex = new Regex(@"<@[0-9!]{18,19}>");
-            var match = regex.Match(message);
-            if (!match.Value.Contains(context.Client.CurrentUser.Id.ToString()))
+            var matches = regex.Matches(message);
+            if (!matches.Any(p => p.Value.Contains(context.Client.CurrentUser.Id.ToString())))
                 return;
 
             using (swaightContext db = new swaightContext())
