@@ -36,5 +36,12 @@ namespace Rabbot
 
             return TimeZoneInfo.ConvertTimeFromUtc(@this, europeTimeZone);
         }
+
+        public static int GetPercentFrom(this int @this, double percent)
+        {
+            double percentValue = percent / 100;
+            double value = Convert.ToDouble(@this);
+            return (int)(value * (1 + percentValue)) - @this;
+        }
     }
 }

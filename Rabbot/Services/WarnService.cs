@@ -15,10 +15,6 @@ namespace Rabbot.Services
         private SocketGuildUser DcTargetUser { get; set; }
         private SocketGuild DcGuild { get; set; }
         private DiscordSocketClient DcClient { get; set; }
-        private User User { get; set; }
-        private Guild Guild { get; set; }
-        private Muteduser MuteUser { get; set; }
-        private SocketRole MutedRole { get; set; }
 
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(WarnService));
 

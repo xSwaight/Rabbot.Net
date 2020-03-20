@@ -14,7 +14,7 @@ namespace Rabbot.Services
         {
             var wordCountBefore = userFeature.TodaysWords;
 
-            var wordCount = msg.Content.CountWords();
+            var wordCount = Helper.ReplaceCharacter(msg.Content).CountWords();
 
             if (wordCount <= 0)
                 return;
@@ -56,7 +56,7 @@ namespace Rabbot.Services
 
         public List<Userfeatures> GetRanking(IQueryable<Userfeatures> userFeatures)
         {
-            return userFeatures.Where(p => p.StreakLevel > 0).OrderByDescending(p => p.StreakLevel).ToList();
+            return userFeatures.Where(p => p.StreakLevel > 0).OrderByDescending(p => p.StreakLevel).ThenByDescending(p => p.TodaysWords).ToList();
         }
     }
 }

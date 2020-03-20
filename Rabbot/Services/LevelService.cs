@@ -14,12 +14,12 @@ namespace Rabbot.Services
 {
     class LevelService
     {
-        public uint NewLevel { get; set; }
-
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
-        public LevelService()
-        {
+        private readonly StreakService _streakService;
 
+        public LevelService(StreakService streakService)
+        {
+            _streakService = streakService;
         }
 
         public async Task AddEXP(SocketMessage msg)
@@ -30,11 +30,11 @@ namespace Rabbot.Services
             {
                 var guild = db.Guild.FirstOrDefault(p => p.ServerId == dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = dcGuild.Id }).Result.Entity;
                 var EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = msg.Author.Id, ServerId = dcGuild.Id }).Result.Entity;
-                var OldLevel = Helper.GetLevel(EXP.Exp);
+                var oldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
                 var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
-                string myMessage = Helper.MessageReplace(msg.Content);
-                int textLenght = myMessage.Count();
+                string filteredMsg = Helper.MessageReplace(msg.Content);
+                int textLenght = filteredMsg.Count();
                 Random rnd = new Random();
                 int random = rnd.Next(1, 11);
                 if (textLenght <= 2)
@@ -66,6 +66,7 @@ namespace Rabbot.Services
                     multiplier = myEvent.Multiplier;
                 }
 
+                exp += exp.GetPercentFrom(_streakService.GetStreakLevel(EXP) * 0.2);
 
                 var ranks = db.Musicrank.Where(p => p.ServerId == dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
                 int rank = 0;
@@ -97,7 +98,7 @@ namespace Rabbot.Services
                     EXP.Attacks--;
                 }
                 var NewLevel = Helper.GetLevel(EXP.Exp);
-                await SendLevelUp(dcGuild, guild, dcMessage, OldLevel, NewLevel);
+                await SendLevelUp(dcGuild, guild, dcMessage, oldLevel, NewLevel);
                 await SetRoles(dcGuild, dcMessage, NewLevel);
                 db.SaveChanges();
             }
