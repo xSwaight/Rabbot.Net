@@ -12,12 +12,19 @@ using Rabbot.Preconditions;
 using PagedList;
 using Serilog;
 using Serilog.Core;
+using Rabbot.Services;
 
 namespace Rabbot.Commands
 {
     public class Level : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Level));
+        private readonly StreakService _streakService;
+
+        public Level(StreakService streakService)
+        {
+            _streakService = streakService;
+        }
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]
@@ -481,7 +488,7 @@ namespace Rabbot.Commands
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
-                    await Context.Channel.SendFileAsync(path);
+                    await Context.Channel.SendFileAsync(path, $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
                     await db.SaveChangesAsync();
                 }
                 File.Delete(path);

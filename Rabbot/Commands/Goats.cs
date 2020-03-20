@@ -610,7 +610,7 @@ namespace Rabbot.Commands
                 }
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
-                embed.AddField($"Streak Level", $"Level: **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**");
+                embed.AddField($"Streak Level", $"{Constants.Fire} **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**");
                 embed.AddField($"Wortcounter", $"Heute: **{_streakService.GetWordsToday(dbUser).ToFormattedString()} {(_streakService.GetWordsToday(dbUser) == 1 ? "Wort" : "Wörter")}**\nTotal: **{_streakService.GetWordsTotal(dbUser).ToFormattedString()} {(_streakService.GetWordsTotal(dbUser) == 1 ? "Wort" : "Wörter")}**");
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
                 embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToFormattedString()})");
