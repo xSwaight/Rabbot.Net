@@ -15,7 +15,7 @@ namespace Rabbot
     public class Rabbot
     {
         DiscordSocketClient _client;
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Rabbot));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Rabbot));
         public async Task StartAsync()
         {
             try

@@ -15,7 +15,7 @@ namespace Rabbot.Commands
     public class Music : ModuleBase<SocketCommandContext>
     {
         private readonly AudioService _service;
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Music));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Music));
 
         public Music(AudioService service)
         {

@@ -14,7 +14,7 @@ namespace Rabbot.Services
     class TwitchService
     {
         DiscordSocketClient _client;
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(TwitchService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(TwitchService));
         public TwitchService(DiscordSocketClient client)
         {
             _client = client;

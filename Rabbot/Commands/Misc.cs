@@ -23,7 +23,7 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly CommandService _commandService;
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Misc));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
         public Misc(CommandService commandService)
         {
@@ -338,7 +338,7 @@ namespace Rabbot.Commands
         {
             if (user == null)
                 user = Context.User;
-
+            string path = "";
             using (Context.Channel.EnterTypingState())
             {
                 string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 1024);
@@ -350,9 +350,10 @@ namespace Rabbot.Commands
                     AVATAR = profilePicture
                 });
 
-                var path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username) + "_Corona", html, 616, 616, ImageGenerator.ImageFormat.Png);
+                path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username) + "_Corona", html, 616, 616, ImageGenerator.ImageFormat.Png);
                 await Context.Channel.SendFileAsync(path);
             }
+            File.Delete(path);
         }
 
         [Command("timerank", RunMode = RunMode.Async)]

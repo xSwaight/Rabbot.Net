@@ -20,7 +20,7 @@ namespace Rabbot
     {
         DiscordSocketClient _client;
         CommandService _service;
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(EventHandler));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventHandler));
 
         public EventHandler(DiscordSocketClient client)
         {

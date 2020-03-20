@@ -9,7 +9,7 @@ namespace Rabbot.Services
 {
     public class LoggingService
     {
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(LoggingService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LoggingService));
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
 

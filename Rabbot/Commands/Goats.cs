@@ -16,7 +16,7 @@ namespace Rabbot.Commands
 {
     public class Goats : ModuleBase<SocketCommandContext>
     {
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Goats));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Goats));
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]

@@ -17,7 +17,7 @@ namespace Rabbot.Commands
 {
     public class Level : ModuleBase<SocketCommandContext>
     {
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(Level));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Level));
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]

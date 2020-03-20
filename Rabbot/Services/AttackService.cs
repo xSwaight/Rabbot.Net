@@ -14,7 +14,7 @@ namespace Rabbot.Services
     {
         private DiscordSocketClient DcClient { get; set; }
 
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(AttackService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AttackService));
         public AttackService(DiscordSocketClient client)
         {
             DcClient = client;

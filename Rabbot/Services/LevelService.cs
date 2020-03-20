@@ -21,7 +21,7 @@ namespace Rabbot.Services
         public uint OldLevel { get; set; }
         public uint NewLevel { get; set; }
 
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(LevelService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         public LevelService(SocketMessage msg)
         {
             dcMessage = msg as SocketUserMessage;

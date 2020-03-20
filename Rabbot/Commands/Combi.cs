@@ -14,7 +14,7 @@ namespace Rabbot.Commands
 {
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(CombiCmd));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CombiCmd));
 
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]

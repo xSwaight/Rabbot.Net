@@ -18,7 +18,7 @@ namespace Rabbot.Commands
 {
     public class S4League : ModuleBase<SocketCommandContext>
     {
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(S4League));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(S4League));
 
         [Command("player", RunMode = RunMode.Async)]
         [Cooldown(10)]

@@ -20,7 +20,7 @@ namespace Rabbot.Services
         private Muteduser MuteUser { get; set; }
         private SocketRole MutedRole { get; set; }
 
-        private static readonly ILogger _logger = Log.ForContext(Constants.SourceContextPropertyName, nameof(WarnService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(WarnService));
 
         public WarnService(DiscordSocketClient client)
         {
