@@ -25,17 +25,17 @@ namespace Rabbot.Preconditions
 
             using (swaightContext db = new swaightContext())
             {
-                if (db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Any())
+                if (db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
                 {
-                    if (db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id).Botchannelid == null)
+                    if (db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid == null)
                         return Task.FromResult(PreconditionResult.FromSuccess());
-                    var botChannel = db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id).Botchannelid;
-                    if (botChannel == (long)context.Channel.Id)
+                    var botChannel = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid;
+                    if (botChannel == context.Channel.Id)
                         return Task.FromResult(PreconditionResult.FromSuccess());
                     else
                     {
                         Task.Run(() => sendMessage(context, botChannel));
-                        var EXP = db.Userfeatures.FirstOrDefault(p => p.UserId == (long)context.User.Id && p.ServerId == (long)context.Guild.Id);
+                        var EXP = db.Userfeatures.FirstOrDefault(p => p.UserId == context.User.Id && p.ServerId == context.Guild.Id);
                         if (EXP != null && EXP.Exp > 500)
                         {
                             EXP.Exp -= 100;
@@ -51,11 +51,11 @@ namespace Rabbot.Preconditions
             }
         }
 
-        private async Task sendMessage(ICommandContext context, long? botChannel)
+        private async Task sendMessage(ICommandContext context, ulong? botChannel)
         {
             await context.Message.DeleteAsync();
             var guild = context.Guild as SocketGuild;
-            var dcBotChannel = guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)botChannel);
+            var dcBotChannel = guild.TextChannels.FirstOrDefault(p => p.Id == botChannel);
             const int delay = 3000;
             var embed = new EmbedBuilder();
             embed.WithDescription($"Dieser Command kann nur im {dcBotChannel.Mention} Channel ausgeführt werden.");

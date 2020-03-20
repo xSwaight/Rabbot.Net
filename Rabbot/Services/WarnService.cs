@@ -69,7 +69,7 @@ namespace Rabbot.Services
         {
             using (swaightContext db = new swaightContext())
             {
-                var warn = db.Warning.FirstOrDefault(p => p.UserId == (long)user.Id && p.ServerId == (long)Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = (long)Context.Guild.Id, UserId = (long)user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
+                var warn = db.Warning.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = Context.Guild.Id, UserId = user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
                 warn.Counter++;
                 if (warn.Counter > 3)
                     return;

@@ -7,7 +7,8 @@ namespace Rabbot.Database
     {
         public User()
         {
-            Attacks = new HashSet<Attacks>();
+            AttacksTarget = new HashSet<Attacks>();
+            AttacksUser = new HashSet<Attacks>();
             CombiCombiUser = new HashSet<Combi>();
             CombiUser = new HashSet<Combi>();
             Musicrank = new HashSet<Musicrank>();
@@ -18,11 +19,12 @@ namespace Rabbot.Database
             Warning = new HashSet<Warning>();
         }
 
-        public long Id { get; set; }
+        public ulong Id { get; set; }
         public string Name { get; set; }
         public int Notify { get; set; }
 
-        public virtual ICollection<Attacks> Attacks { get; set; }
+        public virtual ICollection<Attacks> AttacksTarget { get; set; }
+        public virtual ICollection<Attacks> AttacksUser { get; set; }
         public virtual ICollection<Combi> CombiCombiUser { get; set; }
         public virtual ICollection<Combi> CombiUser { get; set; }
         public virtual ICollection<Musicrank> Musicrank { get; set; }

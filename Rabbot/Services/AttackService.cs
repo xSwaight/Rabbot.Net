@@ -47,8 +47,8 @@ namespace Rabbot.Services
             var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.UserId);
             var dcChannel = dcServer.Channels.FirstOrDefault(p => p.Id == (ulong)attack.ChannelId) as ISocketMessageChannel;
 
-            var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.TargetId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
-            var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.UserId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = (long)attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.TargetId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.UserId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
             var targetStallBefore = Helper.GetStall(dbTarget.Wins);
             var userStallBefore = Helper.GetStall(dbUser.Wins);
             var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
@@ -114,7 +114,7 @@ namespace Rabbot.Services
             var winChance = ((double)atkUser / (double)sum) * 100;
             var chance = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
-            var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)dcServer.Id && p.UserId == (long)_client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = (long)dcServer.Id, UserId = (long)_client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+            var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == dcServer.Id && p.UserId == _client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = dcServer.Id, UserId = _client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
             if (chance <= winChance)
             {
                 int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);

@@ -247,7 +247,7 @@ namespace Rabbot
             using (swaightContext db = new swaightContext())
             {
 
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == (long)user.Guild.Id && p.UserId == (long)user.Id);
+                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == user.Guild.Id && p.UserId == user.Id);
                 if (dbUser == null)
                     return;
 
@@ -459,9 +459,9 @@ namespace Rabbot
         {
             using (swaightContext db = new swaightContext())
             {
-                if (!db.Guild.Where(p => p.ServerId == (long)context.Guild.Id).Any())
+                if (!db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
                 {
-                    return (ulong?)db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id).Botchannelid;
+                    return (ulong?)db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid;
                 }
                 else
                 {

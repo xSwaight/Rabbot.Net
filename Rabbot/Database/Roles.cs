@@ -6,8 +6,8 @@ namespace Rabbot.Database
     public partial class Roles
     {
         public int Id { get; set; }
-        public long? ServerId { get; set; }
-        public long? RoleId { get; set; }
+        public ulong? ServerId { get; set; }
+        public ulong? RoleId { get; set; }
         public string Description { get; set; }
 
         public virtual Guild Server { get; set; }

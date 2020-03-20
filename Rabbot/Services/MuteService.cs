@@ -156,7 +156,7 @@ namespace Rabbot.Services
 
             using (swaightContext db = new swaightContext())
             {
-                if(!db.Muteduser.Where(p => p.ServerId == (long)context.Guild.Id && p.UserId == (long)user.Id).Any())
+                if(!db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id).Any())
                 {
                     string userRoles = "";
                     foreach (var role in DcTargetUser.Roles)
@@ -165,11 +165,11 @@ namespace Rabbot.Services
                             userRoles += role.Name + "|";
                     }
                     userRoles = userRoles.TrimEnd('|');
-                    await db.Muteduser.AddAsync(new Muteduser { ServerId = (long)context.Guild.Id, UserId = (long)user.Id, Duration = banUntil, Roles = userRoles });
+                    await db.Muteduser.AddAsync(new Muteduser { ServerId = context.Guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
                 }
                 else
                 {
-                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id && p.UserId == (long)user.Id);
+                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
                     ban.Duration = banUntil;
                 }
                 await SendPrivate(DcGuild, banUntil, duration, DcTargetUser);
@@ -200,7 +200,7 @@ namespace Rabbot.Services
 
             using (swaightContext db = new swaightContext())
             {
-                if (!db.Muteduser.Where(p => p.ServerId == (long)DcGuild.Id && p.UserId == (long)user.Id).Any())
+                if (!db.Muteduser.Where(p => p.ServerId == DcGuild.Id && p.UserId == user.Id).Any())
                 {
                     string userRoles = "";
                     foreach (var role in DcTargetUser.Roles)
@@ -209,11 +209,11 @@ namespace Rabbot.Services
                             userRoles += role.Name + "|";
                     }
                     userRoles = userRoles.TrimEnd('|');
-                    await db.Muteduser.AddAsync(new Muteduser { ServerId = (long)DcGuild.Id, UserId = (long)user.Id, Duration = banUntil, Roles = userRoles });
+                    await db.Muteduser.AddAsync(new Muteduser { ServerId = DcGuild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
                 }
                 else
                 {
-                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == (long)DcGuild.Id && p.UserId == (long)user.Id);
+                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == DcGuild.Id && p.UserId == user.Id);
                     ban.Duration = banUntil;
                 }
                 await SendPrivate(DcGuild, banUntil, "1 Stunde", user);
@@ -226,7 +226,7 @@ namespace Rabbot.Services
         {
             using (swaightContext db = new swaightContext())
             {
-                var mute = db.Muteduser.Where(p => p.ServerId == (long)context.Guild.Id && p.UserId == (long)user.Id);
+                var mute = db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
                 if (!mute.Any())
                 {
                     await SendError($"{user.Mention} ist nicht gemuted.", context);
@@ -234,7 +234,7 @@ namespace Rabbot.Services
                 }
                 else
                 {
-                    Guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)context.Guild.Id);
+                    Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                     DcTargetUser = user as SocketGuildUser;
                     MutedRole = DcTargetUser.Roles.FirstOrDefault(p => p.Name == "Muted");
                     if(MutedRole != null)

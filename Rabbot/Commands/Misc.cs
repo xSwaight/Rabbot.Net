@@ -113,12 +113,12 @@ namespace Rabbot.Commands
             using (swaightContext db = new swaightContext())
             {
 
-                var guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)Context.Guild.Id);
+                var guild = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
                 if (guild == null)
                     return;
-                var logChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.LogchannelId);
-                var notificationChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.NotificationchannelId);
-                var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => (long?)p.Id == guild.Botchannelid);
+                var logChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.LogchannelId);
+                var notificationChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.NotificationchannelId);
+                var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.Botchannelid);
 
                 var embed = new EmbedBuilder();
                 embed.WithDescription($"**Settings**");
@@ -216,7 +216,7 @@ namespace Rabbot.Commands
         {
             using (swaightContext db = new swaightContext())
             {
-                var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == (long)Context.Guild.Id);
+                var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == Context.Guild.Id);
                 if (string.IsNullOrWhiteSpace(param))
                     await ReplyAsync($"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.");
                 else
@@ -287,7 +287,7 @@ namespace Rabbot.Commands
                 return;
             using (swaightContext db = new swaightContext())
             {
-                var user = db.User.FirstOrDefault(p => p.Id == (long)Context.User.Id);
+                var user = db.User.FirstOrDefault(p => p.Id == Context.User.Id);
                 if (user.Notify == 1)
                 {
                     user.Notify = 0;

@@ -18,13 +18,13 @@ namespace Rabbot.Database
             Warning = new HashSet<Warning>();
         }
 
-        public long ServerId { get; set; }
-        public long? LogchannelId { get; set; }
-        public long? NotificationchannelId { get; set; }
-        public long? Botchannelid { get; set; }
-        public long? TrashchannelId { get; set; }
-        public long? StreamchannelId { get; set; }
-        public long? LevelchannelId { get; set; }
+        public ulong ServerId { get; set; }
+        public ulong? LogchannelId { get; set; }
+        public ulong? NotificationchannelId { get; set; }
+        public ulong? Botchannelid { get; set; }
+        public ulong? TrashchannelId { get; set; }
+        public ulong? StreamchannelId { get; set; }
+        public ulong? LevelchannelId { get; set; }
         public int Notify { get; set; }
         public int Log { get; set; }
         public int Trash { get; set; }

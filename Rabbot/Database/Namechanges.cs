@@ -6,7 +6,7 @@ namespace Rabbot.Database
     public partial class Namechanges
     {
         public int Id { get; set; }
-        public long UserId { get; set; }
+        public ulong UserId { get; set; }
         public string NewName { get; set; }
         public DateTime Date { get; set; }
 

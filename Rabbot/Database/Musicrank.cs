@@ -6,8 +6,8 @@ namespace Rabbot.Database
     public partial class Musicrank
     {
         public int Id { get; set; }
-        public long UserId { get; set; }
-        public long ServerId { get; set; }
+        public ulong UserId { get; set; }
+        public ulong ServerId { get; set; }
         public long Sekunden { get; set; }
         public DateTime? Date { get; set; }
 

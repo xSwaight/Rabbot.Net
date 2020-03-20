@@ -46,7 +46,7 @@ namespace Rabbot.Models
         {
             using (swaightContext db = new swaightContext())
             {
-                var dbUser = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == (long)DiscordUser.Id);
+                var dbUser = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == DiscordUser.Id);
                 var dbFeatures = dbUser.Userfeatures?.FirstOrDefault();
 
                 if (dbFeatures != null && dbUser != null)
@@ -71,7 +71,7 @@ namespace Rabbot.Models
                 }
                 else
                 {
-                    var user = db.User.Add(new User { Name = $"{DiscordUser.Username}+{DiscordUser.Discriminator}", Id = (long)DiscordUser.Id }).Entity;
+                    var user = db.User.Add(new User { Name = $"{DiscordUser.Username}+{DiscordUser.Discriminator}", Id = DiscordUser.Id }).Entity;
                     user.Userfeatures.Add(new Userfeatures());
                     db.SaveChanges();
                 }

@@ -54,6 +54,9 @@ namespace Rabbot.Database
                 entity.HasIndex(e => e.ServerId)
                     .HasName("serverId");
 
+                entity.HasIndex(e => e.TargetId)
+                    .HasName("targetId");
+
                 entity.HasIndex(e => e.UserId)
                     .HasName("userId");
 
@@ -65,33 +68,28 @@ namespace Rabbot.Database
                     .HasColumnName("attackEnds")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.ChannelId)
-                    .HasColumnName("channelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ChannelId).HasColumnName("channelId");
 
-                entity.Property(e => e.MessageId)
-                    .HasColumnName("messageId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.MessageId).HasColumnName("messageId");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.TargetId)
-                    .HasColumnName("targetId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.TargetId).HasColumnName("targetId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Attacks)
                     .HasForeignKey(d => d.ServerId)
                     .HasConstraintName("attacks_ibfk_1");
 
+                entity.HasOne(d => d.Target)
+                    .WithMany(p => p.AttacksTarget)
+                    .HasForeignKey(d => d.TargetId)
+                    .HasConstraintName("attacks_ibfk_3");
+
                 entity.HasOne(d => d.User)
-                    .WithMany(p => p.Attacks)
+                    .WithMany(p => p.AttacksUser)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("attacks_ibfk_2");
             });
@@ -110,9 +108,7 @@ namespace Rabbot.Database
                     .HasColumnName("badWord")
                     .HasColumnType("varchar(50)");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Badwords)
@@ -143,25 +139,17 @@ namespace Rabbot.Database
                     .HasColumnType("bit(1)")
                     .HasDefaultValueSql("'b\\'0\\''");
 
-                entity.Property(e => e.CombiUserId)
-                    .HasColumnName("combiUserId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.CombiUserId).HasColumnName("combiUserId");
 
                 entity.Property(e => e.Date)
                     .HasColumnName("date")
                     .HasColumnType("date");
 
-                entity.Property(e => e.MessageId)
-                    .HasColumnName("messageId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.MessageId).HasColumnName("messageId");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.CombiUser)
                     .WithMany(p => p.CombiCombiUser)
@@ -226,53 +214,39 @@ namespace Rabbot.Database
 
                 entity.ToTable("guild");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.Botchannelid)
-                    .HasColumnName("botchannelid")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.Botchannelid).HasColumnName("botchannelid");
 
                 entity.Property(e => e.Level)
                     .HasColumnName("level")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'1'");
 
-                entity.Property(e => e.LevelchannelId)
-                    .HasColumnName("levelchannelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.LevelchannelId).HasColumnName("levelchannelId");
 
                 entity.Property(e => e.Log)
                     .HasColumnName("log")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.LogchannelId)
-                    .HasColumnName("logchannelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.LogchannelId).HasColumnName("logchannelId");
 
-                entity.Property(e => e.NotificationchannelId)
-                    .HasColumnName("notificationchannelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.NotificationchannelId).HasColumnName("notificationchannelId");
 
                 entity.Property(e => e.Notify)
                     .HasColumnName("notify")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.StreamchannelId)
-                    .HasColumnName("streamchannelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.StreamchannelId).HasColumnName("streamchannelId");
 
                 entity.Property(e => e.Trash)
                     .HasColumnName("trash")
                     .HasColumnType("int(1)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.TrashchannelId)
-                    .HasColumnName("trashchannelId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.TrashchannelId).HasColumnName("trashchannelId");
             });
 
             modelBuilder.Entity<Inventory>(entity =>
@@ -364,13 +338,9 @@ namespace Rabbot.Database
                     .HasColumnType("bigint(20)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Musicrank)
@@ -406,25 +376,21 @@ namespace Rabbot.Database
                     .HasColumnName("roles")
                     .HasColumnType("varchar(500)");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(11)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(11)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Muteduser)
                     .HasForeignKey(d => d.ServerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("muteduser_ibfk_2");
+                    .HasConstraintName("muteduser_ibfk_1");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Muteduser)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("muteduser_ibfk_1");
+                    .HasConstraintName("muteduser_ibfk_2");
             });
 
             modelBuilder.Entity<Namechanges>(entity =>
@@ -447,9 +413,7 @@ namespace Rabbot.Database
                     .HasColumnName("newName")
                     .HasColumnType("varchar(50)");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Namechanges)
@@ -495,23 +459,19 @@ namespace Rabbot.Database
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Pot)
                     .HasForeignKey(d => d.ServerId)
-                    .HasConstraintName("pot_ibfk_2");
+                    .HasConstraintName("pot_ibfk_1");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Pot)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("pot_ibfk_1");
+                    .HasConstraintName("pot_ibfk_2");
             });
 
             modelBuilder.Entity<Randomanswer>(entity =>
@@ -562,13 +522,9 @@ namespace Rabbot.Database
                     .HasColumnName("description")
                     .HasColumnType("varchar(50)");
 
-                entity.Property(e => e.RoleId)
-                    .HasColumnName("roleId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.RoleId).HasColumnName("roleId");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Roles)
@@ -628,9 +584,7 @@ namespace Rabbot.Database
                     .HasName("id")
                     .IsUnique();
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasColumnType("bigint(11)");
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
@@ -712,9 +666,7 @@ namespace Rabbot.Database
                     .HasColumnName("namechangeUntil")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
                 entity.Property(e => e.Spins)
                     .HasColumnName("spins")
@@ -741,9 +693,7 @@ namespace Rabbot.Database
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(11)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.Property(e => e.Wins)
                     .HasColumnName("wins")
@@ -753,13 +703,12 @@ namespace Rabbot.Database
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Userfeatures)
                     .HasForeignKey(d => d.ServerId)
-                    .HasConstraintName("userfeatures_ibfk_2");
+                    .HasConstraintName("userfeatures_ibfk_1");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Userfeatures)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("userfeatures_ibfk_1");
+                    .HasConstraintName("userfeatures_ibfk_2");
             });
 
             modelBuilder.Entity<Warning>(entity =>
@@ -782,25 +731,21 @@ namespace Rabbot.Database
                     .HasColumnName("counter")
                     .HasColumnType("int(11)");
 
-                entity.Property(e => e.ServerId)
-                    .HasColumnName("serverId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.ServerId).HasColumnName("serverId");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("userId")
-                    .HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnName("userId");
 
                 entity.HasOne(d => d.Server)
                     .WithMany(p => p.Warning)
                     .HasForeignKey(d => d.ServerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("warning_ibfk_2");
+                    .HasConstraintName("warning_ibfk_1");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Warning)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("warning_ibfk_1");
+                    .HasConstraintName("warning_ibfk_2");
             });
         }
     }
