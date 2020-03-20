@@ -18,23 +18,25 @@ namespace Rabbot
 {
     class EventHandler
     {
-        DiscordSocketClient _client;
-        CommandService _service;
-        StreakService _streakService;
+        private readonly DiscordSocketClient _client;
+        private readonly CommandService _commandService;
+        private readonly StreakService _streakService;
+        private readonly AttackService _attackService;
+        private readonly LevelService _levelService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventHandler));
 
-        public EventHandler(DiscordSocketClient client, StreakService streakService)
+        public EventHandler(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService, LevelService levelService)
         {
+            _attackService = attackService;
             _streakService = streakService;
+            _commandService = commandService;
+            _levelService = levelService;
             _client = client;
-            InitializeAsync(_client);
+            InitializeAsync();
         }
 
-        public void InitializeAsync(DiscordSocketClient client)
+        public void InitializeAsync()
         {
-            _client = client;
-            _service = new CommandService();
-
             new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
@@ -62,7 +64,7 @@ namespace Rabbot
                 using (swaightContext db = new swaightContext())
                 {
                     if (db.User.FirstOrDefault(p => p.Id == (long)newUser.Id) == null)
-                        await db.User.AddAsync(new User {Id = (long)newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
+                        await db.User.AddAsync(new User { Id = (long)newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
                     if (db.Namechanges.Where(p => p.UserId == (long)newUser.Id).OrderByDescending(p => p.Date).FirstOrDefault()?.NewName == oldUser.Username)
                     {
                         await db.Namechanges.AddAsync(new Namechanges { UserId = (long)newUser.Id, NewName = newUser.Username, Date = DateTime.Now });
@@ -859,16 +861,19 @@ namespace Rabbot
         {
             while (true)
             {
-                try
+                using (swaightContext db = new swaightContext())
                 {
-                    AttackService attacks = new AttackService(_client);
-                    await attacks.CheckAttacks();
-                    await Task.Delay(1000);
+                    try
+                    {
+
+                        await _attackService.CheckAttacks(db);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Error in {nameof(CheckAttacks)}");
+                    }
                 }
-                catch (Exception e)
-                {
-                    _logger.Error(e, $"Error in {nameof(CheckAttacks)}");
-                }
+                await Task.Delay(1000);
             }
         }
 
@@ -957,9 +962,7 @@ namespace Rabbot
             }
             if (msg.Content.StartsWith(Config.bot.cmdPrefix))
                 return;
-            LevelService User = new LevelService(msg);
-            await User.SendLevelUp();
-            await User.SetRoles();
+            _levelService.AddEXP(msg);
         }
 
         private async Task UserLeft(SocketGuildUser user)

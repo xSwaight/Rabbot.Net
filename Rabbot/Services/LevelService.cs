@@ -14,23 +14,23 @@ namespace Rabbot.Services
 {
     class LevelService
     {
-        public SocketUserMessage dcMessage { get; set; }
-        public SocketGuild dcGuild { get; set; }
-        public Guild Guild { get; set; }
-        public Userfeatures EXP { get; set; }
-        public uint OldLevel { get; set; }
         public uint NewLevel { get; set; }
 
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
-        public LevelService(SocketMessage msg)
+        public LevelService()
         {
-            dcMessage = msg as SocketUserMessage;
-            dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
+
+        }
+
+        public async Task AddEXP(SocketMessage msg)
+        {
+            var dcMessage = msg as SocketUserMessage;
+            var dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
             using (swaightContext db = new swaightContext())
             {
-                Guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
-                EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
-                OldLevel = Helper.GetLevel(EXP.Exp);
+                var guild = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = (long)dcGuild.Id }).Result.Entity;
+                var EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
+                var OldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
                 var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
                 string myMessage = Helper.MessageReplace(msg.Content);
@@ -96,15 +96,17 @@ namespace Rabbot.Services
                 {
                     EXP.Attacks--;
                 }
-                NewLevel = Helper.GetLevel(EXP.Exp);
+                var NewLevel = Helper.GetLevel(EXP.Exp);
+                await SendLevelUp(dcGuild, guild, dcMessage, OldLevel, NewLevel);
+                await SetRoles(dcGuild, dcMessage, NewLevel);
                 db.SaveChanges();
             }
         }
 
-        public async Task SendLevelUp()
+        private async Task SendLevelUp(SocketGuild dcGuild, Guild guild, SocketUserMessage dcMessage, uint OldLevel, uint NewLevel)
         {
             var reward = Helper.GetReward((int)NewLevel);
-            if (NewLevel > OldLevel && Guild.Level == 1)
+            if (NewLevel > OldLevel && guild.Level == 1)
             {
                 string path = "";
                 using (dcMessage.Channel.EnterTypingState())
@@ -124,7 +126,7 @@ namespace Rabbot.Services
                         var levelChannelId = db.Guild.FirstOrDefault(p => p.ServerId == (long)dcGuild.Id)?.LevelchannelId;
                         if (levelChannelId == null)
                             await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
-                        else 
+                        else
                             await dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)levelChannelId)?.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
 
                     }
@@ -162,11 +164,10 @@ namespace Rabbot.Services
 
                     await db.SaveChangesAsync();
                 }
-                await SetRoles();
             }
         }
 
-        public async Task SetRoles()
+        private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, uint NewLevel)
         {
             using (swaightContext db = new swaightContext())
             {
