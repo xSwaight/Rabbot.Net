@@ -70,12 +70,12 @@ namespace Rabbot.Services
                     {
                         var emote = reaction.Key as Emote;
 
-                        if(emote.Id == Helper.Shield.Id)
+                        if(emote.Id == Constants.Shield.Id)
                         {
                             if (reaction.Value.ReactionCount >= 2)
                                 zaun = true;
                         }
-                        else if(emote.Id == Helper.Sword.Id)
+                        else if(emote.Id == Constants.Sword.Id)
                         {
                             if (reaction.Value.ReactionCount >= 2)
                                 hirtenstab = true;

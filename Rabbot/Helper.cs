@@ -221,34 +221,17 @@ namespace Rabbot
             { 119, new LevelInfo{NeededEXP = 24800000, Reward = 2000 } }
         };
 
-        public readonly static Emote Sword = Emote.Parse("<a:sword:593493621400010795>");
-        public static Emote Shield = Emote.Parse("<a:shield:593498755441885275>");
-
-        public readonly static Emote glitch = Emote.Parse("<:glitch:597053743623700490>");
-        public readonly static Emote diego = Emote.Parse("<:diego:597054124294668290>");
-        public readonly static Emote shyguy = Emote.Parse("<:shyguy:597053511951187968>");
-        public readonly static Emote goldenziege = Emote.Parse("<:goldengoat:597052540290465794>");
-
-        public readonly static Emote doggo = Emote.Parse("<:doggo:597065709339672576>");
-        public readonly static Emote slot = Emote.Parse("<a:slot:597872810760732672>");
-
-        public readonly static Emoji Yes = new Emoji("✅");
-        public static Emoji No = new Emoji("❌");
-
-        public readonly static Emoji thumbsUp = new Emoji("👍");
-        public readonly static Emoji thumbsDown = new Emoji("👎");
-
         public static bool AttackActive = false;
 
-        public readonly static ConcurrentDictionary<ulong, DateTime> cooldown = new ConcurrentDictionary<ulong, DateTime>();
+        public static ConcurrentDictionary<ulong, DateTime> cooldown = new ConcurrentDictionary<ulong, DateTime>();
 
         public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, int setEinsatz, bool isNew = true)
         {
             Random random = new Random();
-            var glitch = Helper.glitch;
-            var diego = Helper.diego;
-            var shyguy = Helper.shyguy;
-            var goldenziege = Helper.goldenziege;
+            var glitch = Constants.glitch;
+            var diego = Constants.diego;
+            var shyguy = Constants.shyguy;
+            var goldenziege = Constants.goldenziege;
 
             Emote slot1 = null;
             Emote slot2 = null;
@@ -404,7 +387,7 @@ namespace Rabbot
 
                 else
                 {
-                    embed.AddField("Ergebnis", $"War wohl **nichts**.. {Helper.doggo}");
+                    embed.AddField("Ergebnis", $"War wohl **nichts**.. {Constants.doggo}");
                 }
 
                 if (msg.Embeds.Any())
@@ -442,7 +425,7 @@ namespace Rabbot
                     prices += $"3x {shyguy} -> Einsatz × 10\n";
                     prices += $"3x {goldenziege} -> Einsatz × 25";
                     msg = await channel.SendMessageAsync(prices, false, embed.Build());
-                    await msg.AddReactionAsync(Helper.slot);
+                    await msg.AddReactionAsync(Constants.slot);
                 }
                 else
                 {

@@ -793,7 +793,7 @@ namespace Rabbot.Commands
                 string output = $"Seite {page} von {namechanges.PageCount}\n\n";
                 foreach (var namechange in namechanges)
                 {
-                    output += $"{namechange.Date.ToString("dd.MM.yyyy HH:mm")} - `{namechange.NewName}`\n";
+                    output += $"{namechange.Date.ToFormattedString()} - `{namechange.NewName}`\n";
                 }
                 eb.WithDescription(output);
                 eb.WithTitle($"**Alle Namechanges von: {user.Username}**");

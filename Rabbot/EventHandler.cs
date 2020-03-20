@@ -99,10 +99,10 @@ namespace Rabbot
 
             if (reaction.Emote is Emote emote)
             {
-                if (emote.Id == Helper.Sword.Id || emote.Id == Helper.Shield.Id)
+                if (emote.Id == Constants.Sword.Id || emote.Id == Constants.Shield.Id)
                     return;
 
-                if (emote.Id != Helper.slot.Id)
+                if (emote.Id != Constants.slot.Id)
                 {
                     await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                     return;
@@ -183,7 +183,7 @@ namespace Rabbot
                         return;
 
 
-                    if ((reaction.Emote.Name == Helper.thumbsUp.Name || reaction.Emote.Name == Helper.thumbsDown.Name) && reaction.Channel.Name.Contains("blog"))
+                    if ((reaction.Emote.Name == Constants.thumbsUp.Name || reaction.Emote.Name == Constants.thumbsDown.Name) && reaction.Channel.Name.Contains("blog"))
                     {
                         var messages = await reaction.Channel.GetMessagesAsync(100).FlattenAsync();
                         foreach (IUserMessage message in messages)
@@ -191,10 +191,10 @@ namespace Rabbot
                             if (message.Id != reaction.MessageId)
                                 continue;
 
-                            if (message.Reactions.Any(p => p.Key.Name == Helper.thumbsDown.Name) && reaction.Emote.Name == Helper.thumbsUp.Name)
-                                await message.RemoveReactionAsync(Helper.thumbsDown, reaction.User.Value);
-                            if (message.Reactions.Any(p => p.Key.Name == Helper.thumbsUp.Name) && reaction.Emote.Name == Helper.thumbsDown.Name)
-                                await message.RemoveReactionAsync(Helper.thumbsUp, reaction.User.Value);
+                            if (message.Reactions.Any(p => p.Key.Name == Constants.thumbsDown.Name) && reaction.Emote.Name == Constants.thumbsUp.Name)
+                                await message.RemoveReactionAsync(Constants.thumbsDown, reaction.User.Value);
+                            if (message.Reactions.Any(p => p.Key.Name == Constants.thumbsUp.Name) && reaction.Emote.Name == Constants.thumbsDown.Name)
+                                await message.RemoveReactionAsync(Constants.thumbsUp, reaction.User.Value);
 
                             return;
                         }
@@ -216,10 +216,10 @@ namespace Rabbot
 
                     if (reaction.Emote is Emote emote)
                     {
-                        if (emote.Id == Helper.Sword.Id || emote.Id == Helper.Shield.Id)
+                        if (emote.Id == Constants.Sword.Id || emote.Id == Constants.Shield.Id)
                             return;
 
-                        if (emote.Id != Helper.slot.Id)
+                        if (emote.Id != Constants.slot.Id)
                         {
                             await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                             return;
@@ -287,14 +287,14 @@ namespace Rabbot
                 bool isActiveStab = false;
 
 
-                if (emote.Id == Helper.Shield.Id)
+                if (emote.Id == Constants.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                         return;
                     if (zaun == null)
                         return;
                 }
-                else if (emote.Id == Helper.Sword.Id)
+                else if (emote.Id == Constants.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                         return;
@@ -310,12 +310,12 @@ namespace Rabbot
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
                     var Emote = item.Key as Emote;
-                    if (Emote.Id == Helper.Shield.Id)
+                    if (Emote.Id == Constants.Shield.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveZaun = true;
                     }
-                    else if (Emote.Id == Helper.Sword.Id)
+                    else if (Emote.Id == Constants.Sword.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveStab = true;
@@ -387,7 +387,7 @@ namespace Rabbot
                 bool isActiveZaun = false;
                 bool isActiveStab = false;
 
-                if (emote.Id == Helper.Shield.Id)
+                if (emote.Id == Constants.Shield.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
                     {
@@ -400,7 +400,7 @@ namespace Rabbot
                         return;
                     }
                 }
-                else if (emote.Id == Helper.Sword.Id)
+                else if (emote.Id == Constants.Sword.Id)
                 {
                     if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
                     {
@@ -423,12 +423,12 @@ namespace Rabbot
                 foreach (var item in reaction.Message.Value.Reactions)
                 {
                     var Emote = item.Key as Emote;
-                    if (Emote.Id == Helper.Shield.Id)
+                    if (Emote.Id == Constants.Shield.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveZaun = true;
                     }
-                    else if (Emote.Id == Helper.Sword.Id)
+                    else if (Emote.Id == Constants.Sword.Id)
                     {
                         if (item.Value.ReactionCount >= 2)
                             isActiveStab = true;
@@ -922,8 +922,8 @@ namespace Rabbot
             {
                 if (msg is SocketUserMessage message)
                 {
-                    await message.AddReactionAsync(Helper.thumbsUp);
-                    await message.AddReactionAsync(Helper.thumbsDown);
+                    await message.AddReactionAsync(Constants.thumbsUp);
+                    await message.AddReactionAsync(Constants.thumbsDown);
                 }
             }
 
@@ -979,13 +979,7 @@ namespace Rabbot
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                TimeZoneInfo europeTimeZone;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time");
-                else
-                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
-                DateTime europeTime = TimeZoneInfo.ConvertTimeFromUtc(user.JoinedAt.Value.DateTime, europeTimeZone);
-                embed.AddField("Joined Server at", europeTime.ToString("dd.MM.yyyy HH:mm"), false);
+                embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToCET().ToFormattedString(), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);
@@ -1017,13 +1011,7 @@ namespace Rabbot
                 embed.AddField("User ID", user.Id.ToString(), true);
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
-                TimeZoneInfo europeTimeZone;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time");
-                else
-                    europeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
-                DateTime europeTime = TimeZoneInfo.ConvertTimeFromUtc(user.CreatedAt.DateTime, europeTimeZone);
-                embed.AddField("Joined Discord at", europeTime.ToString("dd.MM.yyyy HH:mm"), false);
+                embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToCET().ToFormattedString(), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Userfeatures.Where(p => p.UserId == (long)user.Id && p.ServerId == (long)user.Guild.Id);

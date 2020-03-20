@@ -312,8 +312,8 @@ namespace Rabbot.Commands
                 embed.Color = new Color(242, 255, 0);
                 embed.Description = $"{Context.User.Mention} du hast erfolgreich einen Angriff gegen {target.Mention} gestartet!\nDu kannst heute noch **{5 - dbUser.Attacks} mal** angreifen.";
                 embed.Description += $"\n\n**Interaktionen:**";
-                embed.Description += $"\n{Helper.Sword} = Hirtenstab       (Nur Angreifer)";
-                embed.Description += $"\n{Helper.Shield} = Stacheldrahtzaun (Nur Angegriffener)";
+                embed.Description += $"\n{Constants.Sword} = Hirtenstab       (Nur Angreifer)";
+                embed.Description += $"\n{Constants.Shield} = Stacheldrahtzaun (Nur Angegriffener)";
                 embed.WithFooter("Der Angriff dauert 3 Minuten!");
 
                 var stallTarget = Helper.GetStall(dbTarget.Wins);
@@ -330,8 +330,8 @@ namespace Rabbot.Commands
                 dbTarget.Locked = 1;
                 var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 await db.Attacks.AddAsync(new Attacks { ServerId = (long)Context.Guild.Id, UserId = (long)Context.User.Id, ChannelId = (long)Context.Channel.Id, MessageId = (long)msg.Id, TargetId = (long)target.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
-                await msg.AddReactionAsync(Helper.Sword);
-                await msg.AddReactionAsync(Helper.Shield);
+                await msg.AddReactionAsync(Constants.Sword);
+                await msg.AddReactionAsync(Constants.Shield);
                 await db.SaveChangesAsync();
                 Helper.AttackActive = false;
             }
@@ -539,8 +539,8 @@ namespace Rabbot.Commands
                 embed.WithColor(new Color(241, 242, 222));
                 embed.AddField($"Level", $"{stall.Level} / 26");
                 var percent = ((double)dbUser.Goats / (double)stall.Capacity) * 100;
-                embed.AddField($"Kapazität", $"{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} / {stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen ({Math.Round(percent, 0)}%)");
-                embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
+                embed.AddField($"Kapazität", $"{dbUser.Goats.ToFormattedString()} / {stall.Capacity.ToFormattedString()} Ziegen ({Math.Round(percent, 0)}%)");
+                embed.AddField($"Stats", $"ATK: **{stall.Attack.ToFormattedString()}0** | DEF: **{stall.Defense.ToFormattedString()}0**");
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
                 await db.SaveChangesAsync();
             }
@@ -581,9 +581,9 @@ namespace Rabbot.Commands
                 var myUser = user as SocketGuildUser;
                 embed.WithTitle($"Statistiken von {myUser.Nickname ?? myUser.Username}");
                 embed.WithColor(new Color(241, 242, 222));
-                embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Kämpfe | **{dbUser.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{dbUser.Loses.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Niederlagen");
+                embed.AddField($"Battle", $"**{(dbUser.Loses + dbUser.Wins).ToFormattedString()}** Kämpfe | **{dbUser.Wins.ToFormattedString()}** Siege | **{dbUser.Loses.ToFormattedString()}** Niederlagen");
                 var percent = ((double)dbUser.Goats / (double)stall.Capacity) * 100;
-                embed.AddField($"Aktueller Stall", $"{stall.Name} | **{dbUser.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** / **{stall.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen (**{Math.Round(percent, 0)}%**)");
+                embed.AddField($"Aktueller Stall", $"{stall.Name} | **{dbUser.Goats.ToFormattedString()}** / **{stall.Capacity.ToFormattedString()}** Ziegen (**{Math.Round(percent, 0)}%**)");
                 embed.AddField($"Heutige Kämpfe", $"Noch **{fights}** {kaempfe} übrig");
 
                 var combiLevel = Helper.GetCombiLevel(dbUser.CombiExp);
@@ -597,23 +597,23 @@ namespace Rabbot.Commands
                 {
                     if (dbUser.Lastdaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
                     {
-                        emote = Helper.Yes;
+                        emote = Constants.Yes;
                     }
                     else
                     {
-                        emote = Helper.No;
+                        emote = Constants.No;
                     }
                 }
                 else
                 {
-                    emote = Helper.No;
+                    emote = Constants.No;
                 }
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
                 embed.AddField($"Streak Level", $"Level: **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**");
                 embed.AddField($"Wortcounter", $"Heute: **{_streakService.GetWordsToday(dbUser).ToFormattedString()} {(_streakService.GetWordsToday(dbUser) == 1 ? "Wort" : "Wörter")}**\nTotal: **{_streakService.GetWordsTotal(dbUser).ToFormattedString()} {(_streakService.GetWordsTotal(dbUser) == 1 ? "Wort" : "Wörter")}**");
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
-                embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
+                embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToFormattedString()})");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToFormattedString()}0** | DEF: **{stall.Defense.ToFormattedString()}0**");
                 embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToFormattedString()}** | Gewinn Gesamt: **{dbUser.Gewinn.ToFormattedString()}**");
                 if (inventory.Count() != 0)
@@ -624,7 +624,7 @@ namespace Rabbot.Commands
                         if (item.Inventory.Durability > 0)
                             items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         else
-                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate.Value.ToString("dd.MM.yyyy HH:mm")}**\n";
+                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate.Value.ToFormattedString()}**\n";
 
                     }
                     embed.AddField($"Inventar", items);
@@ -648,11 +648,11 @@ namespace Rabbot.Commands
             {
                 try
                 {
-                    embed.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Kapazität: **{stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen");
+                    embed.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToFormattedString()}** | Kapazität: **{stall.Value.Capacity.ToFormattedString()}** Ziegen");
                 }
                 catch
                 {
-                    embed2.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Kapazität: **{stall.Value.Capacity.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen");
+                    embed2.AddField($"Level {stall.Value.Level} | {stall.Value.Name}", $"Benötigte Siege: **{stall.Key.ToFormattedString()}** | Kapazität: **{stall.Value.Capacity.ToFormattedString()}** Ziegen");
                 }
             }
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -677,7 +677,7 @@ namespace Rabbot.Commands
                         continue;
 
                     var stall = Helper.GetStall(top.Wins);
-                    embed.AddField($"{counter}. {top.User.Name}", $"**{top.Wins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
+                    embed.AddField($"{counter}. {top.User.Name}", $"**{top.Wins.ToFormattedString()}** Siege | **{top.Loses}** Niederlagen | Stall Level: **{stall.Level}** | Ziegen: **{top.Goats}**");
                     counter++;
                 }
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -774,7 +774,7 @@ namespace Rabbot.Commands
                     if (amount > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
+                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToFormattedString()} Ziegen** in den Pot stecken!";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
@@ -783,7 +783,7 @@ namespace Rabbot.Commands
                     if (amount + myPot.Goats > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
-                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** in den Pot stecken!";
+                        embed.Description = $"{Context.User.Mention} du kannst auf deinem **Stall Level** maximal **{stall.MaxPot.ToFormattedString()} Ziegen** in den Pot stecken!";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
@@ -822,8 +822,8 @@ namespace Rabbot.Commands
                 {
                     var chance = (double)item.Goats / (double)sum * 100;
                     var user = db.User.FirstOrDefault(p => p.Id == item.UserId);
-                    embed.Title = $"{sum.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen im Pot!";
-                    embed.AddField($"{counter}. {user.Name}", $"**{item.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** Ziegen | **{Math.Round(chance)}%** Chance");
+                    embed.Title = $"{sum.ToFormattedString()} Ziegen im Pot!";
+                    embed.AddField($"{counter}. {user.Name}", $"**{item.Goats.ToFormattedString()}** Ziegen | **{Math.Round(chance)}%** Chance");
                     counter++;
                 }
                 embed.WithFooter("Glücksspiel kann süchtig machen! Sucht Hotline: 089 / 28 28 22");
@@ -877,7 +877,7 @@ namespace Rabbot.Commands
                         uint level = Helper.GetCombiLevel(top.CombiExp);
                         var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.CombiExp;
-                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} EXP)");
+                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
                         i++;
 
                     }

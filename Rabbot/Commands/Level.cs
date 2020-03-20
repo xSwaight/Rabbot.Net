@@ -43,7 +43,7 @@ namespace Rabbot.Commands
                         uint level = Helper.GetLevel(top.Exp);
                         var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.Exp;
-                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} EXP)");
+                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
                         i++;
 
                     }
@@ -90,7 +90,7 @@ namespace Rabbot.Commands
                                 def += item.Item.Def;
                             }
                         }
-                        embed.AddField($"{i}. {user.Name}", $"**{top.Goats.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} Ziegen** | Stall Level: **{stall.Level}** | ATK: **{atk}0** | DEF: **{def}0**");
+                        embed.AddField($"{i}. {user.Name}", $"**{top.Goats.ToFormattedString()} Ziegen** | Stall Level: **{stall.Level}** | ATK: **{atk}0** | DEF: **{def}0**");
                         i++;
 
                     }
@@ -418,7 +418,7 @@ namespace Rabbot.Commands
                 }
                 var neededEXP = (int)Helper.GetEXP(level) - (int)feature.Exp;
                 embed.Color = Color.Green;
-                embed.Description = $"{Context.User.Mention} du benötigst noch **{neededEXP.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} EXP** bis **Level {level}**.";
+                embed.Description = $"{Context.User.Mention} du benötigst noch **{neededEXP.ToFormattedString()} EXP** bis **Level {level}**.";
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
             }
         }
@@ -450,11 +450,11 @@ namespace Rabbot.Commands
                     int neededLevelExp = (int)neededExp2 - (int)neededExp1;
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
-                    string progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))} | {neededLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
+                    string progress = $"{currentLevelExp.ToFormattedString()} | {neededLevelExp.ToFormattedString()}";
                     if (level == Helper.exp.OrderByDescending(p => p.Key).First().Key)
                     {
                         percent = 100;
-                        progress = $"{currentLevelExp.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}";
+                        progress = $"{currentLevelExp.ToFormattedString()}";
                     }
                     var ranks = db.Userfeatures.Where(p => p.ServerId == (long)Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
                     int rank = 1;
@@ -474,10 +474,10 @@ namespace Rabbot.Commands
                         NAME = name,
                         LEVEL = level.ToString(),
                         RANK = rank.ToString(),
-                        EXP = exp.ToString("N0", new System.Globalization.CultureInfo("de-DE")),
+                        EXP = exp.ToFormattedString(),
                         PROGRESS = progress,
                         PERCENT = percent.ToString(),
-                        GOATCOINS = goat.ToString("N0", new System.Globalization.CultureInfo("de-DE"))
+                        GOATCOINS = goat.ToFormattedString()
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);

@@ -225,7 +225,7 @@ namespace Rabbot.Commands
                     int counter = 1;
                     foreach (var user in activeUsers.OrderByDescending(p => p.Lastmessage.Value))
                     {
-                        output += $"{counter}. {user.User.Name} - {user.Lastmessage.Value.ToString("dd.MM.yyyy HH:mm")}\n";
+                        output += $"{counter}. {user.User.Name} - {user.Lastmessage.Value.ToFormattedString()}\n";
                         counter++;
                     }
                     output += "```";
@@ -375,7 +375,7 @@ namespace Rabbot.Commands
                 try
                 {
                     var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
-                    embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
+                    embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToFormattedString()})");
                     i++;
 
                 }
