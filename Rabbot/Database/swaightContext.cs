@@ -721,6 +721,21 @@ namespace Rabbot.Database
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.StreakLevel)
+                    .HasColumnName("streakLevel")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TodaysWords)
+                    .HasColumnName("todaysWords")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TotalWords)
+                    .HasColumnName("totalWords")
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.Trades)
                     .HasColumnName("trades")
                     .HasColumnType("int(11)")

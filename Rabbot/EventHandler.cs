@@ -20,10 +20,12 @@ namespace Rabbot
     {
         DiscordSocketClient _client;
         CommandService _service;
+        StreakService _streakService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventHandler));
 
-        public EventHandler(DiscordSocketClient client)
+        public EventHandler(DiscordSocketClient client, StreakService streakService)
         {
+            _streakService = streakService;
             _client = client;
             InitializeAsync(_client);
         }
@@ -673,6 +675,12 @@ namespace Rabbot
                         counter++;
                     }
                 }
+                var streaks = db.Userfeatures.Where(p => p.TodaysWords > 0);
+                foreach (var streak in streaks)
+                {
+                    _streakService.CheckTodaysWordcount(streak);
+                }
+
                 var trades = db.Userfeatures.Where(p => p.Trades > 0);
                 foreach (var trade in trades)
                 {
@@ -942,6 +950,9 @@ namespace Rabbot
                 dbUser.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                 var feature = db.Userfeatures.FirstOrDefault(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == (int)dcGuild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = (long)msg.Author.Id, ServerId = (long)dcGuild.Id }).Result.Entity;
                 feature.Lastmessage = DateTime.Now;
+
+                _streakService.AddWords(feature, msg.Content);
+
                 await db.SaveChangesAsync();
             }
             if (msg.Content.StartsWith(Config.bot.cmdPrefix))

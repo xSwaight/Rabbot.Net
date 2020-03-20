@@ -54,6 +54,7 @@ namespace Rabbot
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
                     .AddSingleton<LoggingService>()
+                    .AddSingleton<StreakService>()
                     .AddSingleton<EventHandler>();
 
                 //Add logging     
@@ -72,6 +73,7 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<CommandHandler>();
                 serviceProvider.GetRequiredService<TwitchService>();
                 serviceProvider.GetRequiredService<EventHandler>();
+                serviceProvider.GetRequiredService<StreakService>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 

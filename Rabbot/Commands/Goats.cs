@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Preconditions;
+using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -17,6 +18,12 @@ namespace Rabbot.Commands
     public class Goats : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Goats));
+        private readonly StreakService _streakService;
+
+        public Goats(StreakService streakService)
+        {
+            _streakService = streakService;
+        }
 
         [Command("daily", RunMode = RunMode.Async)]
         [BotCommand]
@@ -603,10 +610,12 @@ namespace Rabbot.Commands
                 }
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
+                embed.AddField($"Streak Level", $"Level: **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**");
+                embed.AddField($"Wortcounter", $"Heute: **{_streakService.GetWordsToday(dbUser).ToFormattedString()} {(_streakService.GetWordsToday(dbUser) == 1 ? "Wort" : "Wörter")}**\nTotal: **{_streakService.GetWordsTotal(dbUser).ToFormattedString()} {(_streakService.GetWordsTotal(dbUser) == 1 ? "Wort" : "Wörter")}**");
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
                 embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToString("dd.MM.yyyy HH:mm")})");
-                embed.AddField($"Stats", $"ATK: **{stall.Attack.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0** | DEF: **{stall.Defense.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}0**");
-                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}** | Gewinn Gesamt: **{dbUser.Gewinn.ToString("N0", new System.Globalization.CultureInfo("de-DE"))}**");
+                embed.AddField($"Stats", $"ATK: **{stall.Attack.ToFormattedString()}0** | DEF: **{stall.Defense.ToFormattedString()}0**");
+                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToFormattedString()}** | Gewinn Gesamt: **{dbUser.Gewinn.ToFormattedString()}**");
                 if (inventory.Count() != 0)
                 {
                     string items = "";
