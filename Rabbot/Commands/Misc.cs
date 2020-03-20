@@ -14,6 +14,7 @@ using Rabbot.Database;
 using Rabbot.ImageGenerator;
 using Rabbot.Models;
 using Rabbot.Preconditions;
+using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 
@@ -23,10 +24,12 @@ namespace Rabbot.Commands
     {
         private readonly string version = "0.9";
         private readonly CommandService _commandService;
+        private readonly StreakService _streakService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
-        public Misc(CommandService commandService)
+        public Misc(CommandService commandService, StreakService streakService)
         {
+            _streakService = streakService;
             _commandService = commandService;
         }
 
@@ -416,6 +419,34 @@ namespace Rabbot.Commands
             }
             await Context.Message.DeleteAsync();
             await channel.SendMessageAsync(message);
+        }
+
+        [Command("streaks", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(15)]
+        public async Task StreakRanking(int page = 1)
+        {
+            if (page < 1)
+                return;
+            using (swaightContext db = new swaightContext())
+            {
+                var streakList = _streakService.GetRanking(db.Userfeatures.Include(p => p.User).Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false)).ToPagedList(page, 25);
+
+                if (page > streakList.PageCount)
+                    return;
+                var eb = new EmbedBuilder();
+                eb.Color = Color.DarkPurple;
+
+                int i = streakList.PageSize * streakList.PageNumber - (streakList.PageSize - 1);
+                eb.WithDescription($"Seite {page} von {streakList.PageCount}");
+                foreach (var streak in streakList)
+                {
+                    eb.AddField($"{i}. {streak.User.Name}", $"{Constants.Fire} {streak.StreakLevel} | Heutige Worte: {streak.TodaysWords.ToFormattedString()}");
+                    i++;
+                }
+                eb.WithTitle($"**Streak Ranking**");
+                await Context.Channel.SendMessageAsync($"Erreiche **am Tag** mindestens **{Constants.MinimumWordCount.ToFormattedString()}** Wörter, damit das Streak Level **höher** wird.\nWenn das Ziel **an einem** Tag **nicht** erreicht wird, fällt man **zurück** auf **Level 0**.", false, eb.Build());
+            }
         }
 
         private bool TryGetChannel(string message, SocketCommandContext context, out ISocketMessageChannel channel, out string messageTag)

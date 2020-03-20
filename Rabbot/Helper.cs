@@ -228,10 +228,10 @@ namespace Rabbot
         public static async Task UpdateSpin(ISocketMessageChannel channel, SocketGuildUser user, IUserMessage message, DiscordSocketClient client, int setEinsatz, bool isNew = true)
         {
             Random random = new Random();
-            var glitch = Constants.glitch;
-            var diego = Constants.diego;
-            var shyguy = Constants.shyguy;
-            var goldenziege = Constants.goldenziege;
+            var glitch = Constants.Glitch;
+            var diego = Constants.Diego;
+            var shyguy = Constants.Shyguy;
+            var goldenziege = Constants.Goldenziege;
 
             Emote slot1 = null;
             Emote slot2 = null;
@@ -387,7 +387,7 @@ namespace Rabbot
 
                 else
                 {
-                    embed.AddField("Ergebnis", $"War wohl **nichts**.. {Constants.doggo}");
+                    embed.AddField("Ergebnis", $"War wohl **nichts**.. {Constants.Doggo}");
                 }
 
                 if (msg.Embeds.Any())
@@ -425,7 +425,7 @@ namespace Rabbot
                     prices += $"3x {shyguy} -> Einsatz × 10\n";
                     prices += $"3x {goldenziege} -> Einsatz × 25";
                     msg = await channel.SendMessageAsync(prices, false, embed.Build());
-                    await msg.AddReactionAsync(Constants.slot);
+                    await msg.AddReactionAsync(Constants.Slot);
                 }
                 else
                 {

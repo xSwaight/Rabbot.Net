@@ -10,11 +10,11 @@ namespace Rabbot.Services
 {
     public class StreakService
     {
-        public void AddWords(Userfeatures userFeature, string msg)
+        public void AddWords(Userfeatures userFeature, SocketMessage msg)
         {
             var wordCountBefore = userFeature.TodaysWords;
 
-            var wordCount = msg.CountWords();
+            var wordCount = msg.Content.CountWords();
 
             if (wordCount <= 0)
                 return;
@@ -22,7 +22,13 @@ namespace Rabbot.Services
             userFeature.TotalWords += wordCount;
             userFeature.TodaysWords += wordCount;
             if (userFeature.TodaysWords >= Constants.MinimumWordCount && wordCountBefore < Constants.MinimumWordCount)
+            {
                 userFeature.StreakLevel++;
+                if(msg is SocketUserMessage userMsg)
+                {
+                    userMsg.AddReactionAsync(Constants.Fire);
+                }
+            }
         }
 
         public int GetWordsToday(Userfeatures userFeature)
@@ -46,6 +52,11 @@ namespace Rabbot.Services
                 userFeature.StreakLevel = 0;
 
             userFeature.TodaysWords = 0;
+        }
+
+        public List<Userfeatures> GetRanking(IQueryable<Userfeatures> userFeatures)
+        {
+            return userFeatures.Where(p => p.StreakLevel > 0).OrderByDescending(p => p.StreakLevel).ToList();
         }
     }
 }

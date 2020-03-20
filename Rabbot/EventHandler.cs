@@ -104,7 +104,7 @@ namespace Rabbot
                 if (emote.Id == Constants.Sword.Id || emote.Id == Constants.Shield.Id)
                     return;
 
-                if (emote.Id != Constants.slot.Id)
+                if (emote.Id != Constants.Slot.Id)
                 {
                     await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                     return;
@@ -221,7 +221,7 @@ namespace Rabbot
                         if (emote.Id == Constants.Sword.Id || emote.Id == Constants.Shield.Id)
                             return;
 
-                        if (emote.Id != Constants.slot.Id)
+                        if (emote.Id != Constants.Slot.Id)
                         {
                             await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                             return;
@@ -956,13 +956,13 @@ namespace Rabbot
                 var feature = db.Userfeatures.FirstOrDefault(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == dcGuild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = msg.Author.Id, ServerId = dcGuild.Id }).Result.Entity;
                 feature.Lastmessage = DateTime.Now;
 
-                _streakService.AddWords(feature, msg.Content);
+                _streakService.AddWords(feature, msg);
 
                 await db.SaveChangesAsync();
             }
             if (msg.Content.StartsWith(Config.bot.cmdPrefix))
                 return;
-            _levelService.AddEXP(msg);
+            await _levelService.AddEXP(msg);
         }
 
         private async Task UserLeft(SocketGuildUser user)
