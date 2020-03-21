@@ -14,9 +14,9 @@ using System.Runtime.InteropServices;
 using Serilog;
 using Serilog.Core;
 
-namespace Rabbot
+namespace Rabbot.Services
 {
-    class EventHandler
+    class EventService
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
@@ -25,9 +25,9 @@ namespace Rabbot
         private readonly LevelService _levelService;
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
-        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventHandler));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
 
-        public EventHandler(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
+        public EventService(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
             LevelService levelService, WarnService warnService, MuteService muteService)
         {
             _attackService = attackService;
@@ -49,7 +49,7 @@ namespace Rabbot
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
-            _logger.Information($"{nameof(EventHandler)}: Loaded successfully");
+            _logger.Information($"{nameof(EventService)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
             _client.MessageReceived += MessageReceived;
