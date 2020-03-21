@@ -779,7 +779,7 @@ namespace Rabbot.Commands
             }
         }
 
-        [RequireOwner]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("namechanges", RunMode = RunMode.Async)]
         public async Task Namechanges(IUser user, int page = 1)
         {

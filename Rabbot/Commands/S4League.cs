@@ -313,10 +313,6 @@ namespace Rabbot.Commands
                         await ReplyAsync(null, false, embedOfficial.Build());
                         return;
                     }
-                    else
-                    {
-                        await ReplyAsync("Invalid param. Use `official` or `remnants`.");
-                    }
                 }
             }
         }

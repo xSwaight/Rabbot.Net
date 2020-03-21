@@ -79,8 +79,8 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<StreakService>();
                 serviceProvider.GetRequiredService<AttackService>();
                 serviceProvider.GetRequiredService<LevelService>();
-                serviceProvider.GetRequiredService<WarnService>();
                 serviceProvider.GetRequiredService<MuteService>();
+                serviceProvider.GetRequiredService<WarnService>();
                 serviceProvider.GetRequiredService<EventHandler>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
