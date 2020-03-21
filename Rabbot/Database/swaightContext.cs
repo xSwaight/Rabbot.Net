@@ -36,6 +36,7 @@ namespace Rabbot.Database
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Userfeatures> Userfeatures { get; set; }
         public virtual DbSet<Warning> Warning { get; set; }
+        public virtual DbSet<Youtubevideo> Youtubevideo { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -746,6 +747,23 @@ namespace Rabbot.Database
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("warning_ibfk_2");
+            });
+
+            modelBuilder.Entity<Youtubevideo>(entity =>
+            {
+                entity.ToTable("youtubevideo");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.VideoId)
+                    .HasColumnName("videoId")
+                    .HasColumnType("varchar(50)");
+
+                entity.Property(e => e.VideoTitle)
+                    .HasColumnName("videoTitle")
+                    .HasColumnType("varchar(200)");
             });
         }
     }

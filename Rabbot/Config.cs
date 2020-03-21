@@ -42,6 +42,7 @@ namespace Rabbot
         public string apiToken;
         public string twitchToken;
         public string twitchAccessToken;
+        public string youTubeApiKey;
         public string connectionString;
         public string cmdPrefix;
         public string officialPlayerURL;

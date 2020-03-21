@@ -20,10 +20,10 @@ namespace Rabbot.Services
             _client = client;
             Task.Run(() =>
             {
-                ConfigLiveMonitorAsync();
+                ConfigureLiveMonitorAsync();
             });
         }
-        private void ConfigLiveMonitorAsync()
+        private void ConfigureLiveMonitorAsync()
         {
             try
             {
@@ -119,10 +119,10 @@ namespace Rabbot.Services
                     {
                         if (item.StreamchannelId != null)
                         {
-                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)item.ServerId);
+                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == item.ServerId);
                             if (guild == null)
                                 continue;
-                            if (!(guild.Channels.FirstOrDefault(p => p.Id == (ulong)item.StreamchannelId) is SocketTextChannel channel))
+                            if (!(guild.Channels.FirstOrDefault(p => p.Id == item.StreamchannelId) is SocketTextChannel channel))
                                 continue;
 
                             var embed = new EmbedBuilder();

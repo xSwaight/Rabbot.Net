@@ -32,5 +32,7 @@ namespace Rabbot
         public static readonly Emoji thumbsUp = new Emoji("👍");
         public static readonly Emoji thumbsDown = new Emoji("👎");
         #endregion
+
+        public static readonly string AnnouncementIgnoreTag = "[silent]";
     }
 }
