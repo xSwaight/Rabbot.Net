@@ -66,7 +66,7 @@ namespace Rabbot.Services
                     multiplier = myEvent.Multiplier;
                 }
 
-                exp += exp.GetPercentFrom(_streakService.GetStreakLevel(EXP) * 0.2);
+                exp += exp.GetPercentFrom(_streakService.GetStreakLevel(EXP) * Constants.ExpBoostPerLevel);
 
                 var ranks = db.Musicrank.Where(p => p.ServerId == dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
                 int rank = 0;
@@ -76,20 +76,20 @@ namespace Rabbot.Services
                     if (Rank.UserId == msg.Author.Id)
                         break;
                 }
-                double dblExp = exp;
+
                 if (rank == 1)
-                    exp = (int)(dblExp * 1.5);
+                    exp += exp.GetPercentFrom(50);
                 if (rank == 2)
-                    exp = (int)(dblExp * 1.3);
+                    exp += exp.GetPercentFrom(30);
                 if (rank == 3)
-                    exp = (int)(dblExp * 1.1);
+                    exp += exp.GetPercentFrom(10);
 
                 if (dcMessage?.Author is SocketGuildUser user)
                     if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
-                        exp += (int)(exp * 1.5);
+                        exp += exp.GetPercentFrom(50);
 
                 if (EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
-                    exp += (int)(exp * 1.5);
+                    exp += exp.GetPercentFrom(50);
 
                 if (EXP.Gain == 1)
                     EXP.Exp += exp * multiplier;

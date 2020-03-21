@@ -9,6 +9,7 @@ namespace Rabbot
     {
         #region Streak Constants
         public static readonly int MinimumWordCount = 200;
+        public static readonly double ExpBoostPerLevel = 0.2;
         #endregion
 
         #region Emotes
