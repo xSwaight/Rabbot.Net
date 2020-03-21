@@ -50,7 +50,7 @@ namespace Rabbot
                         ThrowOnError = false
                     }))
                     .AddSingleton<TwitchService>()
-                    .AddSingleton<YouTubeVideoService>()
+                    //.AddSingleton<YouTubeVideoService>()
                     .AddSingleton<CommandHandler>()
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
@@ -77,7 +77,7 @@ namespace Rabbot
                 //Load up services
                 serviceProvider.GetRequiredService<CommandHandler>();
                 serviceProvider.GetRequiredService<TwitchService>();
-                serviceProvider.GetRequiredService<YouTubeVideoService>();
+                //serviceProvider.GetRequiredService<YouTubeVideoService>();
                 serviceProvider.GetRequiredService<StreakService>();
                 serviceProvider.GetRequiredService<AttackService>();
                 serviceProvider.GetRequiredService<LevelService>();
