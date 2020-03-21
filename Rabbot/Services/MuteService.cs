@@ -10,131 +10,122 @@ using System.Threading.Tasks;
 
 namespace Rabbot.Services
 {
-    class MuteService
+    public class MuteService
     {
-        private SocketGuildUser DcTargetUser { get; set; }
-        private SocketGuild DcGuild { get; set; }
-        private DiscordSocketClient DcClient { get; set; }
-        private User User { get; set; }
-        private Guild Guild { get; set; }
-        private Muteduser MuteUser { get; set; }
-        private SocketRole MutedRole { get; set; }
-
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(MuteService));
+        private readonly DiscordSocketClient _client;
+
         public MuteService(DiscordSocketClient client)
         {
-            DcClient = client;
+            _client = client;
         }
-        public async Task CheckMutes()
+        public async Task CheckMutes(swaightContext db)
         {
-            using (swaightContext db = new swaightContext())
+            if (!db.Muteduser.Any() || !_client.Guilds.Any())
+                return;
+            var muteUsers = db.Muteduser.ToList();
+            foreach (var mute in muteUsers)
             {
-                if (!db.Muteduser.Any() || !DcClient.Guilds.Any())
-                    return;
-                var muteUsers = db.Muteduser.ToList();
-                foreach (var mute in muteUsers)
+                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == mute.ServerId);
+                if (dcGuild == null)
                 {
-                    DcGuild = DcClient.Guilds.FirstOrDefault(p => p.Id == (ulong)mute.ServerId);
-                    if (DcGuild == null)
+                    db.Muteduser.Remove(mute);
+                    await db.SaveChangesAsync();
+                    continue;
+                }
+
+                var mutedRole = dcGuild.Roles.FirstOrDefault(p => p.Name == "Muted");
+                if (mutedRole == null)
+                    continue;
+                if (dcGuild.CurrentUser == null)
+                    continue;
+                int position = GetBotRolePosition(dcGuild.CurrentUser);
+                var dcTargetUser = dcGuild.Users.FirstOrDefault(p => p.Id == mute.UserId);
+                if (dcTargetUser == null)
+                {
+                    if (mute.Duration < DateTime.Now)
                     {
                         db.Muteduser.Remove(mute);
                         await db.SaveChangesAsync();
-                        continue;
                     }
+                    continue;
+                }
 
-                    MutedRole = DcGuild.Roles.FirstOrDefault(p => p.Name == "Muted");
-                    if (MutedRole == null)
-                        continue;
-                    if (DcGuild.CurrentUser == null)
-                        continue;
-                    int position = GetBotRolePosition(DcGuild.CurrentUser);
-                    DcTargetUser = DcGuild.Users.FirstOrDefault(p => p.Id == (ulong)mute.UserId);
-                    if(DcTargetUser == null)
+                if (dcGuild.CurrentUser.GuildPermissions.ManageRoles == true && position > mutedRole.Position)
+                {
+                    if (mute.Duration < DateTime.Now)
                     {
-                        if (mute.Duration < DateTime.Now)
+                        db.Muteduser.Remove(mute);
+                        try
                         {
-                            db.Muteduser.Remove(mute);
-                            await db.SaveChangesAsync();
+                            await dcTargetUser.RemoveRoleAsync(mutedRole);
+                            var oldRoles = mute.Roles.Split('|');
+                            foreach (var oldRole in oldRoles)
+                            {
+                                var role = dcGuild.Roles.FirstOrDefault(p => p.Name == oldRole);
+                                if (role != null)
+                                    await dcTargetUser.AddRoleAsync(role);
+                            }
+                            await Logging.Unmuted(dcTargetUser);
                         }
-                        continue;
-                    }
-
-                    if (DcGuild.CurrentUser.GuildPermissions.ManageRoles == true && position > MutedRole.Position)
-                    {
-                        if (mute.Duration < DateTime.Now)
+                        catch (Exception e)
                         {
-                            db.Muteduser.Remove(mute);
+                            _logger.Error(e, $"Error while adding roles");
+                        }
+                    }
+                    else
+                    {
+                        if (!dcTargetUser.Roles.Where(p => p.Id == mutedRole.Id).Any())
+                        {
                             try
                             {
-                                await DcTargetUser.RemoveRoleAsync(MutedRole);
                                 var oldRoles = mute.Roles.Split('|');
                                 foreach (var oldRole in oldRoles)
                                 {
-                                    var role = DcGuild.Roles.FirstOrDefault(p => p.Name == oldRole);
-                                    if (role != null)
-                                        await DcTargetUser.AddRoleAsync(role);
+                                    if (!oldRole.Contains("everyone"))
+                                    {
+                                        var role = dcGuild.Roles.FirstOrDefault(p => p.Name == oldRole);
+                                        if (role != null)
+                                            await dcTargetUser.RemoveRoleAsync(role);
+                                    }
                                 }
-                                await Logging.Unmuted(DcTargetUser);
+                                await dcTargetUser.AddRoleAsync(mutedRole);
                             }
                             catch (Exception e)
                             {
-                                _logger.Error(e, $"Error while adding roles");
-                            }
-                        }
-                        else
-                        {
-                            if (!DcTargetUser.Roles.Where(p => p.Id == MutedRole.Id).Any())
-                            {
-                                try
-                                {
-                                    var oldRoles = mute.Roles.Split('|');
-                                    foreach (var oldRole in oldRoles)
-                                    {
-                                        if (!oldRole.Contains("everyone"))
-                                        {
-                                            var role = DcGuild.Roles.FirstOrDefault(p => p.Name == oldRole);
-                                            if (role != null)
-                                                await DcTargetUser.RemoveRoleAsync(role);
-                                        }
-                                    }
-                                    await DcTargetUser.AddRoleAsync(MutedRole);
-                                }
-                                catch (Exception e)
-                                {
-                                    _logger.Error(e, $"Error while removing roles");
-                                }
+                                _logger.Error(e, $"Error while removing roles");
                             }
                         }
                     }
                 }
-                await db.SaveChangesAsync();
             }
+            await db.SaveChangesAsync();
         }
 
-        public async Task MuteTargetUser(IUser user, string duration, SocketCommandContext context)
+        public async Task MuteTargetUser(swaightContext db, IUser user, string duration, SocketCommandContext context)
         {
-            MutedRole = context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
-            if(MutedRole == null)
+            var mutedRole = context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
+            if (mutedRole == null)
             {
                 await SendError($"Es existiert keine Muted Rolle!", context);
                 return;
             }
-            DcTargetUser = user as SocketGuildUser;
-            DcGuild = context.Guild;
-            var targetPosition = GetTargetRolePosition(DcTargetUser);
-            var botPosition = GetBotRolePosition(DcGuild.CurrentUser);
+            var dcTargetUser = user as SocketGuildUser;
+            var dcGuild = context.Guild;
+            var targetPosition = GetTargetRolePosition(dcTargetUser);
+            var botPosition = GetBotRolePosition(dcGuild.CurrentUser);
 
-            if (!(MutedRole.Position > targetPosition && DcGuild.CurrentUser.GuildPermissions.ManageRoles))
+            if (!(mutedRole.Position > targetPosition && dcGuild.CurrentUser.GuildPermissions.ManageRoles))
             {
                 await SendError($"Mindestens eine meiner Rollen muss in der Reihenfolge über der Muted Rolle stehen!", context);
                 return;
             }
-            if(targetPosition > botPosition)
+            if (targetPosition > botPosition)
             {
-                await SendError($"Es fehlen die Berechtigungen um {DcTargetUser.Mention} zu muten!", context);
+                await SendError($"Es fehlen die Berechtigungen um {dcTargetUser.Mention} zu muten!", context);
                 return;
             }
-            if(context.User.Id == user.Id)
+            if (context.User.Id == user.Id)
             {
                 await SendError($"{user.Mention} du Trottel kannst dich nicht selber muten!", context);
                 return;
@@ -154,42 +145,37 @@ namespace Rabbot.Services
             else
                 return;
 
-            using (swaightContext db = new swaightContext())
+            if (!db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id).Any())
             {
-                if(!db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id).Any())
+                string userRoles = "";
+                foreach (var role in dcTargetUser.Roles)
                 {
-                    string userRoles = "";
-                    foreach (var role in DcTargetUser.Roles)
-                    {
-                        if (!role.IsEveryone && !role.IsManaged)
-                            userRoles += role.Name + "|";
-                    }
-                    userRoles = userRoles.TrimEnd('|');
-                    await db.Muteduser.AddAsync(new Muteduser { ServerId = context.Guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
+                    if (!role.IsEveryone && !role.IsManaged)
+                        userRoles += role.Name + "|";
                 }
-                else
-                {
-                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
-                    ban.Duration = banUntil;
-                }
-                await SendPrivate(DcGuild, banUntil, duration, DcTargetUser);
-                await Logging.Mute(context, user, duration);
-                await db.SaveChangesAsync();
+                userRoles = userRoles.TrimEnd('|');
+                await db.Muteduser.AddAsync(new Muteduser { ServerId = context.Guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
             }
+            else
+            {
+                var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
+                ban.Duration = banUntil;
+            }
+            await SendPrivate(dcGuild, banUntil, duration, dcTargetUser);
+            await Logging.Mute(context, user, duration);
+            await db.SaveChangesAsync();
         }
 
-        public async Task MuteWarnedUser(SocketGuildUser user, SocketGuild guild)
+        public async Task MuteWarnedUser(swaightContext db, SocketGuildUser user, SocketGuild guild)
         {
-            DcGuild = guild;
-            DcTargetUser = user;
-            MutedRole = DcGuild.Roles.FirstOrDefault(p => p.Name == "Muted");
-            if (MutedRole == null)
+            var mutedRole = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
+            if (mutedRole == null)
                 return;
 
-            var targetPosition = GetTargetRolePosition(DcTargetUser);
-            var botPosition = GetBotRolePosition(DcGuild.CurrentUser);
+            var targetPosition = GetTargetRolePosition(user);
+            var botPosition = GetBotRolePosition(guild.CurrentUser);
 
-            if (!(MutedRole.Position > targetPosition && DcGuild.CurrentUser.GuildPermissions.ManageRoles))
+            if (!(mutedRole.Position > targetPosition && guild.CurrentUser.GuildPermissions.ManageRoles))
                 return;
             if (targetPosition > botPosition)
                 return;
@@ -197,62 +183,54 @@ namespace Rabbot.Services
             DateTime date = DateTime.Now;
             DateTime banUntil = date.AddHours(1);
 
-
-            using (swaightContext db = new swaightContext())
+            if (!db.Muteduser.Where(p => p.ServerId == guild.Id && p.UserId == user.Id).Any())
             {
-                if (!db.Muteduser.Where(p => p.ServerId == DcGuild.Id && p.UserId == user.Id).Any())
+                string userRoles = "";
+                foreach (var role in user.Roles)
                 {
-                    string userRoles = "";
-                    foreach (var role in DcTargetUser.Roles)
-                    {
-                        if (!role.IsEveryone && !role.IsManaged)
-                            userRoles += role.Name + "|";
-                    }
-                    userRoles = userRoles.TrimEnd('|');
-                    await db.Muteduser.AddAsync(new Muteduser { ServerId = DcGuild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
+                    if (!role.IsEveryone && !role.IsManaged)
+                        userRoles += role.Name + "|";
                 }
-                else
-                {
-                    var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == DcGuild.Id && p.UserId == user.Id);
-                    ban.Duration = banUntil;
-                }
-                await SendPrivate(DcGuild, banUntil, "1 Stunde", user);
-                await Logging.WarningMute(DcTargetUser);
-                await db.SaveChangesAsync();
+                userRoles = userRoles.TrimEnd('|');
+                await db.Muteduser.AddAsync(new Muteduser { ServerId = guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
             }
+            else
+            {
+                var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == guild.Id && p.UserId == user.Id);
+                ban.Duration = banUntil;
+            }
+            await SendPrivate(guild, banUntil, "1 Stunde", user);
+            await Logging.WarningMute((SocketGuildUser)user);
+            await db.SaveChangesAsync();
         }
 
-        public async Task UnmuteTargetUser(IUser user, SocketCommandContext context)
+        public async Task UnmuteTargetUser(swaightContext db, IUser user, SocketCommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            var mute = db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
+            if (!mute.Any())
             {
-                var mute = db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
-                if (!mute.Any())
+                await SendError($"{user.Mention} ist nicht gemuted.", context);
+                return;
+            }
+            else
+            {
+                var dcGuild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
+                var dcTargetUser = user as SocketGuildUser;
+                var mutedRole = dcTargetUser.Roles.FirstOrDefault(p => p.Name == "Muted");
+                if (mutedRole != null)
                 {
-                    await SendError($"{user.Mention} ist nicht gemuted.", context);
-                    return;
-                }
-                else
-                {
-                    Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
-                    DcTargetUser = user as SocketGuildUser;
-                    MutedRole = DcTargetUser.Roles.FirstOrDefault(p => p.Name == "Muted");
-                    if(MutedRole != null)
+                    db.Muteduser.Remove(mute.FirstOrDefault());
+                    await dcTargetUser.RemoveRoleAsync(mutedRole);
+                    var oldRoles = mute.FirstOrDefault().Roles.Split('|');
+                    await db.SaveChangesAsync();
+                    foreach (var oldRole in oldRoles)
                     {
-                        db.Muteduser.Remove(mute.FirstOrDefault());
-                        await DcTargetUser.RemoveRoleAsync(MutedRole);
-                        var oldRoles = mute.FirstOrDefault().Roles.Split('|');
-                        await db.SaveChangesAsync();
-                        foreach (var oldRole in oldRoles)
-                        {
-                            var role = context.Guild.Roles.FirstOrDefault(p => p.Name == oldRole);
-                            if (role != null)
-                                await DcTargetUser.AddRoleAsync(role);
-                        }
+                        var role = context.Guild.Roles.FirstOrDefault(p => p.Name == oldRole);
+                        if (role != null)
+                            await dcTargetUser.AddRoleAsync(role);
                     }
-                    await Logging.Unmuted(context, user);
                 }
-
+                await Logging.Unmuted(context, user);
             }
         }
 

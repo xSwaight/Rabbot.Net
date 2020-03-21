@@ -16,7 +16,15 @@ namespace Rabbot.Commands
 {
     public class Administration : ModuleBase<SocketCommandContext>
     {
+        private readonly WarnService _warnService;
+        private readonly MuteService _muteService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Administration));
+
+        public Administration(WarnService warnService, MuteService muteService)
+        {
+            _warnService = warnService;
+            _muteService = muteService;
+        }
 
         [Command("del", RunMode = RunMode.Async)]
         [Summary("Löscht die angegebene Anzahl an Nachrichten im aktuellen Channel (Limit von 100 Nachrichten).")]
@@ -81,8 +89,8 @@ namespace Rabbot.Commands
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
             await Context.Message.DeleteAsync();
-            MuteService mute = new MuteService(Context.Client);
-            await mute.MuteTargetUser(user, duration, Context);
+            using (swaightContext db = new swaightContext())
+                await _muteService.MuteTargetUser(db, user, duration, Context);
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
@@ -91,8 +99,8 @@ namespace Rabbot.Commands
         public async Task Unmute(IUser user)
         {
             await Context.Message.DeleteAsync();
-            MuteService mute = new MuteService(Context.Client);
-            await mute.UnmuteTargetUser(user, Context);
+            using (swaightContext db = new swaightContext())
+                await _muteService.UnmuteTargetUser(db, user, Context);
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
@@ -106,8 +114,9 @@ namespace Rabbot.Commands
             var dcUser = user as SocketGuildUser;
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
-            WarnService warn = new WarnService(Context.Client);
-            await warn.Warn(user, Context);
+
+            using (swaightContext db = new swaightContext())
+                await _warnService.Warn(db, user, Context);
         }
 
         [Command("setStatus", RunMode = RunMode.Async)]
@@ -639,7 +648,7 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word) , ServerId = Context.Guild.Id});
+                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word), ServerId = Context.Guild.Id });
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -789,7 +798,7 @@ namespace Rabbot.Commands
                     return;
                 var eb = new EmbedBuilder();
                 eb.Color = new Color(90, 92, 96);
-                
+
                 string output = $"Seite {page} von {namechanges.PageCount}\n\n";
                 foreach (var namechange in namechanges)
                 {

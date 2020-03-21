@@ -10,69 +10,78 @@ using System.Threading.Tasks;
 
 namespace Rabbot.Services
 {
-    class WarnService
+    public class WarnService
     {
-        private SocketGuildUser DcTargetUser { get; set; }
-        private SocketGuild DcGuild { get; set; }
-        private DiscordSocketClient DcClient { get; set; }
+        private readonly DiscordSocketClient _client;
+        private readonly MuteService _muteService;
 
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(WarnService));
 
-        public WarnService(DiscordSocketClient client)
+        public WarnService(DiscordSocketClient client, MuteService muteService)
         {
-            DcClient = client;
+            _muteService = muteService;
+            _client = client;
         }
 
-        public async Task CheckWarnings()
+        public async Task CheckWarnings(swaightContext db)
         {
-            using (swaightContext db = new swaightContext())
-            {
-                if (!db.Warning.Any())
-                    return;
+            if (!db.Warning.Any())
+                return;
 
-                var warnings = db.Warning.ToList();
-                foreach (var warn in warnings)
+            var warnings = db.Warning.ToList();
+            foreach (var warn in warnings)
+            {
+                if (warn.ActiveUntil < DateTime.Now)
                 {
-                    if (warn.ActiveUntil < DateTime.Now)
+                    db.Warning.Remove(warn);
+                    await db.SaveChangesAsync();
+                    continue;
+                }
+                if (warn.Counter >= 3)
+                {
+                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)warn.ServerId);
+                    var dcTargetUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)warn.UserId);
+                    var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == warn.ServerId && p.UserId == warn.UserId);
+                    await _muteService.MuteWarnedUser(db, dcTargetUser, dcGuild);
+                    if (dbUser != null)
                     {
-                        db.Warning.Remove(warn);
-                        await db.SaveChangesAsync();
-                        continue;
+                        if (dbUser.Goats >= 100)
+                            dbUser.Goats -= 100;
+                        else
+                            dbUser.Goats = 0;
                     }
-                    if (warn.Counter >= 3)
-                    {
-                        DcGuild = DcClient.Guilds.FirstOrDefault(p => p.Id == (ulong)warn.ServerId);
-                        DcTargetUser = DcGuild.Users.FirstOrDefault(p => p.Id == (ulong)warn.UserId);
-                        var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == warn.ServerId && p.UserId == warn.UserId);
-                        MuteService mute = new MuteService(DcClient);
-                        await mute.MuteWarnedUser(DcTargetUser, DcGuild);
-                        if (dbUser != null)
-                        {
-                            if (dbUser.Goats >= 100)
-                                dbUser.Goats -= 100;
-                            else
-                                dbUser.Goats = 0;
-                        }
-                        db.Warning.Remove(warn);
-                        await db.SaveChangesAsync();
-                        continue;
-                    }
+                    db.Warning.Remove(warn);
+                    await db.SaveChangesAsync();
+                    continue;
                 }
             }
         }
 
-        public async Task Warn(IUser user, SocketCommandContext Context)
+        public async Task Warn(swaightContext db, IUser user, SocketCommandContext Context)
         {
-            using (swaightContext db = new swaightContext())
-            {
-                var warn = db.Warning.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = Context.Guild.Id, UserId = user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
-                warn.Counter++;
-                if (warn.Counter > 3)
-                    return;
-                await Context.Message.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
-                await Logging.Warn(user, Context);
-                await db.SaveChangesAsync();
-            }
+            var warn = db.Warning.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = Context.Guild.Id, UserId = user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
+            warn.Counter++;
+            if (warn.Counter > 3)
+                return;
+            await Context.Message.Channel.SendMessageAsync($"**{user.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+            await Logging.Warn(user, Context);
+            await db.SaveChangesAsync();
+        }
+
+        public async Task AutoWarn(swaightContext db, SocketMessage msg)
+        {
+            var myUser = msg.Author as SocketGuildUser;
+            if (db.Muteduser.Where(p => p.UserId == msg.Author.Id && p.ServerId == myUser.Guild.Id).Any())
+                return;
+            if (myUser.Roles.Where(p => p.Name == "Muted").Any())
+                return;
+            var warn = db.Warning.FirstOrDefault(p => p.UserId == msg.Author.Id && p.ServerId == myUser.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = myUser.Guild.Id, UserId = msg.Author.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
+            warn.Counter++;
+            if (warn.Counter > 3)
+                return;
+            await msg.Channel.SendMessageAsync($"**{msg.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+            var badword = db.Badwords.FirstOrDefault(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && p.ServerId == myUser.Guild.Id).BadWord;
+            await Logging.Warning(myUser, msg, badword);
         }
     }
 }

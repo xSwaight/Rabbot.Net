@@ -57,6 +57,8 @@ namespace Rabbot
                     .AddSingleton<StreakService>()
                     .AddSingleton<AttackService>()
                     .AddSingleton<LevelService>()
+                    .AddSingleton<MuteService>()
+                    .AddSingleton<WarnService>()
                     .AddSingleton<EventHandler>();
 
                 //Add logging     
@@ -77,6 +79,8 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<StreakService>();
                 serviceProvider.GetRequiredService<AttackService>();
                 serviceProvider.GetRequiredService<LevelService>();
+                serviceProvider.GetRequiredService<WarnService>();
+                serviceProvider.GetRequiredService<MuteService>();
                 serviceProvider.GetRequiredService<EventHandler>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
