@@ -22,7 +22,7 @@ namespace Rabbot.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "0.9";
+        private readonly string version = "1.0";
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
@@ -392,6 +392,7 @@ namespace Rabbot.Commands
 
         [Command("sensitivity", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Berechnet die Maus Sensitivity für S4 Xero.")]
         public async Task CalculateXeroSensitivity(string sensitivity)
         {
             if (!double.TryParse(sensitivity.Replace(',', '.'), out double result))
@@ -424,6 +425,7 @@ namespace Rabbot.Commands
         [Command("streaks", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(15)]
+        [Summary("Zeigt eine Rangliste aller User nach Streaklevel an.")]
         public async Task StreakRanking(int page = 1)
         {
             if (page < 1)

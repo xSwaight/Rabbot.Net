@@ -74,7 +74,7 @@ namespace Rabbot.Commands
         }
 
         [BotCommand]
-        [Summary("Zeigt Statistiken von S4 Remnants an oder S4 League Official an. Nutze als Parameter entweder 'official' oder 'remnants'")]
+        [Summary("Zeigt Statistiken von S4 Remnants oder S4 League Official an. Nutze als Parameter entweder 'official' oder 'remnants'")]
         [Alias("remStats")]
         [Command("s4stats")]
         public async Task S4Stats(string param = "remnants")
