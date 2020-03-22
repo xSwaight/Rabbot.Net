@@ -1,77 +1,77 @@
 ﻿using Discord.WebSocket;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-using Google.Apis.YouTube.v3.Data;
+using Rabbot.API.Models;
 using Rabbot.Database;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Rabbot.Services
 {
     public class YouTubeVideoService
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(YouTubeVideoService));
-        private readonly YouTubeService _yt;
         private readonly DiscordSocketClient _client;
 
         public YouTubeVideoService(DiscordSocketClient client)
         {
             _client = client;
-            _yt = new YouTubeService(new BaseClientService.Initializer() { ApiKey = Config.bot.youTubeApiKey });
 
             Task.Run(() =>
             {
-                ConfigureYouTubeMonitorAsync();
+                ConfigureYouTubeMonitor();
             });
 
         }
-        private void ConfigureYouTubeMonitorAsync()
+        private void ConfigureYouTubeMonitor()
         {
-            var searchListRequest = _yt.Search.List("snippet");
-            searchListRequest.ChannelId = "UCS5FgjEjPYp9Ul7IU7VrfEQ";
-            searchListRequest.Order = SearchResource.ListRequest.OrderEnum.Date;
-            searchListRequest.MaxResults = 1;
-            new Task(async () => await CheckLastVideo(searchListRequest, 60), TaskCreationOptions.LongRunning).Start();
+            List<string> channelIds = new List<string> { "UCS5FgjEjPYp9Ul7IU7VrfEQ", "UCw8IeYso0n8spjPBwfGrZ8w" };
+            new Task(async () => await CheckLastVideo(channelIds, 60), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(YouTubeVideoService)}: Loaded successfully");
         }
 
-        private async Task CheckLastVideo(SearchResource.ListRequest searchListRequest, int intervallTime)
+        private async Task CheckLastVideo(List<string> channelIds, int intervallTime)
         {
             while (true)
             {
                 try
                 {
                     await Task.Delay(intervallTime * 1000);
-                    var searchListResult = await searchListRequest.ExecuteAsync();
-                    var video = searchListResult.Items.FirstOrDefault();
-                    if (video != null)
+                    foreach (var channelId in channelIds)
                     {
-                        using (swaightContext db = new swaightContext())
+                        YouTubeVideo video = null;
+                        using (XmlReader reader = XmlReader.Create($"https://www.youtube.com/feeds/videos.xml?channel_id={channelId}"))
                         {
-                            var dbVideo = db.Youtubevideo.FirstOrDefault(p => p.VideoId == video.Id.VideoId);
-                            if (dbVideo == null)
+                            video = SyndicationFeed.Load(reader).GetFirstVideo();
+                        }
+                        if (video != null)
+                        {
+                            using (swaightContext db = new swaightContext())
                             {
-                                if (video.Snippet.Description.Contains(Constants.AnnouncementIgnoreTag))
-                                    continue;
-                                await db.Youtubevideo.AddAsync(new Youtubevideo { VideoId = video.Id.VideoId, VideoTitle = video.Snippet.Title });
-                                await db.SaveChangesAsync();
-                                await NewVideo(db, video);
+                                var dbVideo = db.Youtubevideo.FirstOrDefault(p => p.VideoId == video.Id);
+                                if (dbVideo == null)
+                                {
+                                    if (video.Title.Contains(Constants.AnnouncementIgnoreTag))
+                                        continue;
+                                    await db.Youtubevideo.AddAsync(new Youtubevideo { VideoId = video.Id, VideoTitle = video.Title });
+                                    await db.SaveChangesAsync();
+                                    await NewVideo(db, video);
+                                }
                             }
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, $"Error while checking last YouTube Video");
+                    _logger.Error(e, $"Error while checking last YouTube video");
                 }
             }
         }
 
-        private async Task NewVideo(swaightContext db, SearchResult video)
+        private async Task NewVideo(swaightContext db, YouTubeVideo video)
         {
             foreach (var dbGuild in db.Guild)
             {
@@ -86,8 +86,8 @@ namespace Rabbot.Services
                     if (!(guild.Channels.FirstOrDefault(p => p.Id == dbGuild.StreamchannelId) is SocketTextChannel channel))
                         continue;
 
-                    var youTubeUrl = $"https://www.youtube.com/watch?v={video.Id.VideoId}";
-                    await channel.SendMessageAsync($"**{video.Snippet.ChannelTitle}** hat ein neues Video hochgeladen! {guild.EveryoneRole.Mention}\n{youTubeUrl}");
+                    var youTubeUrl = $"https://www.youtube.com/watch?v={video.Id}";
+                    await channel.SendMessageAsync($"**{video.ChannelName}** hat ein neues Video hochgeladen! {guild.EveryoneRole.Mention}\n{youTubeUrl}");
 
                 }
                 catch (Exception ex)

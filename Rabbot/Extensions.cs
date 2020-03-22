@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Rabbot.API.Models;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.ServiceModel.Syndication;
 using System.Text;
 
 namespace Rabbot
@@ -42,6 +45,15 @@ namespace Rabbot
             double percentValue = percent / 100;
             double value = Convert.ToDouble(@this);
             return (int)(value * (1 + percentValue)) - @this;
+        }
+
+        public static YouTubeVideo GetFirstVideo(this SyndicationFeed @this)
+        {
+            var firstItem = @this.Items.FirstOrDefault();
+            if (firstItem == null)
+                return null;
+
+            return new YouTubeVideo { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
         }
     }
 }
