@@ -56,7 +56,7 @@ namespace Rabbot.Services
             _client.MessageDeleted += MessageDeleted;
             _client.MessageUpdated += MessageUpdated;
             _client.JoinedGuild += JoinedGuild;
-            _client.Connected += _client_Connected;
+            _client.Connected += ClientConnected;
             _client.ReactionAdded += ReactionAdded;
             _client.ReactionRemoved += ReactionRemoved;
             _client.UserUpdated += UserUpdated;
@@ -572,12 +572,15 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task _client_Connected()
+        private async Task ClientConnected()
         {
             using (swaightContext db = new swaightContext())
             {
                 if (!db.Event.Where(p => p.Status == 1).Any())
+                { 
+                    await _client.SetGameAsync($"{Config.bot.cmdPrefix}rank", null, ActivityType.Watching);
                     return;
+                }
                 var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
                 await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
             }
