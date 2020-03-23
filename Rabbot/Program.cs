@@ -10,13 +10,13 @@ namespace Rabbot
 {
     class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main()
         {
             while (true)
             {
                 try
                 {
-                    new Rabbot().StartAsync().GetAwaiter().GetResult();
+                    await new Rabbot().StartAsync();
                 }
                 catch (Exception ex)
                 {
