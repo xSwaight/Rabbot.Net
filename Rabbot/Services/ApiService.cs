@@ -14,7 +14,7 @@ namespace Rabbot.Services
     public class ApiService
     {
         private readonly ImageService _imageService;
-        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(MuteService));
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(ApiService));
         public ApiService(ImageService imageService)
         {
             _imageService = imageService;

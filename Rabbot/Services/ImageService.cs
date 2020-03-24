@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -10,6 +11,8 @@ namespace Rabbot.Services
 {
     public class ImageService
     {
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(ImageService));
+
         public string DownloadImage(string url)
         {
             if (url.ToLower().EndsWith(".jpg"))
@@ -24,21 +27,29 @@ namespace Rabbot.Services
 
         private string SaveImage(string url, ImageFormat format)
         {
-            var path = Path.Combine(AppContext.BaseDirectory, $"{Guid.NewGuid()}.{format.ToString().ToLower()}");
-
-            WebClient client = new WebClient();
-            Stream stream = client.OpenRead(url);
-            Bitmap bitmap; bitmap = new Bitmap(stream);
-
-            if (bitmap != null)
+            try
             {
-                bitmap.Save(path, format);
-            }
+                var path = Path.Combine(AppContext.BaseDirectory, $"{Guid.NewGuid()}.{format.ToString().ToLower()}");
 
-            stream.Flush();
-            stream.Close();
-            client.Dispose();
-            return path;
+                WebClient client = new WebClient();
+                Stream stream = client.OpenRead(url);
+                Bitmap bitmap; bitmap = new Bitmap(stream);
+
+                if (bitmap != null)
+                {
+                    bitmap.Save(path, format);
+                }
+
+                stream.Flush();
+                stream.Close();
+                client.Dispose();
+                return path;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Something went wrong in {nameof(SaveImage)}");
+                return string.Empty;
+            }
         }
     }
 }
