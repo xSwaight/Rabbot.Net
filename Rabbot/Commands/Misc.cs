@@ -25,12 +25,14 @@ namespace Rabbot.Commands
         private readonly string version = "1.0";
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
+        private readonly ApiService _apiService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
-        public Misc(CommandService commandService, StreakService streakService)
+        public Misc(CommandService commandService, StreakService streakService, ApiService apiService)
         {
             _streakService = streakService;
             _commandService = commandService;
+            _apiService = apiService;
         }
 
         [Command("help", RunMode = RunMode.Async)]
@@ -468,16 +470,36 @@ namespace Rabbot.Commands
             return false;
         }
 
-        public ulong GetCrossSum(ulong n)
+        [Command("doggo", RunMode = RunMode.Async)]
+        [Cooldown(60)]
+        public async Task Doggo()
         {
-            ulong sum = 0;
-            while (n != 0)
+            string filepath = string.Empty;
+            using (Context.Channel.EnterTypingState())
             {
-                sum += n % 10;
-                n /= 10;
+                filepath = _apiService.GetDogImage();
+                if (!string.IsNullOrWhiteSpace(filepath))
+                    await Context.Channel.SendFileAsync(filepath);
+                else
+                    await Context.Channel.SendMessageAsync($"Ooopsie. Irgendwas läuft hier gewaltig schief.");
             }
+            File.Delete(filepath);
+        }
 
-            return sum;
+        [Command("kitten", RunMode = RunMode.Async)]
+        [Cooldown(60)]
+        public async Task Kitten()
+        {
+            string filepath = string.Empty;
+            using (Context.Channel.EnterTypingState())
+            {
+                filepath = _apiService.GetCatImage();
+                if (!string.IsNullOrWhiteSpace(filepath))
+                    await Context.Channel.SendFileAsync(filepath);
+                else
+                    await Context.Channel.SendMessageAsync($"Ooopsie. Irgendwas läuft hier gewaltig schief.");
+            }
+            File.Delete(filepath);
         }
     }
 }

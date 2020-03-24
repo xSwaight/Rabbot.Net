@@ -694,6 +694,7 @@ namespace Rabbot.Services
                 {
                     _streakService.CheckTodaysWordcount(streak);
                 }
+                await db.SaveChangesAsync();
 
                 var trades = db.Userfeatures.Where(p => p.Trades > 0);
                 foreach (var trade in trades)
