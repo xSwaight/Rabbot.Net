@@ -8,8 +8,8 @@ namespace Rabbot
     public static class Constants
     {
         #region Streak Constants
-        public static readonly int MinimumWordCount = 200;
-        public static readonly double ExpBoostPerLevel = 0.2;
+        public const int MinimumWordCount = 200;
+        public const double ExpBoostPerLevel = 0.2;
         #endregion
 
         #region Emotes
@@ -33,6 +33,13 @@ namespace Rabbot
         public static readonly Emoji thumbsDown = new Emoji("👎");
         #endregion
 
-        public static readonly string AnnouncementIgnoreTag = "[silent]";
+        #region API URLs
+        public const string DogApi = "https://dog.ceo/api/breeds/image/random";
+        public const string CatApi = "http://aws.random.cat/meow";
+        public const string CoronaApi = "https://corona.lmao.ninja/countries";
+        public const string RemnantsPlayerApi = "https://api.remdb.net/playercount";
+        #endregion
+
+        public const string AnnouncementIgnoreTag = "[silent]";
     }
 }

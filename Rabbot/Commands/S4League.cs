@@ -5,10 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Rabbot.API;
 using Rabbot.Database;
 using Rabbot.ImageGenerator;
-using Rabbot.API.Models;
 using Discord.WebSocket;
 using Rabbot.Preconditions;
 using Serilog;
@@ -54,23 +52,6 @@ namespace Rabbot.Commands
             await user.AddRoleAsync(psbatRole.FirstOrDefault());
             await Logging.PsbatRole(Context);
             await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **PS & Bat** Rolle gegeben.");
-        }
-
-        [BotCommand]
-        [Command("remPlayer")]
-        public async Task Scrape(string name)
-        {
-            var player = RemScraper.Scrape(name);
-            if (player == null)
-            {
-                await ReplyAsync("Den Spieler gibts nicht, du **Kek**");
-                return;
-            }
-            var embed = new EmbedBuilder();
-            embed.WithTitle($"{player.Name} - Clan: {player.Clan}");
-            embed.WithDescription($"Level: {player.Level}\nMatches: {player.Matches} | Won: {player.Won} - Lost: {player.Lost}");
-            embed.Color = Color.DarkGreen;
-            await ReplyAsync(null, false, embed.Build());
         }
 
         [BotCommand]

@@ -8,7 +8,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Rabbot.Services
 {
@@ -23,10 +25,10 @@ namespace Rabbot.Services
 
         public string GetDogImage()
         {
-            var (json, success) = ApiRequest("https://dog.ceo/api/breeds/image/random");
+            var (payload, success) = ApiRequest(Constants.DogApi);
             if (success)
             {
-                var dog = DeserializeJson<DogDto>(json);
+                var dog = DeserializeJson<DogDto>(payload);
                 if (dog.Status == "success")
                     return _imageService.DownloadImage(dog.Message);
             }
@@ -35,10 +37,10 @@ namespace Rabbot.Services
 
         public string GetCatImage()
         {
-            var (json, success) = ApiRequest("http://aws.random.cat/meow");
+            var (payload, success) = ApiRequest(Constants.CatApi);
             if (success)
             {
-                var cat = DeserializeJson<CatDto>(json);
+                var cat = DeserializeJson<CatDto>(payload);
                 return _imageService.DownloadImage(cat.File);
             }
             return string.Empty;
@@ -46,29 +48,53 @@ namespace Rabbot.Services
 
         public List<CoronaStatsDto> GetCoronaRanking(int count)
         {
-            var (json, success) = ApiRequest("https://corona.lmao.ninja/countries");
+            var (payload, success) = ApiRequest(Constants.CoronaApi);
             if (success)
             {
-                return DeserializeJson<CoronaStatsDto[]>(json).OrderByDescending(p => p.Cases).Take(count).ToList();
+                return DeserializeJson<CoronaStatsDto[]>(payload).OrderByDescending(p => p.Cases).Take(count).ToList();
             }
             return null;
         }
 
         public CoronaStatsDto GetCoronaCountry(string country)
         {
-            var (json, success) = ApiRequest("https://corona.lmao.ninja/countries");
+            var (payload, success) = ApiRequest(Constants.CoronaApi);
             if (success)
             {
-                return DeserializeJson<CoronaStatsDto[]>(json).FirstOrDefault(p => p.Country.Contains(country, StringComparison.InvariantCultureIgnoreCase));
+                return DeserializeJson<CoronaStatsDto[]>(payload).FirstOrDefault(p => p.Country.Contains(country, StringComparison.InvariantCultureIgnoreCase));
             }
             return null;
         }
 
-        public static (string json, bool success) ApiRequest(string url)
+        public string GetRemnantsPlayerCount()
+        {
+            var (payload, success) = ApiRequest(Constants.RemnantsPlayerApi);
+            if (success)
+                return payload;
+            return "";
+        }
+
+        public int GetOfficialPlayerCount()
+        {
+            var (payload, success) = ApiRequest(Config.bot.officialPlayerURL);
+            if (success)
+                return DeserializeJson<OfficialPlayerCount>(payload).PlayerCount;
+            return 0;
+        }
+
+        public static (string payload, bool success) ApiRequest(string url, Dictionary<string, string> headers = null)
         {
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+                // Add header
+                if (headers != null)
+                    foreach (var header in headers)
+                    {
+                        request.Headers.Add(header.Key, header.Value);
+                    }
+
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -86,6 +112,31 @@ namespace Rabbot.Services
             catch (Exception ex)
             {
                 _logger.Error(ex, $"Something went wrong in {nameof(ApiRequest)}");
+                return (string.Empty, false);
+            }
+        }
+
+        public async Task<(string payload, bool success)> APIRequestAsync(string url, Dictionary<string, string> headers = null)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+
+                // Add header
+                if (headers != null)
+                    foreach (var header in headers)
+                    {
+                        _httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+
+                var task = await _httpClient.GetAsync(url).ConfigureAwait(false);
+                task.EnsureSuccessStatusCode();
+                var payload = await task.Content.ReadAsStringAsync();
+                return (payload, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Something went wrong in {nameof(APIRequestAsync)}");
                 return (string.Empty, false);
             }
         }

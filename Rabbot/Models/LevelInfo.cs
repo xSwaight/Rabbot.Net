@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Rabbot.API.Models
+namespace Rabbot.Models
 {
-    public class CombiLevel
+    public class LevelInfo
     {
         public int NeededEXP { get; set; }
+        public int Reward { get; set; }
     }
 }

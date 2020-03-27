@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Rabbot.API.Models
+namespace Rabbot.Models
 {
     public class OfficialPlayerCount
     {

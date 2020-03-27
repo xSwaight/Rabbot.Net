@@ -8,11 +8,10 @@ using Rabbot.Database;
 using Rabbot.Services;
 using ImageFormat = Discord.ImageFormat;
 using System.Collections.Generic;
-using Rabbot.API.Models;
-using Rabbot.API;
 using System.Runtime.InteropServices;
 using Serilog;
 using Serilog.Core;
+using Rabbot.Models;
 
 namespace Rabbot.Services
 {
@@ -25,10 +24,11 @@ namespace Rabbot.Services
         private readonly LevelService _levelService;
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
+        private readonly ApiService _apiService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
 
         public EventService(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
-            LevelService levelService, WarnService warnService, MuteService muteService)
+            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService)
         {
             _attackService = attackService;
             _streakService = streakService;
@@ -36,6 +36,7 @@ namespace Rabbot.Services
             _levelService = levelService;
             _warnService = warnService;
             _muteService = muteService;
+            _apiService = apiService;
             _client = client;
             InitializeAsync();
         }
@@ -623,8 +624,8 @@ namespace Rabbot.Services
                 {
                     try
                     {
-                        var remnantsPlayers = ApiRequest.RemDB_APIRequest();
-                        var officialPlayers = ApiRequest.Official_APIRequest();
+                        var remnantsPlayers = _apiService.GetRemnantsPlayerCount();
+                        var officialPlayers = _apiService.GetOfficialPlayerCount();
                         await db.Officialplayer.AddAsync(new Officialplayer { Playercount = officialPlayers, Date = DateTime.Now });
                         if (int.TryParse(remnantsPlayers, out int count))
                         {

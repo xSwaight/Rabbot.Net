@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
-using Rabbot.API.Models;
 using System.Collections.Concurrent;
+using Rabbot.Models;
 
 namespace Rabbot
 {

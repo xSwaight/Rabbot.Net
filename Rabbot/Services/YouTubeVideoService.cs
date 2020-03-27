@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
-using Rabbot.API.Models;
 using Rabbot.Database;
+using Rabbot.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
