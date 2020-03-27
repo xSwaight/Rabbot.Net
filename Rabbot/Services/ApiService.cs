@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -41,6 +42,26 @@ namespace Rabbot.Services
                 return _imageService.DownloadImage(cat.File);
             }
             return string.Empty;
+        }
+
+        public List<CoronaStatsDto> GetCoronaRanking(int count)
+        {
+            var (json, success) = ApiRequest("https://corona.lmao.ninja/countries");
+            if (success)
+            {
+                return DeserializeJson<CoronaStatsDto[]>(json).OrderByDescending(p => p.Cases).Take(count).ToList();
+            }
+            return null;
+        }
+
+        public CoronaStatsDto GetCoronaCountry(string country)
+        {
+            var (json, success) = ApiRequest("https://corona.lmao.ninja/countries");
+            if (success)
+            {
+                return DeserializeJson<CoronaStatsDto[]>(json).FirstOrDefault(p => p.Country.Contains(country, StringComparison.InvariantCultureIgnoreCase));
+            }
+            return null;
         }
 
         public static (string json, bool success) ApiRequest(string url)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -336,7 +337,7 @@ namespace Rabbot.Commands
             }
         }
 
-        [Command("protect", RunMode = RunMode.Async), Alias("corona")]
+        [Command("protect", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
         public async Task Protect(IUser user = null)
@@ -359,6 +360,63 @@ namespace Rabbot.Commands
                 await Context.Channel.SendFileAsync(path);
             }
             File.Delete(path);
+        }
+
+        [Command("corona", RunMode = RunMode.Async)]
+        [BotCommand]
+        [Cooldown(10)]
+        public async Task Corona(string country = null)
+        {
+            if (country == null)
+            {
+                var coronaStats = _apiService.GetCoronaRanking(10);
+                if (coronaStats == null)
+                {
+                    await Context.Channel.SendMessageAsync($"Oops, irgendwas ist schiefgelaufen :/");
+                    return;
+                }
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.WithTitle($"Corona Statistiken");
+                StringBuilder builder = new StringBuilder();
+                int counter = 1;
+                foreach (var countryStats in coronaStats)
+                {
+                    builder.Append($"**{counter}. {countryStats.Country}**\nFälle: **{countryStats.Cases.Value.ToFormattedString()}** | Heutige Fälle: **{countryStats.TodayCases.Value.ToFormattedString()}** | Heutige Tode: **{countryStats.TodayDeaths.Value.ToFormattedString()}**\n\n");
+                    counter++;
+                }
+                embed.Color = new Color(4, 255, 0);
+                embed.WithFooter($"Daten vom {DateTime.Now.ToFormattedString()} Uhr");
+                embed.WithDescription(builder.ToString());
+                await Context.Channel.SendMessageAsync("", false, embed.Build());
+                return;
+            }
+            else
+            {
+                var countryStats = _apiService.GetCoronaCountry(country);
+                if(countryStats == null)
+                {
+                    await Context.Channel.SendMessageAsync($"**{country}** konnte nicht gefunden werden!");
+                    return;
+                }
+                EmbedBuilder embed = new EmbedBuilder();
+                var author = new EmbedAuthorBuilder
+                {
+                    Name = countryStats.Country,
+                    IconUrl = countryStats.CountryInfo.Flag
+                };
+                embed.WithAuthor(author);
+                embed.WithDescription($"Corona Statistiken von {countryStats.Country}:");
+                embed.AddField("Fälle gesamt", $"**{countryStats.Cases.Value.ToFormattedString()}**", true);
+                embed.AddField("Tode gesamt", $"**{countryStats.Deaths.Value.ToFormattedString()}**", true);
+                embed.AddField("Geborgen gesamt", $"**{countryStats.Recovered.Value.ToFormattedString()}**", true);
+                embed.AddField("Aktive Fälle", $"**{countryStats.Active.Value.ToFormattedString()}**", true);
+                embed.AddField("Kritische Fälle", $"**{countryStats.Critical.Value.ToFormattedString()}**", true);
+                embed.AddField("Fälle heute", $"**{countryStats.TodayCases.Value.ToFormattedString()}**", true);
+                embed.AddField("Tode heute", $"**{countryStats.TodayDeaths.Value.ToFormattedString()}**", true);
+                embed.WithFooter($"Daten vom {DateTime.Now.ToFormattedString()} Uhr");
+                embed.Color = new Color(4, 255, 0);
+                await Context.Channel.SendMessageAsync("", false, embed.Build());
+            }
         }
 
         [Command("timerank", RunMode = RunMode.Async)]
