@@ -365,7 +365,7 @@ namespace Rabbot.Commands
         [Command("corona", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        public async Task Corona(string country = null)
+        public async Task Corona([Remainder]string country = null)
         {
             if (country == null)
             {
@@ -408,11 +408,13 @@ namespace Rabbot.Commands
                 embed.WithDescription($"Corona Statistiken von {countryStats.Country}:");
                 embed.AddField("Fälle gesamt", $"**{countryStats.Cases.Value.ToFormattedString()}**", true);
                 embed.AddField("Tode gesamt", $"**{countryStats.Deaths.Value.ToFormattedString()}**", true);
-                embed.AddField("Geborgen gesamt", $"**{countryStats.Recovered.Value.ToFormattedString()}**", true);
+                embed.AddField("Geheilte gesamt", $"**{countryStats.Recovered.Value.ToFormattedString()}**", true);
                 embed.AddField("Aktive Fälle", $"**{countryStats.Active.Value.ToFormattedString()}**", true);
                 embed.AddField("Kritische Fälle", $"**{countryStats.Critical.Value.ToFormattedString()}**", true);
                 embed.AddField("Fälle heute", $"**{countryStats.TodayCases.Value.ToFormattedString()}**", true);
-                embed.AddField("Tode heute", $"**{countryStats.TodayDeaths.Value.ToFormattedString()}**", true);
+                embed.AddField("Tode heute", $"**{countryStats.TodayDeaths.Value.ToFormattedString()}**");
+                embed.AddField("Fälle pro 1 mio. Einwohner", $"**{(countryStats.CasesPerOneMillion.HasValue ? countryStats.CasesPerOneMillion.Value.ToString() : "0") }**", true);
+                embed.AddField("Tode pro 1 mio. Einwohner", $"**{(countryStats.DeathsPerOneMillion.HasValue ? countryStats.DeathsPerOneMillion.Value.ToString() : "0") }**", true);
                 embed.WithFooter($"Daten vom {DateTime.Now.ToFormattedString()} Uhr");
                 embed.Color = new Color(4, 255, 0);
                 await Context.Channel.SendMessageAsync("", false, embed.Build());
