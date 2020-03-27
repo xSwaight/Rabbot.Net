@@ -45,7 +45,7 @@ namespace Rabbot.Preconditions
                 var difference = endsAt.Subtract(DateTime.UtcNow);
                 if (difference.Ticks > 0)
                 {
-                    Task.Run(() => sendMessage(context, command));
+                    Task.Run(async () => await SendMessage(context, command));
                     return Task.FromResult(PreconditionResult.FromError($"Command spammer detected: {context.User.Id} on {context.Guild.Id}"));
                 }
                 var time = DateTime.UtcNow.Add(CooldownLength);
@@ -58,7 +58,7 @@ namespace Rabbot.Preconditions
             return Task.FromResult(PreconditionResult.FromSuccess());
         }
 
-        private async Task sendMessage(ICommandContext context, CommandInfo command)
+        private async Task SendMessage(ICommandContext context, CommandInfo command)
         {
             await context.Message.DeleteAsync();
             var key = new CooldownInfo(context.User.Id, command.GetHashCode());
