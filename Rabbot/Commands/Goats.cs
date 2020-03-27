@@ -19,10 +19,12 @@ namespace Rabbot.Commands
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Goats));
         private readonly StreakService _streakService;
+        private readonly LevelService _levelService;
 
-        public Goats(StreakService streakService)
+        public Goats(StreakService streakService, LevelService levelService)
         {
             _streakService = streakService;
+            _levelService = levelService;
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -610,12 +612,13 @@ namespace Rabbot.Commands
                 }
 
                 embed.AddField($"Daily", $"Heute abgeholt: {emote}");
-                embed.AddField($"Streak", $"{Constants.Fire} **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**\n\nBonus:\n**{Constants.ExpBoostPerLevel}%** × {Constants.Fire}**{_streakService.GetStreakLevel(dbUser).ToFormattedString()}** = **{(Constants.ExpBoostPerLevel * _streakService.GetStreakLevel(dbUser))}%** EXP Boost");
+                embed.AddField($"Streak", $"{Constants.Fire} **{_streakService.GetStreakLevel(dbUser).ToFormattedString()}**");
                 embed.AddField($"Wortcounter", $"Heute: **{_streakService.GetWordsToday(dbUser).ToFormattedString()} {(_streakService.GetWordsToday(dbUser) == 1 ? "Wort" : "Wörter")}**\nTotal: **{_streakService.GetWordsTotal(dbUser).ToFormattedString()} {(_streakService.GetWordsTotal(dbUser) == 1 ? "Wort" : "Wörter")}**");
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
                 embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToFormattedString()})");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToFormattedString()}0** | DEF: **{stall.Defense.ToFormattedString()}0**");
                 embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToFormattedString()}** | Gewinn Gesamt: **{dbUser.Gewinn.ToFormattedString()}**");
+                embed.AddField($"EXP Bonus", $"{_levelService.GetBonusEXP(db, myUser).bonusInfo}");
                 if (inventory.Count() != 0)
                 {
                     string items = "";

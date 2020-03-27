@@ -192,8 +192,8 @@ namespace Rabbot.Database
                     .HasColumnName("id")
                     .HasColumnType("int(11)");
 
-                entity.Property(e => e.Multiplier)
-                    .HasColumnName("multiplier")
+                entity.Property(e => e.BonusPercent)
+                    .HasColumnName("bonusPercent")
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'1'");
 

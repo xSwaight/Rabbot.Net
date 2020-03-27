@@ -26,7 +26,7 @@ namespace Rabbot
                         o.Dsn = new Dsn(Config.bot.sentrydsn);
                         o.Environment = Config.bot.environment;
                         o.MinimumBreadcrumbLevel = LogEventLevel.Verbose;
-                        o.MinimumEventLevel = LogEventLevel.Warning;
+                        o.MinimumEventLevel = LogEventLevel.Error;
                         o.SendDefaultPii = true;
                         o.AttachStacktrace = true;
 

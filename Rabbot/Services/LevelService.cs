@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Rabbot.Services
 {
-    class LevelService
+    public class LevelService
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         private readonly StreakService _streakService;
@@ -20,6 +20,70 @@ namespace Rabbot.Services
         public LevelService(StreakService streakService)
         {
             _streakService = streakService;
+        }
+
+        public (string bonusInfo, int bonusPercent) GetBonusEXP(swaightContext db, SocketGuildUser user)
+        {
+            var feature = db.Userfeatures.Include(p => p.Inventory).FirstOrDefault(p => p.UserId == user.Id && p.ServerId == user.Guild.Id);
+            if (feature == null)
+                return ("Kein Bonus :(", 0);
+
+            int bonusPercent = 0;
+            string bonusInfo = string.Empty;
+            if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
+            {
+                bonusPercent += 50;
+                bonusInfo += $"**+50% EXP** (Supporter Bonus)\n";
+            }
+            if (feature.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
+            {
+                bonusPercent += 50;
+                bonusInfo += $"**+50% EXP** (EXP +50% Item)\n";
+            }
+
+            var ranks = db.Musicrank.Where(p => p.ServerId == user.Guild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
+            int rank = 0;
+            foreach (var Rank in ranks)
+            {
+                rank++;
+                if (Rank.UserId == user.Id)
+                    break;
+            }
+
+            if (rank == 1)
+            {
+                bonusPercent += 50;
+                bonusInfo += $"**+50% EXP** (Musicrank 1. Platz)\n";
+            }
+            if (rank == 2)
+            {
+                bonusPercent += 30;
+                bonusInfo += $"**+30% EXP** (Musicrank 2. Platz)\n";
+            }
+            if (rank == 3)
+            {
+                bonusPercent += 10;
+                bonusInfo += $"**+10% EXP** (Musicrank 3. Platz)\n";
+            }
+
+            if (db.Event.Where(p => p.Status == 1).Any())
+            {
+                var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
+                bonusPercent += myEvent.BonusPercent;
+                bonusInfo += $" **+{myEvent.BonusPercent}% EXP** ({myEvent.Name} Event)\n";
+            }
+
+            if (_streakService.GetStreakLevel(feature) > 0)
+            {
+                bonusPercent += (int)(_streakService.GetStreakLevel(feature) * Constants.ExpBoostPerLevel);
+                bonusInfo += $"**+{ (Constants.ExpBoostPerLevel * _streakService.GetStreakLevel(feature))}% EXP** ({ Constants.ExpBoostPerLevel}%  × { Constants.Fire} { _streakService.GetStreakLevel(feature).ToFormattedString()})\n";
+            }
+            if(bonusPercent > 0)
+            {
+                bonusInfo += $"**{bonusPercent}% EXP Bonus insgesamt**";
+            }
+
+            return (bonusInfo, bonusPercent);
         }
 
         public async Task AddEXP(SocketMessage msg)
@@ -59,40 +123,12 @@ namespace Rabbot.Services
                     exp *= rnd.Next(1, 5);
                 }
 
-                int multiplier = 1;
-                if (db.Event.Where(p => p.Status == 1).Any())
-                {
-                    var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
-                    multiplier = myEvent.Multiplier;
-                }
-
-                exp += exp.GetPercentFrom(_streakService.GetStreakLevel(EXP) * Constants.ExpBoostPerLevel);
-
-                var ranks = db.Musicrank.Where(p => p.ServerId == dcGuild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
-                int rank = 0;
-                foreach (var Rank in ranks)
-                {
-                    rank++;
-                    if (Rank.UserId == msg.Author.Id)
-                        break;
-                }
-
-                if (rank == 1)
-                    exp += exp.GetPercentFrom(50);
-                if (rank == 2)
-                    exp += exp.GetPercentFrom(30);
-                if (rank == 3)
-                    exp += exp.GetPercentFrom(10);
-
                 if (dcMessage?.Author is SocketGuildUser user)
-                    if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
-                        exp += exp.GetPercentFrom(50);
+                {
+                    var (bonusInfo, bonusPercent) = GetBonusEXP(db, user);
+                    exp += exp.GetValueFromPercent(bonusPercent);
+                }
 
-                if (EXP.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
-                    exp += exp.GetPercentFrom(50);
-
-                if (EXP.Gain == 1)
-                    EXP.Exp += exp * multiplier;
                 if (roundedEXP < EXP.Exp)
                 {
                     EXP.Attacks--;

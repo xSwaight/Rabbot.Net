@@ -689,7 +689,7 @@ namespace Rabbot.Services
                         counter++;
                     }
                 }
-                var streaks = db.Userfeatures.Where(p => p.TodaysWords > 0);
+                var streaks = db.Userfeatures.Where(p => p.TodaysWords > 0 || p.StreakLevel > 0);
                 foreach (var streak in streaks)
                 {
                     _streakService.CheckTodaysWordcount(streak);
