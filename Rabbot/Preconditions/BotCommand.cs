@@ -34,7 +34,7 @@ namespace Rabbot.Preconditions
                         return Task.FromResult(PreconditionResult.FromSuccess());
                     else
                     {
-                        Task.Run(() => sendMessage(context, botChannel));
+                        Task.Run(async () => await SendMessage(context, botChannel));
                         var EXP = db.Userfeatures.FirstOrDefault(p => p.UserId == context.User.Id && p.ServerId == context.Guild.Id);
                         if (EXP != null && EXP.Exp > 500)
                         {
@@ -51,7 +51,7 @@ namespace Rabbot.Preconditions
             }
         }
 
-        private async Task sendMessage(ICommandContext context, ulong? botChannel)
+        private async Task SendMessage(ICommandContext context, ulong? botChannel)
         {
             await context.Message.DeleteAsync();
             var guild = context.Guild as SocketGuild;
