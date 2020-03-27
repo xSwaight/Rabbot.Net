@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Rabbot.Models
 {
-    public class CombiLevel
+    public class CombiLevelDto
     {
         public int NeededEXP { get; set; }
     }

@@ -42,7 +42,7 @@ namespace Rabbot.Services
                     await Task.Delay(intervallTime * 1000);
                     foreach (var channelId in channelIds)
                     {
-                        YouTubeVideo video = null;
+                        YouTubeVideoDto video = null;
                         using (XmlReader reader = XmlReader.Create($"https://www.youtube.com/feeds/videos.xml?channel_id={channelId}"))
                         {
                             video = SyndicationFeed.Load(reader).GetFirstVideo();
@@ -71,7 +71,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task NewVideo(swaightContext db, YouTubeVideo video)
+        private async Task NewVideo(swaightContext db, YouTubeVideoDto video)
         {
             foreach (var dbGuild in db.Guild)
             {

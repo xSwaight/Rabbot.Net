@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Rabbot.Models
 {
-    public class YouTubeVideo
+    public class YouTubeVideoDto
     {
         public string Title { get; set; }
         public string ChannelName { get; set; }

@@ -47,13 +47,13 @@ namespace Rabbot
             return (int)(value * (1 + percentValue)) - @this;
         }
 
-        public static YouTubeVideo GetFirstVideo(this SyndicationFeed @this)
+        public static YouTubeVideoDto GetFirstVideo(this SyndicationFeed @this)
         {
             var firstItem = @this.Items.FirstOrDefault();
             if (firstItem == null)
                 return null;
 
-            return new YouTubeVideo { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
+            return new YouTubeVideoDto { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
         }
     }
 }

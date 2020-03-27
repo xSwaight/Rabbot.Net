@@ -78,7 +78,7 @@ namespace Rabbot.Services
         {
             var (payload, success) = ApiRequest(Config.bot.officialPlayerURL);
             if (success)
-                return DeserializeJson<OfficialPlayerCount>(payload).PlayerCount;
+                return DeserializeJson<OfficialPlayerCountDto>(payload).PlayerCount;
             return 0;
         }
 

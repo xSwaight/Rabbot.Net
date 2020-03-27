@@ -729,11 +729,11 @@ namespace Rabbot.Services
                             var pot = db.Pot.Where(p => p.ServerId == serverId);
                             var sum = pot.Sum(p => p.Goats);
                             double min = 0;
-                            List<PotUser> myList = new List<PotUser>();
+                            List<PotUserDto> myList = new List<PotUserDto>();
                             foreach (var item in pot)
                             {
                                 var chance = (double)item.Goats / (double)sum * 100;
-                                myList.Add(new PotUser { UserId = item.UserId, Min = min + 1, Max = chance + min, Chance = (int)Math.Round(chance) });
+                                myList.Add(new PotUserDto { UserId = item.UserId, Min = min + 1, Max = chance + min, Chance = (int)Math.Round(chance) });
                                 min = chance + min;
                             }
                             foreach (var item in myList)

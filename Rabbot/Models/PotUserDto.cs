@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Rabbot.Models
 {
-    class PotUser
+    class PotUserDto
     {
         public ulong? UserId { get; set; }
         public double Min { get; set; }

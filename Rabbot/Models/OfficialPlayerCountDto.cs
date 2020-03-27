@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Rabbot.Models
 {
-    public class OfficialPlayerCount
+    public class OfficialPlayerCountDto
     {
         public bool Success { get; set; }
         public int PlayerCount { get; set; }
