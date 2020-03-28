@@ -48,15 +48,15 @@ namespace Rabbot.ImageGenerator
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     FileName = "/bin/bash",
-                    Arguments = "which wkhtmltoimage"
+                    Arguments = $"which {toolFilename}"
 
                 });
                 string answer = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
 
-                if (!string.IsNullOrEmpty(answer) && answer.Contains("wkhtmltoimage"))
+                if (!string.IsNullOrEmpty(answer) && answer.Contains(toolFilename))
                 {
-                    toolFilepath = "wkhtmltoimage";
+                    toolFilepath = toolFilename;
                 }
                 else
                 {

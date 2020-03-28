@@ -11,7 +11,7 @@ namespace Rabbot.ImageGenerator
         {
             var converter = new HtmlConverter();
             var bytes = converter.FromHtmlString(html, width, height, format, 90);
-            File.WriteAllBytes($"{name}.jpg", bytes);
+            File.WriteAllBytes($"{name}.{format.ToString().ToLower()}", bytes);
             return Directory.GetCurrentDirectory() + $"/{name}.jpg";
         }
     }
