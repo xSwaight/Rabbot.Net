@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using Discord;
 using System.Collections.Concurrent;
 using Rabbot.Models;
+using System.IO;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace Rabbot
 {
@@ -579,6 +582,62 @@ namespace Rabbot
             myString = new Regex("[ŹźŻżŽžΖ]").Replace(myString, "z");
 
             return myString;
+        }
+
+        public static string GetFilePath(string filename)
+        {
+            string directory = AppContext.BaseDirectory;
+            string toolFilepath;
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                toolFilepath = Path.Combine(directory, filename + ".exe");
+
+                if (!File.Exists(toolFilepath))
+                {
+                    var assembly = typeof(Helper).GetTypeInfo().Assembly;
+                    var type = typeof(Helper);
+                    var ns = type.Namespace;
+
+                    using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{filename}.exe"))
+                    using (var fileStream = File.OpenWrite(toolFilepath))
+                    {
+                        resourceStream.CopyTo(fileStream);
+                    }
+                }
+                return toolFilepath;
+            }
+            else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+            {
+                //Check if wkhtmltoimage package is installed on this distro in using which command
+                Process process = Process.Start(new ProcessStartInfo()
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = "/bin/",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    FileName = "/bin/bash",
+                    Arguments = $"which {filename}"
+
+                });
+                string answer = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(answer) && answer.Contains(filename))
+                {
+                    toolFilepath = filename;
+                    return toolFilepath;
+                }
+                else
+                {
+                    throw new Exception($"{filename} does not appear to be installed on this linux system according to which command;");
+                }
+            }
+            else
+            {
+                //OSX not implemented
+                throw new Exception("OSX Platform not implemented yet");
+            }
         }
     }
 }

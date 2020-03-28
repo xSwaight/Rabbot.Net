@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Text;
 
 namespace Rabbot.ImageGenerator
@@ -12,62 +11,12 @@ namespace Rabbot.ImageGenerator
     public class HtmlConverter
     {
         private static string toolFilename = "wkhtmltoimage";
-        private static string directory;
+        private static readonly string directory = AppContext.BaseDirectory;
         private static string toolFilepath;
 
         static HtmlConverter()
         {
-            directory = AppContext.BaseDirectory;
-
-            //Check on what platform we are
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
-            {
-                toolFilepath = Path.Combine(directory, toolFilename + ".exe");
-
-                if (!File.Exists(toolFilepath))
-                {
-                    var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
-                    var type = typeof(HtmlConverter);
-                    var ns = type.Namespace;
-
-                    using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}.exe"))
-                    using (var fileStream = File.OpenWrite(toolFilepath))
-                    {
-                        resourceStream.CopyTo(fileStream);
-                    }
-                }
-            }
-            else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
-            {
-                //Check if wkhtmltoimage package is installed on this distro in using which command
-                Process process = Process.Start(new ProcessStartInfo()
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = "/bin/",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = "/bin/bash",
-                    Arguments = $"which {toolFilename}"
-
-                });
-                string answer = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-
-                if (!string.IsNullOrEmpty(answer) && answer.Contains(toolFilename))
-                {
-                    toolFilepath = toolFilename;
-                }
-                else
-                {
-                    throw new Exception("wkhtmltoimage does not appear to be installed on this linux system according to which command; go to https://wkhtmltopdf.org/downloads.html");
-                }
-            }
-            else
-            {
-                //OSX not implemented
-                throw new Exception("OSX Platform not implemented yet");
-            }
+            toolFilepath = Helper.GetFilePath(toolFilename);
         }
 
         /// <summary>

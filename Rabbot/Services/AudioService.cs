@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
@@ -73,7 +70,7 @@ namespace Rabbot.Services
                     try
                     {
                         var argument = $"-hide_banner -loglevel panic -i \"{streamUrl}\" -ac 2 -f s16le -ar 48000 pipe:1";
-                        var test = await Cli.Wrap(GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(stream)).ExecuteAsync();
+                        var test = await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(stream)).ExecuteAsync();
                     }
                     catch (Exception ex)
                     {
@@ -86,7 +83,7 @@ namespace Rabbot.Services
 
         private async Task<string> GetStreamLink(string url)
         {
-            var result = await Cli.Wrap(GetFilePath("youtube-dl"))
+            var result = await Cli.Wrap(Helper.GetFilePath("youtube-dl"))
                     .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --no-playlist --get-url " + url)
                     .ExecuteBufferedAsync();
             if (result.ExitCode != 0)
@@ -95,62 +92,6 @@ namespace Rabbot.Services
                 return null;
             }
             return result.StandardOutput;
-        }
-
-        private string GetFilePath(string filename)
-        {
-            string directory = AppContext.BaseDirectory;
-            string toolFilepath;
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
-            {
-                toolFilepath = Path.Combine(directory, filename + ".exe");
-
-                if (!File.Exists(toolFilepath))
-                {
-                    var assembly = typeof(AudioService).GetTypeInfo().Assembly;
-                    var type = typeof(AudioService);
-                    var ns = type.Namespace;
-
-                    using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{filename}.exe"))
-                    using (var fileStream = File.OpenWrite(toolFilepath))
-                    {
-                        resourceStream.CopyTo(fileStream);
-                    }
-                }
-                return toolFilepath;
-            }
-            else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
-            {
-                //Check if wkhtmltoimage package is installed on this distro in using which command
-                Process process = Process.Start(new ProcessStartInfo()
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = "/bin/",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = "/bin/bash",
-                    Arguments = $"which {filename}"
-
-                });
-                string answer = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-
-                if (!string.IsNullOrEmpty(answer) && answer.Contains(filename))
-                {
-                    toolFilepath = filename;
-                    return toolFilepath;
-                }
-                else
-                {
-                    throw new Exception($"{filename} does not appear to be installed on this linux system according to which command;");
-                }
-            }
-            else
-            {
-                //OSX not implemented
-                throw new Exception("OSX Platform not implemented yet");
-            }
         }
     }
 }
