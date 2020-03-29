@@ -2,16 +2,16 @@
 using CliWrap.Buffered;
 using Discord;
 using Discord.Commands;
-using MediaToolkit;
-using MediaToolkit.Model;
 using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using VideoLibrary;
+using YouTubeSearch;
+using Log = Serilog.Log;
 
 namespace Rabbot.Commands
 {
@@ -43,11 +43,18 @@ namespace Rabbot.Commands
         [Command("play", RunMode = RunMode.Async)]
         public async Task Play([Remainder] string url)
         {
-            //var youtube = YouTube.Default;
-            //var vid = youtube.GetVideo(url);
-            //if (vid == null)
-            //    return;
-            //var song = await GetMp3(vid);
+            if (!(Uri.TryCreate(url, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme == Uri.UriSchemeHttp))
+            {
+                int querypages = 1;
+                VideoSearch videos = new VideoSearch();
+                var result = videos.GetVideos(url, querypages).Result.FirstOrDefault();
+                if (result == null)
+                    await Context.Channel.SendMessageAsync($"Die Suche nach {url} konnte keine Ergebnisse erziehlen.");
+                else
+                {
+                    url = result.getUrl();
+                }
+            }
             await _service.SendAudioAsync(Context.Guild, Context.Channel, url);
         }
     }
