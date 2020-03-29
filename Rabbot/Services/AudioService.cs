@@ -1,20 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
+using CSCore;
+using CSCore.Codecs;
 using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
+using Rabbot.Models;
 using Serilog;
 
 namespace Rabbot.Services
 {
     public class AudioService
     {
-        private readonly ConcurrentDictionary<ulong, IAudioClient> ConnectedChannels = new ConcurrentDictionary<ulong, IAudioClient>();
+        private readonly ConcurrentDictionary<ulong, AudioClient> ConnectedChannels = new ConcurrentDictionary<ulong, AudioClient>();
         private readonly DiscordSocketClient _client;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioService));
+        private IWaveSource _codec;
 
         public AudioService(DiscordSocketClient client)
         {
@@ -26,7 +31,7 @@ namespace Rabbot.Services
         {
             if (user.Id == _client.CurrentUser.Id && after.VoiceChannel == null)
             {
-                if(user is SocketGuildUser guildUser)
+                if (user is SocketGuildUser guildUser)
                 {
                     await LeaveAudio(guildUser.Guild);
                 }
@@ -48,50 +53,62 @@ namespace Rabbot.Services
 
             var audioClient = await target.ConnectAsync();
 
-            ConnectedChannels.TryAdd(guild.Id, audioClient);
+            ConnectedChannels.TryAdd(guild.Id, new AudioClient(audioClient));
         }
 
         public async Task LeaveAudio(IGuild guild)
         {
-            if (ConnectedChannels.TryRemove(guild.Id, out IAudioClient client))
+            if (ConnectedChannels.TryRemove(guild.Id, out AudioClient client))
             {
-                await client.StopAsync();
-                client.Dispose();
+                await client.DiscordAudioClient.StopAsync();
+                client.DiscordAudioClient.Dispose();
             }
         }
 
-        public async Task SendAudioAsync(IGuild guild, IMessageChannel channel, string url)
+        public bool Play(IGuild guild, string url)
         {
-            if (ConnectedChannels.TryGetValue(guild.Id, out IAudioClient client))
+            if (ConnectedChannels.TryGetValue(guild.Id, out AudioClient client))
             {
-                var streamUrl = GetStreamLink(url).Result.TrimEnd();
-                using (var stream = client.CreatePCMStream(AudioApplication.Music))
+                try
                 {
-                    try
-                    {
-                        var argument = $"-hide_banner -loglevel panic -i \"{streamUrl}\" -ac 2 -f s16le -ar 48000 pipe:1";
-                        var test = await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(stream)).ExecuteAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, $"Error in {nameof(SendAudioAsync)}");
-                    }
-                    finally { await stream.FlushAsync(); }
+                    new Task(async () => await client.Play(url), TaskCreationOptions.LongRunning).Start();
+                    return true;
+                }
+                catch 
+                {
+                    return false;
                 }
             }
+            return false;
         }
 
-        private async Task<string> GetStreamLink(string url)
+        public async Task<bool> AddToPlaylist(IGuild guild, string url)
         {
-            var result = await Cli.Wrap(Helper.GetFilePath("youtube-dl"))
-                    .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --no-playlist --get-url " + url)
-                    .ExecuteBufferedAsync();
-            if (result.ExitCode != 0)
+            if (ConnectedChannels.TryGetValue(guild.Id, out AudioClient client))
             {
-                _logger.Error("Something went wrong!");
-                return null;
+                return await client.AddToPlaylist(url);
             }
-            return result.StandardOutput;
+            return false;
+        }
+
+        public List<PlaylistItemDto> GetPlaylist(IGuild guild)
+        {
+            if (ConnectedChannels.TryGetValue(guild.Id, out AudioClient client))
+            {
+                return client.GetPlaylist();
+            }
+            return null;
+        }
+
+        public string GetSongInfo(IGuild guild)
+        {
+            if (ConnectedChannels.TryGetValue(guild.Id, out AudioClient client))
+            {
+                string output = $"Aktueller Song: `{client.CurrentSong.Title}`\n";
+                output += $"{client.GetCurrentPositionInSeconds().ToTimeString("mm:ss")} / {client.GetSongLenght().ToTimeString("mm:ss")}";
+                return output;
+            }
+            return null;
         }
     }
 }
