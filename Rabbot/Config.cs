@@ -28,18 +28,16 @@ namespace Rabbot
                 bot = JsonConvert.DeserializeObject<BotConfig>(json);
             }
         }
+        public struct BotConfig
+        {
+            public string Token;
+            public string Environment;
+            public string SentryDsn;
+            public string TwitchToken;
+            public string TwitchAccessToken;
+            public string ConnectionString;
+            public string CmdPrefix;
+            public string OfficialPlayerURL;
+        }
     }
-
-    public struct BotConfig
-    {
-        public string Token;
-        public string Environment;
-        public string SentryDsn;
-        public string TwitchToken;
-        public string TwitchAccessToken;
-        public string ConnectionString;
-        public string CmdPrefix;
-        public string OfficialPlayerURL;
-    }
-
 }

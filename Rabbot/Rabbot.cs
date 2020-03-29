@@ -94,9 +94,12 @@ namespace Rabbot
                 // Block this program until it is closed.
                 await Task.Delay(-1);
             }
-            catch (Exception e)
+            catch
             {
-                _logger.Fatal(e, "Startup failed");
+                Console.WriteLine($"Startup failed. Please check the config file.");
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+                Environment.Exit(0);
             }
 
         }
