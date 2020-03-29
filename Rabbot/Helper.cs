@@ -247,7 +247,7 @@ namespace Rabbot
                 if (msg.Author.Id != client.CurrentUser.Id)
                     return;
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == user.Guild.Id && p.UserId == user.Id);
@@ -460,7 +460,7 @@ namespace Rabbot
 
         public static ulong? GetBotChannel(ICommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
                 {

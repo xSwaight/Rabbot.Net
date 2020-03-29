@@ -23,7 +23,7 @@ namespace Rabbot.Services
             _client = client;
         }
 
-        public async Task CheckWarnings(swaightContext db)
+        public async Task CheckWarnings(rabbotContext db)
         {
             if (!db.Warning.Any())
                 return;
@@ -57,7 +57,7 @@ namespace Rabbot.Services
             }
         }
 
-        public async Task Warn(swaightContext db, IUser user, SocketCommandContext Context)
+        public async Task Warn(rabbotContext db, IUser user, SocketCommandContext Context)
         {
             var warn = db.Warning.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Warning.AddAsync(new Warning { ServerId = Context.Guild.Id, UserId = user.Id, ActiveUntil = DateTime.Now.AddHours(1), Counter = 0 }).Result.Entity;
             warn.Counter++;
@@ -68,7 +68,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task AutoWarn(swaightContext db, SocketMessage msg)
+        public async Task AutoWarn(rabbotContext db, SocketMessage msg)
         {
             var myUser = msg.Author as SocketGuildUser;
             if (db.Muteduser.Where(p => p.UserId == msg.Author.Id && p.ServerId == myUser.Guild.Id).Any())

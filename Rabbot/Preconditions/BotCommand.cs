@@ -23,7 +23,7 @@ namespace Rabbot.Preconditions
             if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.ManageRoles)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
                 {

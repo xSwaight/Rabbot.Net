@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Rabbot.Database
 {
-    public partial class swaightContext : DbContext
+    public partial class rabbotContext : DbContext
     {
-        public swaightContext()
+        public rabbotContext()
         {
         }
 
-        public swaightContext(DbContextOptions<swaightContext> options)
+        public rabbotContext(DbContextOptions<rabbotContext> options)
             : base(options)
         {
         }

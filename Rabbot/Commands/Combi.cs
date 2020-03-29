@@ -33,7 +33,7 @@ namespace Rabbot.Commands
                 return;
             }
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (db.Combi.Where(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
                 {
@@ -70,7 +70,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task CombiList()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var combis = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id));
 
@@ -102,7 +102,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task delCombi(int id)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var combi = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
@@ -128,7 +128,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task acceptCombi(int id)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var combi = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 

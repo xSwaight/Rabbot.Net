@@ -62,7 +62,7 @@ namespace Rabbot
             if (!matches.Any(p => p.Value.Contains(context.Client.CurrentUser.Id.ToString())))
                 return;
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Randomanswer.Any())
                     return;

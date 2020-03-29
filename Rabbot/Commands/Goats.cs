@@ -32,7 +32,7 @@ namespace Rabbot.Commands
         [Summary("Du kannst 1x täglich eine Belohnung bekommen.")]
         public async Task Daily()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var user = db.User.FirstOrDefault(p => p.Id == Context.User.Id) ?? db.User.AddAsync(new User { Id = Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
@@ -69,7 +69,7 @@ namespace Rabbot.Commands
             int chance = rnd.Next(1, 18);
             int jackpot = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 if (chance > 1)
@@ -173,7 +173,7 @@ namespace Rabbot.Commands
         {
             if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
 
                     var embed = new EmbedBuilder();
@@ -269,7 +269,7 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
                 return;
             }
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == target.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = target.Id, Exp = 0, Goats = 0 }).Result.Entity;
@@ -361,7 +361,7 @@ namespace Rabbot.Commands
         [BotCommand]
         public async Task Hirtenstab()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 EmbedBuilder embed = new EmbedBuilder();
@@ -416,7 +416,7 @@ namespace Rabbot.Commands
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var features = db.Userfeatures
@@ -469,7 +469,7 @@ namespace Rabbot.Commands
         public async Task Expboost()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var features = db.Userfeatures
@@ -529,7 +529,7 @@ namespace Rabbot.Commands
             if (user.IsBot)
                 return;
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var embed = new EmbedBuilder();
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id);
@@ -560,7 +560,7 @@ namespace Rabbot.Commands
                 return;
 
             var embed = new EmbedBuilder();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id);
                 if (dbUser == null)
@@ -668,7 +668,7 @@ namespace Rabbot.Commands
         [Summary("Die Bestenliste sortiert nach Siegen")]
         public async Task Wins()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var top25 = db.Userfeatures.Include(p => p.User).Where(p => p.Wins != 0 && p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Wins).Take(25);
@@ -694,7 +694,7 @@ namespace Rabbot.Commands
         [RequireBotPermission(GuildPermission.ManageNicknames)]
         public async Task Namechange([Remainder]string Name)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id);
 
@@ -745,7 +745,7 @@ namespace Rabbot.Commands
             {
                 if (amount < 1)
                     return;
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
 
                     EmbedBuilder embed = new EmbedBuilder();
@@ -814,7 +814,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Chancen im aktuellen Pot an.")]
         public async Task Chance()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var sum = db.Pot.Where(p => p.ServerId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
@@ -863,7 +863,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);

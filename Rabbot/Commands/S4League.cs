@@ -60,7 +60,7 @@ namespace Rabbot.Commands
         [Command("s4stats")]
         public async Task S4Stats(string param = "remnants")
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 using (Context.Channel.EnterTypingState())
                 {

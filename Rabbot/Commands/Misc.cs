@@ -116,7 +116,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Settings()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var guild = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
@@ -220,7 +220,7 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task Active(int days, string param = null)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == Context.Guild.Id);
                 if (string.IsNullOrWhiteSpace(param))
@@ -291,7 +291,7 @@ namespace Rabbot.Commands
         {
             if (!Context.IsPrivate)
                 return;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var user = db.User.FirstOrDefault(p => p.Id == Context.User.Id);
                 if (user.Notify == 1)
@@ -320,7 +320,7 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task CheckLeftUsers()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var userfeatures = db.Userfeatures;
                 foreach (var userfeature in userfeatures)
@@ -492,7 +492,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var streakList = _streakService.GetRanking(db.Userfeatures.Include(p => p.User).Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false)).ToPagedList(page, 25);
 

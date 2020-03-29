@@ -49,7 +49,7 @@ namespace Rabbot.Services
                         }
                         if (video != null)
                         {
-                            using (swaightContext db = new swaightContext())
+                            using (rabbotContext db = new rabbotContext())
                             {
                                 var dbVideo = db.Youtubevideo.FirstOrDefault(p => p.VideoId == video.Id);
                                 if (dbVideo == null)
@@ -71,7 +71,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task NewVideo(swaightContext db, YouTubeVideoDto video)
+        private async Task NewVideo(rabbotContext db, YouTubeVideoDto video)
         {
             foreach (var dbGuild in db.Guild)
             {

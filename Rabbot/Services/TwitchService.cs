@@ -106,7 +106,7 @@ namespace Rabbot.Services
         {
             try
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     var dbStream = db.Stream.FirstOrDefault(p => p.StreamId == Convert.ToInt64(e.Id));
                     if (dbStream != null)

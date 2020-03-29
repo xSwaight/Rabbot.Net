@@ -14,7 +14,7 @@ namespace Rabbot
     {
         public static async Task Unmuted(SocketCommandContext context, IUser user)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -30,7 +30,7 @@ namespace Rabbot
 
         public static async Task Unmuted(SocketGuildUser user)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == user.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -46,7 +46,7 @@ namespace Rabbot
 
         public static async Task Mute(SocketCommandContext context, IUser user, string duration)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -63,7 +63,7 @@ namespace Rabbot
 
         public static async Task Delete(SocketCommandContext context, int amount)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -79,7 +79,7 @@ namespace Rabbot
 
         public static async Task Delete(IUser user, SocketCommandContext context, int amount)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -95,7 +95,7 @@ namespace Rabbot
 
         public static async Task Warn(IUser user, SocketCommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -111,7 +111,7 @@ namespace Rabbot
 
         public static async Task S4Role(SocketCommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -127,7 +127,7 @@ namespace Rabbot
 
         public static async Task PsbatRole(SocketCommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -143,7 +143,7 @@ namespace Rabbot
 
         public static async Task WarningMute(SocketGuildUser user)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == user.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -159,7 +159,7 @@ namespace Rabbot
 
         public static async Task Warning(SocketGuildUser user, SocketMessage msg, string badword)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == user.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -177,7 +177,7 @@ namespace Rabbot
 
         public static async Task CooldownMute(ICommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)
@@ -193,7 +193,7 @@ namespace Rabbot
 
         public static async Task BotCommandMute(ICommandContext context)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
                 if (Guild.LogchannelId != null && Guild.Log == 1)

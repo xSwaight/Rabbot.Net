@@ -22,7 +22,7 @@ namespace Rabbot.Services
             _streakService = streakService;
         }
 
-        public (string bonusInfo, int bonusPercent) GetBonusEXP(swaightContext db, SocketGuildUser user)
+        public (string bonusInfo, int bonusPercent) GetBonusEXP(rabbotContext db, SocketGuildUser user)
         {
             var feature = db.Userfeatures.Include(p => p.Inventory).FirstOrDefault(p => p.UserId == user.Id && p.ServerId == user.Guild.Id);
             if (feature == null)
@@ -90,7 +90,7 @@ namespace Rabbot.Services
         {
             var dcMessage = msg as SocketUserMessage;
             var dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var guild = db.Guild.FirstOrDefault(p => p.ServerId == dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = dcGuild.Id }).Result.Entity;
                 var EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = msg.Author.Id, ServerId = dcGuild.Id }).Result.Entity;
@@ -158,7 +158,7 @@ namespace Rabbot.Services
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                    using (swaightContext db = new swaightContext())
+                    using (rabbotContext db = new rabbotContext())
                     {
                         var levelChannelId = db.Guild.FirstOrDefault(p => p.ServerId == dcGuild.Id)?.LevelchannelId;
                         if (levelChannelId == null)
@@ -173,7 +173,7 @@ namespace Rabbot.Services
 
             if (NewLevel > OldLevel)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     var feature = db.Userfeatures.FirstOrDefault(p => p.UserId == dcMessage.Author.Id && p.ServerId == dcGuild.Id);
 
@@ -206,7 +206,7 @@ namespace Rabbot.Services
 
         private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, uint NewLevel)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var roles = db.Roles.Where(p => p.ServerId == dcGuild.Id);
 

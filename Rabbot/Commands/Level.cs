@@ -33,7 +33,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
@@ -69,7 +69,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Top 10 der User mit den meisten Ziegen an.")]
         public async Task Goats()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var top10 = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
@@ -115,7 +115,7 @@ namespace Rabbot.Commands
         public async Task RegisterSong()
         {
             await Context.Message.DeleteAsync();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (Context.User.Activity is SpotifyGame song)
                 {
@@ -151,7 +151,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt den aktuellen Song und die aktuelle Bestenliste an.")]
         public async Task Musicrank()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var top10 = db.Musicrank.Where(p => p.ServerId == Context.Guild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden).Take(10);
@@ -210,7 +210,7 @@ namespace Rabbot.Commands
         public async Task SetupLevel()
         {
             await Context.Message.DeleteAsync();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var roles = db.Roles.Where(p => p.ServerId == Context.Guild.Id);
@@ -263,7 +263,7 @@ namespace Rabbot.Commands
         public async Task LevelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 var guild = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
@@ -299,7 +299,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!Helper.exp.TryGetValue(level, out var levelInfo))
                     return;
@@ -340,7 +340,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 if (user != null)
@@ -379,7 +379,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
 
                 if (user != null)
@@ -411,7 +411,7 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync("Nö.");
                 return;
             }
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var user = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == Context.User.Id);
                 var feature = user.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
@@ -439,7 +439,7 @@ namespace Rabbot.Commands
             {
                 user = Context.User;
             }
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 string path = "";
                 using (Context.Channel.EnterTypingState())

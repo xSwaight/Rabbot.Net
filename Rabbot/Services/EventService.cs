@@ -67,7 +67,7 @@ namespace Rabbot.Services
         {
             if (oldUser.Username != newUser.Username)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     if (db.User.FirstOrDefault(p => p.Id == newUser.Id) == null)
                         await db.User.AddAsync(new User { Id = newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
@@ -152,7 +152,7 @@ namespace Rabbot.Services
             switch (reaction.Message.Value?.Embeds.FirstOrDefault()?.Title)
             {
                 case "Combi Anfrage":
-                    using (swaightContext db = new swaightContext())
+                    using (rabbotContext db = new rabbotContext())
                     {
                         var combi = db.Combi.FirstOrDefault(p => p.MessageId == reaction.MessageId);
                         if (combi.CombiUserId != reaction.UserId && !reaction.User.Value.IsBot)
@@ -274,7 +274,7 @@ namespace Rabbot.Services
             var dcGuild = (channel as SocketGuildChannel).Guild;
             var emote = reaction.Emote as Emote;
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Attacks.Any())
                     return;
@@ -375,7 +375,7 @@ namespace Rabbot.Services
             var dcGuild = (channel as SocketGuildChannel).Guild;
             var emote = reaction.Emote as Emote;
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Attacks.Any())
                     return;
@@ -485,7 +485,7 @@ namespace Rabbot.Services
         {
             if (newMessage.Author.IsBot)
                 return;
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!(newMessage.Channel is SocketGuildChannel guildChannel))
                     return;
@@ -540,7 +540,7 @@ namespace Rabbot.Services
 
         private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (message.Value == null)
                     return;
@@ -575,7 +575,7 @@ namespace Rabbot.Services
 
         private async Task ClientConnected()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Event.Where(p => p.Status == 1).Any())
                 { 
@@ -605,7 +605,7 @@ namespace Rabbot.Services
                 var muted = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
                 await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
             }
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 var Guild = db.Guild.FirstOrDefault(p => p.ServerId == guild.Id);
                 if (Guild == null)
@@ -620,7 +620,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     try
                     {
@@ -646,7 +646,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     if (db.Currentday.Any())
                     {
@@ -672,7 +672,7 @@ namespace Rabbot.Services
 
         private async Task NewDay()
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (db.Songlist.Any())
                 {
@@ -814,7 +814,7 @@ namespace Rabbot.Services
                         {
                             if (user.Activity is SpotifyGame song)
                             {
-                                using (swaightContext db = new swaightContext())
+                                using (rabbotContext db = new rabbotContext())
                                 {
                                     if (!db.Songlist.Where(p => p.Active == 1).Any())
                                         continue;
@@ -859,7 +859,7 @@ namespace Rabbot.Services
             {
                 try
                 {
-                    using (swaightContext db = new swaightContext())
+                    using (rabbotContext db = new rabbotContext())
                         await _warnService.CheckWarnings(db);
                     await Task.Delay(1000);
                 }
@@ -875,7 +875,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     try
                     {
@@ -897,7 +897,7 @@ namespace Rabbot.Services
             {
                 try
                 {
-                    using (swaightContext db = new swaightContext())
+                    using (rabbotContext db = new rabbotContext())
                         await _muteService.CheckMutes(db);
                     await Task.Delay(1000);
                 }
@@ -912,7 +912,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (swaightContext db = new swaightContext())
+                using (rabbotContext db = new rabbotContext())
                 {
                     if (db.Inventory.Any(p => p.ExpirationDate != null))
                     {
@@ -946,7 +946,7 @@ namespace Rabbot.Services
                 }
             }
 
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 SocketGuild dcGuild = dcUser.Guild;
                 if (db.Badwords.Where(p => p.ServerId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
@@ -970,7 +970,7 @@ namespace Rabbot.Services
 
         private async Task UserLeft(SocketGuildUser user)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Guild.Where(p => p.ServerId == user.Guild.Id).Any())
                     return;
@@ -999,7 +999,7 @@ namespace Rabbot.Services
 
         private async Task UserJoined(SocketGuildUser user)
         {
-            using (swaightContext db = new swaightContext())
+            using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Guild.Where(p => p.ServerId == user.Guild.Id).Any())
                     return;

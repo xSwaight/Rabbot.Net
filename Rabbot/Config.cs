@@ -6,11 +6,7 @@ namespace Rabbot
     class Config
     {
         private const string configFolder = "Resources";
-#if DEBUG
-        private const string configFile = "configDebug.json";
-#else
         private const string configFile = "config.json";
-#endif
 
 
         public static BotConfig bot;
@@ -39,14 +35,11 @@ namespace Rabbot
         public string token;
         public string environment;
         public string sentrydsn;
-        public string apiToken;
         public string twitchToken;
         public string twitchAccessToken;
-        public string youTubeApiKey;
         public string connectionString;
         public string cmdPrefix;
         public string officialPlayerURL;
-        public int expMultiplier;
     }
 
 }

@@ -20,7 +20,7 @@ namespace Rabbot.Services
             _client = client;
         }
 
-        public async Task CheckAttacks(swaightContext db)
+        public async Task CheckAttacks(rabbotContext db)
         {
             if (!db.Attacks.Any())
                 return;
@@ -38,7 +38,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task AttackResult(Attacks attack, swaightContext db)
+        private async Task AttackResult(Attacks attack, rabbotContext db)
         {
             var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)attack.ServerId);
             if (dcServer == null)

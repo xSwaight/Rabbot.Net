@@ -19,7 +19,7 @@ namespace Rabbot.Services
         {
             _client = client;
         }
-        public async Task CheckMutes(swaightContext db)
+        public async Task CheckMutes(rabbotContext db)
         {
             if (!db.Muteduser.Any() || !_client.Guilds.Any())
                 return;
@@ -102,7 +102,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task MuteTargetUser(swaightContext db, IUser user, string duration, SocketCommandContext context)
+        public async Task MuteTargetUser(rabbotContext db, IUser user, string duration, SocketCommandContext context)
         {
             var mutedRole = context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
             if (mutedRole == null)
@@ -166,7 +166,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task MuteWarnedUser(swaightContext db, SocketGuildUser user, SocketGuild guild)
+        public async Task MuteWarnedUser(rabbotContext db, SocketGuildUser user, SocketGuild guild)
         {
             var mutedRole = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
             if (mutedRole == null)
@@ -204,7 +204,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task UnmuteTargetUser(swaightContext db, IUser user, SocketCommandContext context)
+        public async Task UnmuteTargetUser(rabbotContext db, IUser user, SocketCommandContext context)
         {
             var mute = db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
             if (!mute.Any())
