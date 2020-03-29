@@ -23,8 +23,8 @@ namespace Rabbot
                 Log.Logger = new LoggerConfiguration()
                     .WriteTo.Sentry(o =>
                     {
-                        o.Dsn = new Dsn(Config.bot.SentryDsn);
-                        o.Environment = Config.bot.Environment;
+                        o.Dsn = new Dsn(Config.Bot.SentryDsn);
+                        o.Environment = Config.Bot.Environment;
                         o.MinimumBreadcrumbLevel = LogEventLevel.Verbose;
                         o.MinimumEventLevel = LogEventLevel.Error;
                         o.SendDefaultPii = true;

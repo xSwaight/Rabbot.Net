@@ -549,7 +549,7 @@ namespace Rabbot.Services
                 {
                     if (dcUser.IsBot)
                         return;
-                    if (message.Value.Content.StartsWith(Config.bot.CmdPrefix))
+                    if (message.Value.Content.StartsWith(Config.Bot.CmdPrefix))
                         return;
                     var dcTextchannel = channel as SocketTextChannel;
                     var dbGuild = db.Guild.FirstOrDefault(p => p.ServerId == dcUser.Guild.Id);
@@ -579,7 +579,7 @@ namespace Rabbot.Services
             {
                 if (!db.Event.Where(p => p.Status == 1).Any())
                 { 
-                    await _client.SetGameAsync($"{Config.bot.CmdPrefix}rank", null, ActivityType.Watching);
+                    await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
                     return;
                 }
                 var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
@@ -963,7 +963,7 @@ namespace Rabbot.Services
 
                 await db.SaveChangesAsync();
             }
-            if (msg.Content.StartsWith(Config.bot.CmdPrefix))
+            if (msg.Content.StartsWith(Config.Bot.CmdPrefix))
                 return;
             await _levelService.AddEXP(msg);
         }

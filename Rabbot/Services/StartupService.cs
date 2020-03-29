@@ -22,7 +22,7 @@ namespace Rabbot.Services
 
         public async Task StartAsync()
         {
-            string discordToken = Config.bot.Token;
+            string discordToken = Config.Bot.Token;
             if (string.IsNullOrWhiteSpace(discordToken))
             {
                 throw new Exception("Token missing from config.json! Please enter your token there (root directory)");

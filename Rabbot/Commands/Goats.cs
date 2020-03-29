@@ -350,10 +350,10 @@ namespace Rabbot.Commands
             embed.WithTitle("Willkommen im Shop!");
             embed.WithDescription("Gönn dir.");
             embed.WithColor(new Color(241, 242, 222));
-            embed.AddField($"{Config.bot.CmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
-            embed.AddField($"{Config.bot.CmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
-            embed.AddField($"{Config.bot.CmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
-            embed.AddField($"{Config.bot.CmdPrefix}namechange [Name]", $"Ändert den Namen\n**Preis: 100 Ziegen**");
+            embed.AddField($"{Config.Bot.CmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.Bot.CmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.Bot.CmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
+            embed.AddField($"{Config.Bot.CmdPrefix}namechange [Name]", $"Ändert den Namen\n**Preis: 100 Ziegen**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 
@@ -690,7 +690,7 @@ namespace Rabbot.Commands
         [Command("namechange", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(10)]
-        [Summary("Du kannst dir für 100 Ziegen einen anderen Namen kaufen.")]
+        [Summary("Du kannst dir für 100 Ziegen einen neuen Namen kaufen.")]
         [RequireBotPermission(GuildPermission.ManageNicknames)]
         public async Task Namechange([Remainder]string Name)
         {

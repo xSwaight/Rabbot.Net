@@ -70,13 +70,13 @@ namespace Rabbot.Commands
                 foreach (var alias in command.Aliases)
                 {
                     if (alias != command.Name)
-                        aliases += $"{Config.bot.CmdPrefix}{alias} ";
+                        aliases += $"{Config.Bot.CmdPrefix}{alias} ";
                 }
                 aliases = aliases.TrimEnd();
                 if (!string.IsNullOrWhiteSpace(aliases))
-                    help += $"**{Config.bot.CmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
+                    help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
                 else
-                    help += $"**{Config.bot.CmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
+                    help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
 
             }
 
@@ -338,6 +338,7 @@ namespace Rabbot.Commands
         }
 
         [Command("protect", RunMode = RunMode.Async)]
+        [Summary("Generiert dir einen Corona geschützten Avatar!")]
         [BotCommand]
         [Cooldown(10)]
         public async Task Protect(IUser user = null)
@@ -364,6 +365,7 @@ namespace Rabbot.Commands
 
         [Command("corona", RunMode = RunMode.Async)]
         [BotCommand]
+        [Summary("Zeigt Statistiken über den Corona Virus an. Ohne Parameter: Top 10 Länder nach Fallzahl. Mit Parameter: Statistiken zum Land")]
         [Cooldown(10)]
         public async Task Corona([Remainder]string country = null)
         {
@@ -531,6 +533,7 @@ namespace Rabbot.Commands
         }
 
         [Command("doggo", RunMode = RunMode.Async)]
+        [Summary("Random Hunde Bild!")]
         [Cooldown(60)]
         public async Task Doggo()
         {
@@ -547,6 +550,7 @@ namespace Rabbot.Commands
         }
 
         [Command("kitten", RunMode = RunMode.Async)]
+        [Summary("Random Katzen Bild!")]
         [Cooldown(60)]
         public async Task Kitten()
         {

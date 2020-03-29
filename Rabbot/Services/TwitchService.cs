@@ -28,8 +28,8 @@ namespace Rabbot.Services
             try
             {
                 var twitchClient = new V5();
-                twitchClient.Settings.ClientId = Config.bot.TwitchToken;
-                twitchClient.Settings.AccessToken = Config.bot.TwitchAccessToken;
+                twitchClient.Settings.ClientId = Config.Bot.TwitchToken;
+                twitchClient.Settings.AccessToken = Config.Bot.TwitchAccessToken;
 
                 List<string> usernames = new List<string> { "swaight", "cranbeere" };
 
