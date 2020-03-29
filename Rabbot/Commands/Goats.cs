@@ -350,10 +350,10 @@ namespace Rabbot.Commands
             embed.WithTitle("Willkommen im Shop!");
             embed.WithDescription("Gönn dir.");
             embed.WithColor(new Color(241, 242, 222));
-            embed.AddField($"{Config.bot.cmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
-            embed.AddField($"{Config.bot.cmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
-            embed.AddField($"{Config.bot.cmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
-            embed.AddField($"{Config.bot.cmdPrefix}namechange [Name]", $"Ändert den Namen\n**Preis: 100 Ziegen**");
+            embed.AddField($"{Config.bot.CmdPrefix}hirtenstab", $"Hirtenstab (+ 20 ATK) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.bot.CmdPrefix}zaun", $"Stacheldrahtzaun (+ 30 DEF) | 7 Benutzungen\n**Preis: 75 Ziegen**");
+            embed.AddField($"{Config.bot.CmdPrefix}expboost", $"EXP +50% für 24 Stunden\n**Preis: 250 Ziegen**");
+            embed.AddField($"{Config.bot.CmdPrefix}namechange [Name]", $"Ändert den Namen\n**Preis: 100 Ziegen**");
             await Context.Channel.SendMessageAsync(null, false, embed.Build());
         }
 

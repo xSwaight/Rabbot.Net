@@ -622,7 +622,7 @@ namespace Rabbot.Commands
 
                 if (eventId == 0)
                 {
-                    await Context.Client.SetGameAsync($"{Config.bot.cmdPrefix}rank", null, ActivityType.Watching);
+                    await Context.Client.SetGameAsync($"{Config.bot.CmdPrefix}rank", null, ActivityType.Watching);
                     await db.SaveChangesAsync();
                     return;
                 }

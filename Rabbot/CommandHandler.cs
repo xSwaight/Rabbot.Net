@@ -32,11 +32,11 @@ namespace Rabbot
             SocketUserMessage msg = s as SocketUserMessage;
             if (msg == null) return;
             var context = new SocketCommandContext(_client, msg);
-            if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.bot.cmdPrefix + "hdf")))
+            if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.bot.CmdPrefix + "hdf")))
                 return;
             int argPos = 0;
             IResult result = null;
-            if (msg.HasStringPrefix(Config.bot.cmdPrefix, ref argPos))
+            if (msg.HasStringPrefix(Config.bot.CmdPrefix, ref argPos))
             {
                 result = await _commands.ExecuteAsync(context, argPos, _provider);
                 LogCommandUsage(context, result);

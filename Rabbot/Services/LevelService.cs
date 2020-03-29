@@ -148,7 +148,7 @@ namespace Rabbot.Services
                 string path = "";
                 using (dcMessage.Channel.EnterTypingState())
                 {
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/levelup.html");
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/levelup.html");
                     var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                     string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
                     var html = template.Render(new

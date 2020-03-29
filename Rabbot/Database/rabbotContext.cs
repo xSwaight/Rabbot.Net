@@ -42,7 +42,7 @@ namespace Rabbot.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql(Config.bot.connectionString);
+                optionsBuilder.UseMySql(Config.bot.ConnectionString);
             }
         }
 

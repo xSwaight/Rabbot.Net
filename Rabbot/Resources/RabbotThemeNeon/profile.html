@@ -1,0 +1,112 @@
+<meta charset="UTF-8" />
+<style>
+    @font-face {font-family: 'Gotham-Rounded-Bold'; 
+                src: url('Resources/RabbotThemeNeon/assets/fonts/GothamRoundedBold.ttf') format('truetype');}
+    @font-face {font-family: 'Codec-Cold-News-Trial';
+                src: url('Resources/RabbotThemeNeon/assets/fonts/CodecColdNewsTrial.ttf') format('truetype');}
+	body{
+        width: 300px;
+        height: 160px;
+        position: absolute;
+        margin: 0 !important;
+	}
+    img {
+        background-repeat: no-repeat;
+        background-size: contain;
+        position: absolute;
+    }
+    img#profileImg{
+    }
+    img#avatar {
+        padding: 12 0 0 12;
+        width: 82px;
+        height: 82px;
+    }
+    img#neonLevelIcons {
+        padding: 81 0 0 81;
+        width: 25px;
+        height: 25px;
+    }
+    div{
+        position: absolute;
+        text-align: center;
+    }
+    #name {
+        margin: 10 0 0 95;
+        padding: 5 5 0 5;
+        width: 195px;
+        height: 30px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #currentLevel {
+        margin: 48 0 0 210;
+        width: 59px;
+        height: 19px;
+    }
+    #currentRank {
+        margin: 48 0 0 125;
+        width: 59px;
+        height: 19px;
+    }  
+    #expProgressCurrentLevel {
+        margin: 149 0 0 127;
+        width: 144px;
+        height: 20px;
+    }
+    #totalExp {
+        margin: 116 0 0 25;
+        width: 86px;
+        height: 19px;
+        text-align: right;
+    } 
+    #totalGoatCoins {
+        margin: 148 0 0 25;
+        width: 86px;
+        height: 19px;
+        text-align: right;
+    } 
+    #progressBar {
+        margin: 131 0 0 120;
+        width: 159px;
+    }
+    #progressBar>div {
+        background-color: #00FFFF;
+        width: [PERCENT]%;
+        height: 15px;
+    }
+    text{
+        color: #00FFFF;
+        text-shadow: 0px 0px 4px #00AAFF;
+        font-family: "Gotham-Rounded-Bold", arial, sans-serif;
+    }
+    text#book {
+        font-family: 'Codec-Cold-News-Trial', arial, sans-serif;
+    }
+</style>
+<img id='profileImg' style="z-index: 2" src="Resources/RabbotThemeNeon/assets/img/NeonProfile/Profile.png"></img>
+<img id='behindProfileImg' style="z-index: 0" src="Resources/RabbotThemeNeon/assets/img/NeonProfile/behindProfile.png"></img>
+<img id='neonLevelIcons' style="z-index: 3" src="Resources/RabbotThemeNeon/assets/img/NeonLevelIcons/[LEVEL].png"></img>
+<img id='avatar' style="z-index: 1" src="[AVATAR]"></img>
+<div id='name' style="z-index: 3">
+    <text id='book' style="font-size: 24px;">[NAME]</text>
+</div>
+<div id='currentLevel' style="z-index: 3">
+    <text style="font-size: 28px;">[LEVEL]</text>
+</div>
+<div id='currentRank' style="z-index: 3">
+    <text style="font-size: 28px;">[RANK]</text>
+</div>
+<div id='totalExp' style="z-index: 3">
+    <text style="font-size: 12px">[EXP]</text>
+</div>
+<div id='totalGoatCoins' style="z-index: 3">
+    <text style="font-size: 15px">[GOATCOINS]</text>
+</div>
+<div id='expProgressCurrentLevel' style="z-index: 3">
+    <text style="font-size: 11px;">[PROGRESS]</text>
+</div>
+<div id='progressBar' style="z-index: 1">
+    <div></div>
+</div>

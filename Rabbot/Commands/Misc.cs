@@ -70,13 +70,13 @@ namespace Rabbot.Commands
                 foreach (var alias in command.Aliases)
                 {
                     if (alias != command.Name)
-                        aliases += $"{Config.bot.cmdPrefix}{alias} ";
+                        aliases += $"{Config.bot.CmdPrefix}{alias} ";
                 }
                 aliases = aliases.TrimEnd();
                 if (!string.IsNullOrWhiteSpace(aliases))
-                    help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
+                    help += $"**{Config.bot.CmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
                 else
-                    help += $"**{Config.bot.cmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
+                    help += $"**{Config.bot.CmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
 
             }
 
@@ -350,7 +350,7 @@ namespace Rabbot.Commands
                 string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 1024);
                 if (profilePicture == null)
                     profilePicture = user.GetDefaultAvatarUrl();
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Templates/corona.html");
+                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/Templates/corona.html");
                 var html = template.Render(new
                 {
                     AVATAR = profilePicture

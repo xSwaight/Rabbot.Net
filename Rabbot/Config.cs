@@ -32,14 +32,14 @@ namespace Rabbot
 
     public struct BotConfig
     {
-        public string token;
-        public string environment;
-        public string sentrydsn;
-        public string twitchToken;
-        public string twitchAccessToken;
-        public string connectionString;
-        public string cmdPrefix;
-        public string officialPlayerURL;
+        public string Token;
+        public string Environment;
+        public string SentryDsn;
+        public string TwitchToken;
+        public string TwitchAccessToken;
+        public string ConnectionString;
+        public string CmdPrefix;
+        public string OfficialPlayerURL;
     }
 
 }

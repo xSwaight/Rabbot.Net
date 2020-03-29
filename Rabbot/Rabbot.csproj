@@ -35,4 +35,10 @@
     <PackageReference Include="VideoLibraryHIG" Version="1.5.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Resources\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

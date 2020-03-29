@@ -586,7 +586,7 @@ namespace Rabbot
 
         public static string GetFilePath(string filename)
         {
-            string directory = AppContext.BaseDirectory;
+            string directory = Path.Combine(AppContext.BaseDirectory, "Resources");
             string toolFilepath;
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             {

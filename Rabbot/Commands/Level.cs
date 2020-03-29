@@ -474,7 +474,7 @@ namespace Rabbot.Commands
                     string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
                     if (profilePicture == null)
                         profilePicture = user.GetDefaultAvatarUrl();
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/RabbotThemeNeon/profile.html");
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/profile.html");
                     var html = template.Render(new
                     {
                         AVATAR = profilePicture,
