@@ -23,7 +23,6 @@ namespace Rabbot.Commands
 {
     public class Misc : ModuleBase<SocketCommandContext>
     {
-        private readonly string version = "1.0";
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
         private readonly ApiService _apiService;
@@ -98,13 +97,12 @@ namespace Rabbot.Commands
             }
 
             var embed = new EmbedBuilder();
-            embed.WithDescription($"**About**");
+            embed.WithTitle($"About");
             embed.WithColor(new Color(241, 242, 222));
-            embed.AddField("Total Users", memberCount.ToString(), true);
-            embed.AddField("Online Users", (memberCount - offlineCount).ToString(), true);
-            embed.AddField("Total Servers", Context.Client.Guilds.Count.ToString(), true);
-            embed.ThumbnailUrl = "https://cdn.discordapp.com/attachments/210496271000141825/533052805582290972/hasi.png";
-            embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToShortDateString(), false);
+            embed.AddField("Total Users", memberCount.ToFormattedString(), true);
+            embed.AddField("Online Users", (memberCount - offlineCount).ToFormattedString(), true);
+            embed.AddField("Total Servers", Context.Client.Guilds.Count.ToFormattedString(), true);
+            embed.ThumbnailUrl = "https://media.discordapp.net/attachments/210496271000141825/689416678496665671/Unbenanntes_Projekt.png?width=788&height=788";
 
             // Arize ID: 157616694083190784
             var designCreditUser = Context.Guild.Users.FirstOrDefault(p => p.Id == 157616694083190784);
@@ -112,8 +110,8 @@ namespace Rabbot.Commands
             var creatorCreditUser = Context.Guild.Users.FirstOrDefault(p => p.Id == 128914972829941761);
 
             embed.AddField("Bot creator", creatorCreditUser?.Mention ?? "Swaight", true);
+            embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToFormattedString(), true);
             embed.AddField("Designs by", designCreditUser?.Mention ?? "Arize", true);
-            embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
 
@@ -135,31 +133,8 @@ namespace Rabbot.Commands
                 var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.Botchannelid);
 
                 var embed = new EmbedBuilder();
-                embed.WithDescription($"**Settings**");
+                embed.WithTitle($"Settings");
                 embed.WithColor(new Color(241, 242, 222));
-                if (logChannel != null)
-                    embed.AddField("Log Channel", logChannel.Mention, true);
-                else
-                    embed.AddField("Log Channel", "Nicht gesetzt.", true);
-
-                if (notificationChannel != null)
-                    embed.AddField("Notification Channel", notificationChannel.Mention, true);
-                else
-                    embed.AddField("Notification Channel", "Nicht gesetzt.", true);
-
-
-                switch (guild.Log)
-                {
-                    case 0:
-                        embed.AddField("Log", "Disabled", true);
-                        break;
-                    case 1:
-                        embed.AddField("Log", "Enabled", true);
-                        break;
-                    default:
-                        embed.AddField("Log", "Unknown", true);
-                        break;
-                }
 
                 switch (guild.Notify)
                 {
@@ -174,6 +149,34 @@ namespace Rabbot.Commands
                         break;
                 }
 
+                if (notificationChannel != null)
+                    embed.AddField("Notification Channel", notificationChannel.Mention, true);
+                else
+                    embed.AddField("Notification Channel", "Nicht gesetzt.", true);
+
+                if (logChannel != null)
+                    embed.AddField("Log Channel", logChannel.Mention, true);
+                else
+                    embed.AddField("Log Channel", "Nicht gesetzt.", true);
+
+                switch (guild.Log)
+                {
+                    case 0:
+                        embed.AddField("Log", "Disabled", true);
+                        break;
+                    case 1:
+                        embed.AddField("Log", "Enabled", true);
+                        break;
+                    default:
+                        embed.AddField("Log", "Unknown", true);
+                        break;
+                }
+
+                if (botcChannel != null)
+                    embed.AddField("Bot Channel", botcChannel.Mention, true);
+                else
+                    embed.AddField("Bot Channel", "Nicht gesetzt.", true);
+
                 switch (guild.Level)
                 {
                     case 0:
@@ -187,13 +190,7 @@ namespace Rabbot.Commands
                         break;
                 }
 
-                if (botcChannel != null)
-                    embed.AddField("Bot Channel", botcChannel.Mention, true);
-                else
-                    embed.AddField("Bot Channel", "Nicht gesetzt.", true);
-
                 embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";
-                embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
                 await Context.Channel.SendMessageAsync("", false, embed.Build());
             }
         }
