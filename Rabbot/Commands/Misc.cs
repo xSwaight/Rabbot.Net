@@ -98,13 +98,21 @@ namespace Rabbot.Commands
             }
 
             var embed = new EmbedBuilder();
-            embed.WithDescription($"**Statistiken**");
+            embed.WithDescription($"**About**");
             embed.WithColor(new Color(241, 242, 222));
             embed.AddField("Total Users", memberCount.ToString(), true);
             embed.AddField("Online Users", (memberCount - offlineCount).ToString(), true);
             embed.AddField("Total Servers", Context.Client.Guilds.Count.ToString(), true);
             embed.ThumbnailUrl = "https://cdn.discordapp.com/attachments/210496271000141825/533052805582290972/hasi.png";
             embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToShortDateString(), false);
+
+            // Arize ID: 157616694083190784
+            var designCreditUser = Context.Guild.Users.FirstOrDefault(p => p.Id == 157616694083190784);
+            // Swaight ID: 128914972829941761
+            var creatorCreditUser = Context.Guild.Users.FirstOrDefault(p => p.Id == 128914972829941761);
+
+            embed.AddField("Bot creator", creatorCreditUser?.Mention ?? "Swaight", true);
+            embed.AddField("Designs by", designCreditUser?.Mention ?? "Arize", true);
             embed.WithFooter(new EmbedFooterBuilder() { Text = "Version " + version, IconUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Info_icon-72a7cf.svg/2000px-Info_icon-72a7cf.svg.png" });
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
