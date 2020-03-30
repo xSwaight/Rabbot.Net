@@ -35,13 +35,7 @@ namespace Rabbot.Preconditions
                     else
                     {
                         Task.Run(async () => await SendMessage(context, botChannel));
-                        var EXP = db.Userfeatures.FirstOrDefault(p => p.UserId == context.User.Id && p.ServerId == context.Guild.Id);
-                        if (EXP != null && EXP.Exp > 500)
-                        {
-                            EXP.Exp -= 100;
-                        }
-                        db.SaveChanges();
-                        return Task.FromResult(PreconditionResult.FromError("Wrong channel."));
+                        return Task.FromResult(PreconditionResult.FromError($"User: [{context.User.Username}] used {context.Message.Content} in a wrong channel. Server: [{context.Guild.Name}] Channel: [{context.Channel.Name}]"));
                     }
                 }
                 else

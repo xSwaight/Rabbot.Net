@@ -46,7 +46,7 @@ namespace Rabbot.Preconditions
                 if (difference.Ticks > 0)
                 {
                     Task.Run(async () => await SendMessage(context, command));
-                    return Task.FromResult(PreconditionResult.FromError($"Command spammer detected: {context.User.Id} on {context.Guild.Id}"));
+                    return Task.FromResult(PreconditionResult.FromError($"User: [{context.User.Username}] used {context.Message.Content} too fast! [{context.Guild.Name}] Channel: [{context.Channel.Name}]"));
                 }
                 var time = DateTime.UtcNow.Add(CooldownLength);
                 _cooldowns.TryUpdate(key, time, endsAt);
