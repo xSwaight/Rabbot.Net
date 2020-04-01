@@ -14,7 +14,7 @@ namespace Rabbot.Services
         {
             var wordCountBefore = userFeature.TodaysWords;
 
-            var wordCount = Helper.ReplaceCharacter(msg.Content).CountWords();
+            var wordCount = Helper.MessageReplace(msg.Content).CountWords();
 
             if (wordCount <= 0)
                 return;

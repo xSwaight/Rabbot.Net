@@ -578,7 +578,7 @@ namespace Rabbot.Services
             using (rabbotContext db = new rabbotContext())
             {
                 if (!db.Event.Where(p => p.Status == 1).Any())
-                { 
+                {
                     await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
                     return;
                 }
@@ -959,7 +959,8 @@ namespace Rabbot.Services
                 var feature = db.Userfeatures.FirstOrDefault(p => p.UserId == msg.Author.Id && p.ServerId == dcGuild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = msg.Author.Id, ServerId = dcGuild.Id }).Result.Entity;
                 feature.Lastmessage = DateTime.Now;
 
-                _streakService.AddWords(feature, msg);
+                if (!msg.Content.StartsWith(Config.Bot.CmdPrefix))
+                    _streakService.AddWords(feature, msg);
 
                 await db.SaveChangesAsync();
             }
