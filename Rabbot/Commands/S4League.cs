@@ -19,42 +19,6 @@ namespace Rabbot.Commands
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(S4League));
 
         [BotCommand]
-        [Command("s4")]
-        [Summary("Gibt dir die S4 League Rolle.")]
-        public async Task S4()
-        {
-            var s4Role = Context.Guild.Roles.Where(p => p.Name == "S4 League");
-            if (!s4Role.Any())
-                return;
-
-            var user = Context.Guild.Users.FirstOrDefault(p => p.Id == Context.User.Id);
-            if (user.Roles.Where(p => p.Name == "S4 League").Any())
-                return;
-
-            await user.AddRoleAsync(s4Role.FirstOrDefault());
-            await Logging.S4Role(Context);
-            await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **S4 League** Rolle gegeben.");
-        }
-
-        [BotCommand]
-        [Command("psbat")]
-        [Summary("Gibt dir die PS & Bat Rolle.")]
-        public async Task Psbat()
-        {
-            var psbatRole = Context.Guild.Roles.Where(p => p.Name == "PS & Bat");
-            if (!psbatRole.Any())
-                return;
-
-            var user = Context.Guild.Users.FirstOrDefault(p => p.Id == Context.User.Id);
-            if (user.Roles.Where(p => p.Name == "PS & Bat").Any())
-                return;
-
-            await user.AddRoleAsync(psbatRole.FirstOrDefault());
-            await Logging.PsbatRole(Context);
-            await ReplyAsync($"{Context.User.Mention} hat sich erfolgreich die **PS & Bat** Rolle gegeben.");
-        }
-
-        [BotCommand]
         [Summary("Zeigt Statistiken von S4 Remnants oder S4 League Official an. Nutze als Parameter entweder 'official' oder 'remnants'")]
         [Alias("remStats")]
         [Command("s4stats")]
