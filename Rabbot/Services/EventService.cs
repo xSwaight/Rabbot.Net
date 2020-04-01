@@ -62,6 +62,7 @@ namespace Rabbot.Services
             _client.ReactionAdded += ReactionAdded;
             _client.ReactionRemoved += ReactionRemoved;
             _client.UserUpdated += UserUpdated;
+            _client.ChannelCreated += ChannelCreated;
         }
 
         private async Task UserUpdated(SocketUser oldUser, SocketUser newUser)
@@ -585,6 +586,19 @@ namespace Rabbot.Services
                 }
                 var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
                 await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
+            }
+        }
+
+        private async Task ChannelCreated(SocketChannel newChannel)
+        {
+            if (newChannel is SocketGuildChannel channel)
+            {
+                var mutedRole = channel.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
+                if (mutedRole == null)
+                    return;
+
+                var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
+                await channel.AddPermissionOverwriteAsync(mutedRole, permission, null);
             }
         }
 
