@@ -133,6 +133,7 @@ namespace Rabbot.Services
                 {
                     EXP.Attacks--;
                 }
+                EXP.Exp += exp;
                 var NewLevel = Helper.GetLevel(EXP.Exp);
                 await SendLevelUp(dcGuild, guild, dcMessage, oldLevel, NewLevel);
                 await SetRoles(dcGuild, dcMessage, NewLevel);
