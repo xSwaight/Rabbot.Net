@@ -55,5 +55,10 @@ namespace Rabbot
 
             return new YouTubeVideoDto { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
         }
+
+        public static string ToTimeString(this TimeSpan ts, string format)
+        {
+            return new DateTime(ts.Ticks).ToString(format);
+        }
     }
 }
