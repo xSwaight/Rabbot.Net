@@ -58,10 +58,19 @@ namespace Rabbot.Commands
             }
             if (_service.Play(Context.Guild, url))
             {
-                var videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
-                if (videoInfos != null)
+                try
                 {
-                    await Context.Channel.SendMessageAsync($"`{videoInfos.Title}` wird abgespielt.");
+                    var videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
+                    if (videoInfos != null)
+                    {
+                        await Context.Channel.SendMessageAsync($"`{videoInfos.Title}` wird abgespielt.");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"Error in {nameof(Play)}");
+                    await Context.Channel.SendMessageAsync($"Ups, da ging was schief.");
                     return;
                 }
             }

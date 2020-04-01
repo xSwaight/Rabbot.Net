@@ -88,10 +88,20 @@ namespace Rabbot.Models
                 return false;
 
             var streamUrl = await GetStreamLink(url);
+            VideoInfo videoInfos = null;
             if (string.IsNullOrWhiteSpace(streamUrl))
                 return false;
 
-            var videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
+            try
+            {
+                videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error in {nameof(AddToPlaylist)}");
+                return false;
+            }
+
             if (videoInfos == null)
                 return false;
 
@@ -104,7 +114,7 @@ namespace Rabbot.Models
             try
             {
                 var result = await Cli.Wrap(Helper.GetFilePath("youtube-dl"))
-                        .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --no-playlist --get-url " + url)
+                        .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --force-ipv4 --no-playlist --get-url " + url)
                         .ExecuteBufferedAsync();
                 if (result.ExitCode != 0)
                 {
