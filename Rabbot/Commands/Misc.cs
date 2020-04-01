@@ -109,11 +109,11 @@ namespace Rabbot.Commands
             // Swaight ID: 128914972829941761
             var creatorCreditUser = Context.Guild.Users.FirstOrDefault(p => p.Id == 128914972829941761);
             // Cranberry ID: 206559109263130624
-            var designCreditUser2 = Context.Guild.Users.FirstOrDefault(p => p.Id == 128914972829941761);
+            var designCreditUser2 = Context.Guild.Users.FirstOrDefault(p => p.Id == 206559109263130624);
 
             embed.AddField("Bot creator", creatorCreditUser?.Mention ?? "Swaight", true);
             embed.AddField("Bot created at", Context.Client.CurrentUser.CreatedAt.DateTime.ToFormattedString(), true);
-            embed.AddField("Designs by", designCreditUser?.Mention ?? "Arize" + " und " + designCreditUser2?.Mention ?? "Cranberry", true);
+            embed.AddField("Designs by", $"{designCreditUser?.Mention ?? "Arize"} & {designCreditUser2?.Mention ?? "Cranberry"}", false);
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
 
