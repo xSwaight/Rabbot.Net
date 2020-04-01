@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using Serilog;
 using Serilog.Core;
 using Rabbot.Models;
+using Discord.Rest;
 
 namespace Rabbot.Services
 {
@@ -589,21 +590,25 @@ namespace Rabbot.Services
 
         private async Task JoinedGuild(SocketGuild guild)
         {
+            RestRole mutedRole = null;
             if (!guild.Roles.Where(p => p.Name == "Muted").Any())
             {
                 var mutedPermission = new GuildPermissions(false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
-                await guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
+                mutedRole = await guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
             }
+
             var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
-            foreach (var textChannel in guild.TextChannels)
+
+            if (mutedRole != null)
             {
-                var muted = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
-                await textChannel.AddPermissionOverwriteAsync(muted, permission, null);
-            }
-            foreach (var voiceChannel in guild.VoiceChannels)
-            {
-                var muted = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
-                await voiceChannel.AddPermissionOverwriteAsync(muted, permission, null);
+                foreach (var textChannel in guild.TextChannels)
+                {
+                    await textChannel.AddPermissionOverwriteAsync(mutedRole, permission, null);
+                }
+                foreach (var voiceChannel in guild.VoiceChannels)
+                {
+                    await voiceChannel.AddPermissionOverwriteAsync(mutedRole, permission, null);
+                }
             }
             using (rabbotContext db = new rabbotContext())
             {
