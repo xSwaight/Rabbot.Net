@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
-using CSCore;
-using CSCore.Codecs;
 using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
@@ -19,7 +17,6 @@ namespace Rabbot.Services
         private readonly ConcurrentDictionary<ulong, AudioClient> ConnectedChannels = new ConcurrentDictionary<ulong, AudioClient>();
         private readonly DiscordSocketClient _client;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioService));
-        private IWaveSource _codec;
 
         public AudioService(DiscordSocketClient client)
         {

@@ -1,7 +1,5 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
-using CSCore;
-using CSCore.Codecs;
 using Discord.Audio;
 using Microsoft.Win32.SafeHandles;
 using Serilog;
@@ -28,7 +26,7 @@ namespace Rabbot.Models
             }
         }
 
-        private IWaveSource _codec;
+        private AudioOutStream _stream;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioClient));
         private event EventHandler OnEndOfSong;
 
@@ -52,14 +50,12 @@ namespace Rabbot.Models
                 return;
             }
 
-            using (var stream = DiscordAudioClient.CreatePCMStream(AudioApplication.Music))
+            using (_stream = DiscordAudioClient.CreatePCMStream(AudioApplication.Music))
             {
                 try
                 {
-                    using (_codec = CodecFactory.Instance.GetCodec(new Uri(CurrentSong.StreamUrl)))
-                    {
-                        _codec.WriteToStream(stream);
-                    }
+                    var argument = $"-hide_banner -loglevel panic -i \"{CurrentSong.StreamUrl}\" -ac 2 -f s16le -ar 48000 pipe:1";
+                    await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(_stream)).ExecuteAsync();
                 }
                 catch (Exception ex)
                 {
@@ -67,7 +63,7 @@ namespace Rabbot.Models
                 }
                 finally
                 {
-                    await stream.FlushAsync();
+                    await _stream.FlushAsync();
                     Playlist.Remove(CurrentSong);
                 }
             }
@@ -120,12 +116,14 @@ namespace Rabbot.Models
 
         public TimeSpan GetCurrentPositionInSeconds()
         {
-            return _codec.GetPosition();
+            return new TimeSpan();
+            //return _codec.GetPosition();
         }
 
         public TimeSpan GetSongLenght()
         {
-            return _codec.GetLength();
+            return new TimeSpan();
+            //return _codec.GetLength();
         }
     }
 }
