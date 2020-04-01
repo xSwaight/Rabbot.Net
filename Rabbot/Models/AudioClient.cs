@@ -55,7 +55,7 @@ namespace Rabbot.Models
                 try
                 {
                     var argument = $"-hide_banner -loglevel panic -i \"{CurrentSong.StreamUrl}\" -ac 2 -f s16le -ar 48000 pipe:1";
-                    await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(_stream)).ExecuteAsync(); 
+                    await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(_stream)).ExecuteAsync();
                 }
                 catch (Exception ex)
                 {
@@ -71,8 +71,9 @@ namespace Rabbot.Models
 
         public async Task Play(string url)
         {
-            await AddToPlaylist(url);
-            await PlaySound();
+            var result = await AddToPlaylist(url);
+            if (result)
+                await PlaySound();
         }
 
         private async Task PlaySound()
@@ -87,26 +88,36 @@ namespace Rabbot.Models
                 return false;
 
             var streamUrl = await GetStreamLink(url);
+            if (string.IsNullOrWhiteSpace(streamUrl))
+                return false;
 
             var videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
             if (videoInfos == null)
                 return false;
 
-            Playlist.Add(new PlaylistItemDto {StreamUrl = streamUrl, YouTubeUrl = url, Title = videoInfos.Title });
+            Playlist.Add(new PlaylistItemDto { StreamUrl = streamUrl, YouTubeUrl = url, Title = videoInfos.Title });
             return true;
         }
 
         private async Task<string> GetStreamLink(string url)
         {
-            var result = await Cli.Wrap(Helper.GetFilePath("youtube-dl"))
-                    .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --no-playlist --get-url " + url)
-                    .ExecuteBufferedAsync();
-            if (result.ExitCode != 0)
+            try
             {
-                _logger.Error("Something went wrong!");
-                return null;
+                var result = await Cli.Wrap(Helper.GetFilePath("youtube-dl"))
+                        .WithArguments($"--format bestaudio[protocol!=http_dash_segments] --youtube-skip-dash-manifest --no-playlist --get-url " + url)
+                        .ExecuteBufferedAsync();
+                if (result.ExitCode != 0)
+                {
+                    _logger.Error("Something went wrong!");
+                    return null;
+                }
+                return result.StandardOutput.TrimEnd();
             }
-            return result.StandardOutput.TrimEnd();
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error while fetching youtube stream link");
+                return "";
+            }
         }
 
         public List<PlaylistItemDto> GetPlaylist()
