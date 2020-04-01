@@ -26,7 +26,7 @@ namespace Rabbot.Models
             }
         }
 
-        private AudioOutStream _stream;
+        //private AudioOutStream _stream;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioClient));
         private event EventHandler OnEndOfSong;
 
@@ -50,12 +50,12 @@ namespace Rabbot.Models
                 return;
             }
 
-            using (_stream = DiscordAudioClient.CreatePCMStream(AudioApplication.Music))
+            using (var _stream = DiscordAudioClient.CreatePCMStream(AudioApplication.Music))
             {
                 try
                 {
                     var argument = $"-hide_banner -loglevel panic -i \"{CurrentSong.StreamUrl}\" -ac 2 -f s16le -ar 48000 pipe:1";
-                    await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(_stream)).ExecuteAsync();
+                    await Cli.Wrap(Helper.GetFilePath("ffmpeg")).WithArguments(argument).WithStandardOutputPipe(PipeTarget.ToStream(_stream)).ExecuteAsync(); 
                 }
                 catch (Exception ex)
                 {
@@ -106,7 +106,7 @@ namespace Rabbot.Models
                 _logger.Error("Something went wrong!");
                 return null;
             }
-            return result.StandardOutput;
+            return result.StandardOutput.TrimEnd();
         }
 
         public List<PlaylistItemDto> GetPlaylist()
