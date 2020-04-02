@@ -37,7 +37,7 @@ namespace Rabbot.Commands
 
         [Command("help", RunMode = RunMode.Async)]
         [BotCommand]
-        [Cooldown(30)]
+        [Cooldown(10)]
         [Summary("Zeigt diese Liste an.")]
         public async Task Help(int seite = 1)
         {
