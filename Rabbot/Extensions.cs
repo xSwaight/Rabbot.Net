@@ -44,7 +44,7 @@ namespace Rabbot
         {
             double percentValue = percent / 100;
             double value = Convert.ToDouble(@this);
-            return (int)Math.Round((value * (1 + percentValue)) - @this, MidpointRounding.ToEven);
+            return (int)Math.Ceiling((value * (1 + percentValue)) - @this);
         }
 
         public static YouTubeVideoDto GetFirstVideo(this SyndicationFeed @this)
