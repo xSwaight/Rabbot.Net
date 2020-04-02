@@ -572,5 +572,43 @@ namespace Rabbot.Commands
             }
             File.Delete(filepath);
         }
+
+        [Command("osterrank", RunMode = RunMode.Async)]
+        [BotCommand]
+        public async Task OsterRank(int page = 1)
+        {
+            if (DateTime.Now < Constants.StartTime)
+                return;
+
+            if (page < 1)
+                return;
+            using (rabbotContext db = new rabbotContext())
+            {
+
+                var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);
+                if (page > ranking.PageCount)
+                    return;
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.Description = $"Oster Ranking Seite {ranking.PageNumber}/{ranking.PageCount}";
+                embed.WithColor(new Color(239, 220, 7));
+                int i = ranking.PageSize * ranking.PageNumber - (ranking.PageSize - 1);
+                foreach (var top in ranking)
+                {
+                    try
+                    {
+                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        embed.AddField($"{i}. {user.Name}", $"{Constants.EggGoatR} {top.Eggs.ToFormattedString()}");
+                        i++;
+
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Error in command {nameof(OsterRank)}");
+                    }
+                }
+                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+            }
+        }
+
     }
 }

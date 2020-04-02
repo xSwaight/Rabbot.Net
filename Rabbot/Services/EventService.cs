@@ -26,10 +26,12 @@ namespace Rabbot.Services
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
         private readonly ApiService _apiService;
+        private readonly EasterEventService _easterEventService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
+        private bool _eventRegistered = false;
 
         public EventService(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
-            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService)
+            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService, EasterEventService easterEventService)
         {
             _attackService = attackService;
             _streakService = streakService;
@@ -38,6 +40,7 @@ namespace Rabbot.Services
             _warnService = warnService;
             _muteService = muteService;
             _apiService = apiService;
+            _easterEventService = easterEventService;
             _client = client;
             InitializeAsync();
         }
@@ -151,7 +154,10 @@ namespace Rabbot.Services
 
         private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            switch (reaction.Message.Value?.Embeds.FirstOrDefault()?.Title)
+            if (!reaction.Message.IsSpecified)
+                return;
+
+            switch (reaction.Message.Value.Embeds.FirstOrDefault()?.Title)
             {
                 case "Combi Anfrage":
                     using (rabbotContext db = new rabbotContext())
@@ -587,6 +593,13 @@ namespace Rabbot.Services
                 var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
                 await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
             }
+            if (!_eventRegistered)
+            {
+                _easterEventService.RegisterServers(432908323042623508);
+                _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
+                _eventRegistered = true;
+            }
+            new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
         }
 
         private async Task ChannelCreated(SocketChannel newChannel)

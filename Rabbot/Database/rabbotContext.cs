@@ -621,6 +621,10 @@ namespace Rabbot.Database
                     .HasColumnType("int(11)")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Eggs)
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.Exp)
                     .HasColumnName("exp")
                     .HasColumnType("int(11)");

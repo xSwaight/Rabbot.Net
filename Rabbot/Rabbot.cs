@@ -62,6 +62,7 @@ namespace Rabbot
                     .AddSingleton<WarnService>()
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
+                    .AddSingleton<EasterEventService>()
                     .AddSingleton<ImageService>();
 
                 //Add logging     
@@ -87,6 +88,7 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<WarnService>();
                 serviceProvider.GetRequiredService<EventService>();
                 serviceProvider.GetRequiredService<ApiService>();
+                serviceProvider.GetRequiredService<EasterEventService>();
                 serviceProvider.GetRequiredService<ImageService>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();

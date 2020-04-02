@@ -24,6 +24,9 @@ namespace Rabbot
         public static readonly Emote Doggo = Emote.Parse("<:doggo:597065709339672576>");
         public static readonly Emote Slot = Emote.Parse("<a:slot:597872810760732672>");
 
+        public static readonly Emote EggGoatR = Emote.Parse("<:egggoatr:695322635550064681>");
+        public static readonly Emote EggGoatL = Emote.Parse("<:egggoatl:695336945760469013>");
+
         public static readonly Emoji Yes = new Emoji("✅");
         public static readonly Emoji No = new Emoji("❌");
 
@@ -41,5 +44,15 @@ namespace Rabbot
         #endregion
 
         public const string AnnouncementIgnoreTag = "[silent]";
+
+        #region EasterEvent
+        public const int EasterDespawnTime = 4;
+        public const int EasterMinRespawnTime = 5;
+        public const int EasterMaxRespawnTime = 10;
+        public const int EasterMinChannelUser = 50;
+
+        public static readonly DateTime StartTime = new DateTime(2020, 4, 10, 0, 0, 0);
+        public static readonly DateTime EndTime = new DateTime(2020, 4, 13, 23, 59, 59);
+        #endregion
     }
 }
