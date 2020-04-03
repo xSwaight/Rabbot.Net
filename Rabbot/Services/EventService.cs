@@ -597,9 +597,9 @@ namespace Rabbot.Services
             {
                 _easterEventService.RegisterServers(432908323042623508);
                 _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
+                new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
                 _eventRegistered = true;
             }
-            new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
         }
 
         private async Task ChannelCreated(SocketChannel newChannel)
