@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Rabbot.Preconditions;
 using Rabbot.Services;
 using System;
@@ -88,35 +89,48 @@ namespace Rabbot.Commands
         {
 
             string filepath = string.Empty;
+            string title = string.Empty;
             using (context.Channel.EnterTypingState())
             {
                 switch (picture)
                 {
                     case PictureType.Dog:
                         filepath = _apiService.GetDogImage();
+                        title = "Random Doggo";
                         break;
                     case PictureType.Cat:
                         filepath = _apiService.GetCatImage();
+                        title = "Random Kitty";
                         break;
                     case PictureType.Fox:
                         filepath = _apiService.GetFoxImage();
+                        title = "Random Fox";
                         break;
                     case PictureType.Shibe:
                         filepath = _apiService.GetShibeImage();
+                        title = "Random Shibe";
                         break;
                     case PictureType.Random:
                         filepath = _apiService.GetRandomImage();
+                        title = "Random Picture";
                         break;
                     default:
                         filepath = string.Empty;
                         break;
                 }
                 if (!string.IsNullOrWhiteSpace(filepath))
-                    await context.Channel.SendFileAsync(filepath);
+                {
+                    EmbedBuilder embed = new EmbedBuilder
+                    {
+                        ImageUrl = filepath,
+                        Title = title,
+                        Color = new Color((uint)new Random().Next(0x1000000))
+                    };
+                    await context.Channel.SendMessageAsync("", false, embed.Build());
+                }
                 else
                     await context.Channel.SendMessageAsync($"Ooopsie. Irgendwas läuft hier gewaltig schief.");
             }
-            File.Delete(filepath);
         }
     }
     public enum PictureType

@@ -44,12 +44,11 @@ namespace Rabbot.Services
             var (payload, success) = ApiRequest(Constants.ShibeApi);
             if (success)
             {
-                var shibe = DeserializeJson<ShibeDto>(payload);
-                var link = shibe.Links.FirstOrDefault();
+                var link = payload.Replace("[\"", string.Empty).Replace("\"]", string.Empty);
                 if (string.IsNullOrWhiteSpace(link))
                     return string.Empty;
 
-                return _imageService.DownloadImage(link);
+                return link;
             }
             return string.Empty;
         }
@@ -60,7 +59,7 @@ namespace Rabbot.Services
             if (success)
             {
                 var fox = DeserializeJson<FoxDto>(payload);
-                return _imageService.DownloadImage(fox.Image);
+                return fox.Image;
             }
             return string.Empty;
         }
@@ -72,7 +71,7 @@ namespace Rabbot.Services
             {
                 var dog = DeserializeJson<DogDto>(payload);
                 if (dog.Status == "success")
-                    return _imageService.DownloadImage(dog.Message);
+                    return dog.Message;
             }
             return string.Empty;
         }
@@ -83,7 +82,7 @@ namespace Rabbot.Services
             if (success)
             {
                 var cat = DeserializeJson<CatDto>(payload);
-                return _imageService.DownloadImage(cat.File);
+                return cat.File;
             }
             return string.Empty;
         }
