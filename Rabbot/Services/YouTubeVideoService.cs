@@ -29,7 +29,7 @@ namespace Rabbot.Services
         }
         private void ConfigureYouTubeMonitor()
         {
-            List<string> channelIds = new List<string> { "UCS5FgjEjPYp9Ul7IU7VrfEQ", "UCw8IeYso0n8spjPBwfGrZ8w" };
+            List<string> channelIds = new List<string> { "UCS5FgjEjPYp9Ul7IU7VrfEQ" };
             new Task(async () => await CheckLastVideo(channelIds, 60), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(YouTubeVideoService)}: Loaded successfully");
         }
