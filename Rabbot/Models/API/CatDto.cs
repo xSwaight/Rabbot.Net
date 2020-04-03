@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Rabbot.Models
+namespace Rabbot.Models.API
 {
     public class CatDto
     {

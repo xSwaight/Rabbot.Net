@@ -21,8 +21,8 @@ namespace Rabbot.Services
                 return SaveImage(url, ImageFormat.Png);
             else if (url.ToLower().EndsWith(".gif"))
                 return SaveImage(url, ImageFormat.Gif);
-
-            return string.Empty;
+            else
+                return SaveImage(url, ImageFormat.Jpeg);
         }
 
         private string SaveImage(string url, ImageFormat format)

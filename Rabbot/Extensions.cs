@@ -1,4 +1,5 @@
 ﻿using Rabbot.Models;
+using Rabbot.Models.API;
 using System;
 using System.Collections.Generic;
 using System.IO;

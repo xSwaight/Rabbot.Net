@@ -26,13 +26,15 @@ namespace Rabbot.Commands
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
         private readonly ApiService _apiService;
+        private readonly ImageService _imageService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
-        public Misc(CommandService commandService, StreakService streakService, ApiService apiService)
+        public Misc(CommandService commandService, StreakService streakService, ApiService apiService, ImageService imageService)
         {
             _streakService = streakService;
             _commandService = commandService;
             _apiService = apiService;
+            _imageService = imageService;
         }
 
         [Command("help", RunMode = RunMode.Async)]
@@ -43,7 +45,7 @@ namespace Rabbot.Commands
         {
             int pagesize = 15;
 
-            List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null && p.Module.Name != "Administration").ToList();
+            List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null && p.Module.Name != "Administration" && !p.Module.IsSubmodule).ToList();
 
             if (seite > Math.Ceiling((commands.Count() / (double)pagesize)) || seite < 1)
                 return;
@@ -537,40 +539,6 @@ namespace Rabbot.Commands
             channel = null;
             messageTag = null;
             return false;
-        }
-
-        [Command("doggo", RunMode = RunMode.Async)]
-        [Summary("Random Hunde Bild!")]
-        [Cooldown(60)]
-        public async Task Doggo()
-        {
-            string filepath = string.Empty;
-            using (Context.Channel.EnterTypingState())
-            {
-                filepath = _apiService.GetDogImage();
-                if (!string.IsNullOrWhiteSpace(filepath))
-                    await Context.Channel.SendFileAsync(filepath);
-                else
-                    await Context.Channel.SendMessageAsync($"Ooopsie. Irgendwas läuft hier gewaltig schief.");
-            }
-            File.Delete(filepath);
-        }
-
-        [Command("kitten", RunMode = RunMode.Async)]
-        [Summary("Random Katzen Bild!")]
-        [Cooldown(60)]
-        public async Task Kitten()
-        {
-            string filepath = string.Empty;
-            using (Context.Channel.EnterTypingState())
-            {
-                filepath = _apiService.GetCatImage();
-                if (!string.IsNullOrWhiteSpace(filepath))
-                    await Context.Channel.SendFileAsync(filepath);
-                else
-                    await Context.Channel.SendMessageAsync($"Ooopsie. Irgendwas läuft hier gewaltig schief.");
-            }
-            File.Delete(filepath);
         }
 
         [Command("osterrank", RunMode = RunMode.Async)]

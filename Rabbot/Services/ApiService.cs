@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Rabbot.Models;
+using Rabbot.Models.API;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,47 @@ namespace Rabbot.Services
         public ApiService(ImageService imageService)
         {
             _imageService = imageService;
+        }
+
+        public string GetRandomImage()
+        {
+            var rnd = new Random().Next(0, 4);
+            if (rnd == 0)
+                return GetFoxImage();
+            else if (rnd == 1)
+                return GetDogImage();
+            else if (rnd == 2)
+                return GetCatImage();
+            else if (rnd == 3)
+                return GetShibeImage();
+
+            return string.Empty;
+        }
+
+        public string GetShibeImage()
+        {
+            var (payload, success) = ApiRequest(Constants.ShibeApi);
+            if (success)
+            {
+                var shibe = DeserializeJson<ShibeDto>(payload);
+                var link = shibe.Links.FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(link))
+                    return string.Empty;
+
+                return _imageService.DownloadImage(link);
+            }
+            return string.Empty;
+        }
+
+        public string GetFoxImage()
+        {
+            var (payload, success) = ApiRequest(Constants.FoxApi);
+            if (success)
+            {
+                var fox = DeserializeJson<FoxDto>(payload);
+                return _imageService.DownloadImage(fox.Image);
+            }
+            return string.Empty;
         }
 
         public string GetDogImage()
