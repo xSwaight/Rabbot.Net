@@ -93,6 +93,29 @@ namespace Rabbot.Commands
                 await _muteService.MuteTargetUser(db, user, duration, Context);
         }
 
+        [RequireUserPermission(GuildPermission.ManageGuild)]
+        [RequireBotPermission(GuildPermission.ManageGuild)]
+        [Command("setregion", RunMode = RunMode.Async), Alias("frankfurt")]
+        public async Task SetRegion(string regionId = "frankfurt")
+        {
+            await Context.Message.DeleteAsync();
+            await Context.Guild.ModifyAsync(p => p.RegionId = regionId);
+        }
+
+
+        [RequireUserPermission(GuildPermission.ManageGuild)]
+        [RequireBotPermission(GuildPermission.ManageGuild)]
+        [Command("getregions", RunMode = RunMode.Async)]
+        public async Task GetRegions()
+        {
+            string output = "**Verfügbare Voice Regionen:**\n\n";
+            foreach (var region in Context.Client.VoiceRegions)
+            {
+                output += $"**Region:** *{region.Name}* - **RegionId:** *{region.Id}*\n";
+            }
+            await ReplyAsync(output);
+        }
+
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("unmute", RunMode = RunMode.Async)]
         [Summary("Entmuted den markierten User.")]
