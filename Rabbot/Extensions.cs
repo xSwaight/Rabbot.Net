@@ -61,5 +61,10 @@ namespace Rabbot
         {
             return new DateTime(ts.Ticks).ToString(format);
         }
+
+        public static string[] GetArgs(this string @this)
+        {
+            return @this.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        }
     }
 }

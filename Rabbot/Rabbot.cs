@@ -9,12 +9,14 @@ using Rabbot.Services;
 using Serilog.Events;
 using Sentry;
 using Serilog.Core;
+using System.Linq;
 
 namespace Rabbot
 {
     public class Rabbot
     {
         DiscordSocketClient _client;
+        CommandService _commandService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Rabbot));
         public async Task StartAsync()
         {
@@ -42,7 +44,7 @@ namespace Rabbot
                         MessageCacheSize = 1000,
                         ExclusiveBulkDelete = true
                     }))
-                    .AddSingleton(new CommandService(new CommandServiceConfig
+                    .AddSingleton(_commandService = new CommandService(new CommandServiceConfig
                     {
                         DefaultRunMode = RunMode.Async,
                         LogLevel = LogSeverity.Verbose,
@@ -116,14 +118,14 @@ namespace Rabbot
             {
                 try
                 {
-                    string input = Console.ReadLine();
-                    switch (input)
+                    var input = Console.ReadLine().GetArgs();
+                    switch (input.First())
                     {
                         case "servers":
                             _logger.Information($"Connected Servers: {string.Join(", ", _client.Guilds)}");
                             break;
                         default:
-                            _logger.Information($"Command '{input}' not found");
+                            _logger.Information($"Command '{input.First()}' not found");
                             break;
                     }
                 }

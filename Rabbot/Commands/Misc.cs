@@ -214,6 +214,9 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Test()
         {
+            //await Context.Message.DeleteAsync();
+            //await Context.Guild.ModifyAsync(p => p.RegionId = "frankfurt");
+            //Console.WriteLine(Context.Guild.VoiceRegionId);
             var result = Context.Guild.GetAuditLogsAsync(100).ToList().Result;
             string list = "";
             foreach (var logs in result)
