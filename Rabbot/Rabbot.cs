@@ -10,6 +10,7 @@ using Serilog.Events;
 using Sentry;
 using Serilog.Core;
 using System.Linq;
+using Rabbot.Database2;
 
 namespace Rabbot
 {
@@ -95,10 +96,15 @@ namespace Rabbot
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 
+                using (NewRabbotContext db = new NewRabbotContext())
+                {
+                    db.Database.EnsureCreated();
+                }
+
                 // Block this program until it is closed.
                 await Task.Delay(-1);
             }
-            catch
+            catch (Exception e)
             {
                 Console.WriteLine($"Startup failed. Please check the config file.");
                 Console.WriteLine("Press any key to exit...");
