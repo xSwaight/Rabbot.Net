@@ -17,8 +17,9 @@ namespace Rabbot.Services
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(YouTubeVideoService));
         private readonly DiscordSocketClient _client;
+        private readonly DatabaseService _databaseService;
 
-        public YouTubeVideoService(DiscordSocketClient client)
+        public YouTubeVideoService(DiscordSocketClient client, DatabaseService databaseService)
         {
             _client = client;
 
@@ -51,7 +52,7 @@ namespace Rabbot.Services
                         }
                         if (video != null)
                         {
-                            using (RabbotContext db = new RabbotContext())
+                            using (var db = _databaseService.Open<RabbotContext>())
                             {
                                 var dbVideo = db.YouTubeVideos.FirstOrDefault(p => p.VideoId == video.Id);
                                 if (dbVideo == null)

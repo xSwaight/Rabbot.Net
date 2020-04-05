@@ -12,12 +12,18 @@ using Rabbot.Preconditions;
 using Serilog;
 using Serilog.Core;
 using Rabbot.Database.Rabbot;
+using Rabbot.Services;
 
 namespace Rabbot.Commands
 {
     public class S4League : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(S4League));
+        private readonly DatabaseService _databaseService;
+        public S4League(DatabaseService databaseService)
+        {
+            _databaseService = databaseService;
+        }
 
         [BotCommand]
         [Summary("Zeigt Statistiken von S4 Remnants oder S4 League Official an. Nutze als Parameter entweder 'official' oder 'remnants'")]
@@ -25,7 +31,7 @@ namespace Rabbot.Commands
         [Command("s4stats")]
         public async Task S4Stats(string param = "remnants")
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 using (Context.Channel.EnterTypingState())
                 {

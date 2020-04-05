@@ -27,12 +27,13 @@ namespace Rabbot.Services
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
         private readonly ApiService _apiService;
+        private readonly DatabaseService _databaseService;
         private readonly EasterEventService _easterEventService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
         private bool _eventRegistered = false;
 
         public EventService(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
-            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService, EasterEventService easterEventService)
+            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService, EasterEventService easterEventService, DatabaseService databaseService)
         {
             _attackService = attackService;
             _streakService = streakService;
@@ -42,6 +43,7 @@ namespace Rabbot.Services
             _muteService = muteService;
             _apiService = apiService;
             _easterEventService = easterEventService;
+            _databaseService = databaseService;
             _client = client;
             InitializeAsync();
         }
@@ -73,7 +75,7 @@ namespace Rabbot.Services
         {
             if (oldUser.Username != newUser.Username)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     if (db.Users.FirstOrDefault(p => p.Id == newUser.Id) == null)
                         await db.Users.AddAsync(new UserEntity { Id = newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
@@ -161,7 +163,7 @@ namespace Rabbot.Services
             switch (reaction.Message.Value.Embeds.FirstOrDefault()?.Title)
             {
                 case "Combi Anfrage":
-                    using (RabbotContext db = new RabbotContext())
+                    using (var db = _databaseService.Open<RabbotContext>())
                     {
                         var combi = db.Combis.FirstOrDefault(p => p.MessageId == reaction.MessageId);
                         if (combi.CombiUserId != reaction.UserId && !reaction.User.Value.IsBot)
@@ -283,7 +285,7 @@ namespace Rabbot.Services
             var dcGuild = (channel as SocketGuildChannel).Guild;
             var emote = reaction.Emote as Emote;
 
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Attacks.Any())
                     return;
@@ -384,7 +386,7 @@ namespace Rabbot.Services
             var dcGuild = (channel as SocketGuildChannel).Guild;
             var emote = reaction.Emote as Emote;
 
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Attacks.Any())
                     return;
@@ -494,7 +496,7 @@ namespace Rabbot.Services
         {
             if (newMessage.Author.IsBot)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!(newMessage.Channel is SocketGuildChannel guildChannel))
                     return;
@@ -549,7 +551,7 @@ namespace Rabbot.Services
 
         private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (message.Value == null)
                     return;
@@ -584,7 +586,7 @@ namespace Rabbot.Services
 
         private async Task ClientConnected()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Events.Where(p => p.Status == true).Any())
                 {
@@ -638,7 +640,7 @@ namespace Rabbot.Services
                     await voiceChannel.AddPermissionOverwriteAsync(mutedRole, permission, null);
                 }
             }
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == guild.Id);
                 if (Guild == null)
@@ -653,7 +655,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     try
                     {
@@ -679,7 +681,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     if (db.CurrentDay.Any())
                     {
@@ -705,7 +707,7 @@ namespace Rabbot.Services
 
         private async Task NewDay()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (db.Songs.Any())
                 {
@@ -836,7 +838,7 @@ namespace Rabbot.Services
                         {
                             if (user.Activity is SpotifyGame song)
                             {
-                                using (RabbotContext db = new RabbotContext())
+                                using (var db = _databaseService.Open<RabbotContext>())
                                 {
                                     if (!db.Songs.Where(p => p.Active == true).Any())
                                         continue;
@@ -881,7 +883,7 @@ namespace Rabbot.Services
             {
                 try
                 {
-                    using (RabbotContext db = new RabbotContext())
+                    using (var db = _databaseService.Open<RabbotContext>())
                         await _warnService.CheckWarnings(db);
                     await Task.Delay(1000);
                 }
@@ -897,7 +899,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     try
                     {
@@ -918,7 +920,7 @@ namespace Rabbot.Services
             {
                 try
                 {
-                    using (RabbotContext db = new RabbotContext())
+                    using (var db = _databaseService.Open<RabbotContext>())
                         await _muteService.CheckMutes(db);
                     await Task.Delay(1000);
                 }
@@ -933,7 +935,7 @@ namespace Rabbot.Services
         {
             while (true)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     if (db.Inventorys.Any(p => p.ExpiryDate != null))
                     {
@@ -967,7 +969,7 @@ namespace Rabbot.Services
                 }
             }
 
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 SocketGuild dcGuild = dcUser.Guild;
                 if (db.BadWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
@@ -992,7 +994,7 @@ namespace Rabbot.Services
 
         private async Task UserLeft(SocketGuildUser user)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == user.Guild.Id).Any())
                     return;
@@ -1021,7 +1023,7 @@ namespace Rabbot.Services
 
         private async Task UserJoined(SocketGuildUser user)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == user.Guild.Id).Any())
                     return;

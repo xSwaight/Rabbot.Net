@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace Rabbot.Preconditions
             if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.ManageRoles)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            using (RabbotContext db = new RabbotContext())
+            using (RabbotContext db = services.GetRequiredService<RabbotContext>())
             {
                 if (db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
                 {

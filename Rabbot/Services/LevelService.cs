@@ -17,10 +17,12 @@ namespace Rabbot.Services
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         private readonly StreakService _streakService;
+        private readonly DatabaseService _databaseService;
 
-        public LevelService(StreakService streakService)
+        public LevelService(StreakService streakService, DatabaseService databaseService)
         {
             _streakService = streakService;
+            _databaseService = databaseService;
         }
 
         public (string bonusInfo, int bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)
@@ -91,7 +93,7 @@ namespace Rabbot.Services
         {
             var dcMessage = msg as SocketUserMessage;
             var dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var guild = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id) ?? db.Guilds.AddAsync(new GuildEntity { GuildId = dcGuild.Id }).Result.Entity;
                 var EXP = db.Features.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
@@ -160,7 +162,7 @@ namespace Rabbot.Services
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                    using (RabbotContext db = new RabbotContext())
+                    using (var db = _databaseService.Open<RabbotContext>())
                     {
                         var levelChannelId = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id)?.LevelChannelId;
                         if (levelChannelId == null)
@@ -175,7 +177,7 @@ namespace Rabbot.Services
 
             if (NewLevel > OldLevel)
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     var feature = db.Features.FirstOrDefault(p => p.UserId == dcMessage.Author.Id && p.GuildId == dcGuild.Id);
 
@@ -208,7 +210,7 @@ namespace Rabbot.Services
 
         private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, uint NewLevel)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var roles = db.Roles.Where(p => p.GuildId == dcGuild.Id);
 

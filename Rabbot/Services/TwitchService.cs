@@ -14,11 +14,13 @@ namespace Rabbot.Services
 {
     class TwitchService
     {
-        DiscordSocketClient _client;
+        private readonly DiscordSocketClient _client;
+        private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(TwitchService));
-        public TwitchService(DiscordSocketClient client)
+        public TwitchService(DiscordSocketClient client, DatabaseService databaseService)
         {
             _client = client;
+            _databaseService = databaseService;
             Task.Run(() =>
             {
                 ConfigureLiveMonitorAsync();
@@ -107,7 +109,7 @@ namespace Rabbot.Services
         {
             try
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
                     var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == (ulong)Convert.ToInt64(e.Id));
                     if (dbStream != null)

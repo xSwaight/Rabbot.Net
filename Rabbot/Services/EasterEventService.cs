@@ -16,10 +16,12 @@ namespace Rabbot.Services
 
         private List<EasterEvent> _events;
         private DiscordSocketClient _client;
+        private IServiceProvider _services;
         private Dictionary<ulong, ulong> _guildAnnouncementChannels;
 
-        public EasterEventService(DiscordSocketClient client)
+        public EasterEventService(DiscordSocketClient client, IServiceProvider services)
         {
+            _services = services;
             _client = client;
             _events = new List<EasterEvent>();
             _guildAnnouncementChannels = new Dictionary<ulong, ulong>();
@@ -49,7 +51,7 @@ namespace Rabbot.Services
             {
                 var guild = _client.Guilds.FirstOrDefault(p => p.Id == guildId);
                 if (guild != null)
-                    _events.Add(new EasterEvent(guild));
+                    _events.Add(new EasterEvent(guild, _services));
             }
         }
 

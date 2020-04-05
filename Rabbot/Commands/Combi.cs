@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Rabbot.Preconditions;
+using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -16,6 +17,12 @@ namespace Rabbot.Commands
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CombiCmd));
+        private readonly DatabaseService _databaseService;
+
+        public CombiCmd(DatabaseService databaseService)
+        {
+            _databaseService = databaseService;
+        }
 
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]
@@ -34,7 +41,7 @@ namespace Rabbot.Commands
                 return;
             }
 
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (db.Combis.Where(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
                 {
@@ -71,7 +78,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task CombiList()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var combis = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id));
 
@@ -103,7 +110,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task DelCombi(int id)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
@@ -129,7 +136,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task acceptCombi(int id)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 

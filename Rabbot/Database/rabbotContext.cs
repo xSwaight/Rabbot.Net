@@ -29,9 +29,9 @@ namespace Rabbot.Database
         public DbSet<AttackEntity> Attacks { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public RabbotContext(DbContextOptions<RabbotContext> options)
+            : base(options)
         {
-            optionsBuilder.UseMySQL("server=localhost;database=newrabbot;user=root");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -19,12 +19,14 @@ namespace Rabbot.Commands
     {
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
+        private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Administration));
 
-        public Administration(WarnService warnService, MuteService muteService)
+        public Administration(WarnService warnService, MuteService muteService, DatabaseService databaseService)
         {
             _warnService = warnService;
             _muteService = muteService;
+            _databaseService = databaseService;
         }
 
         [Command("del", RunMode = RunMode.Async)]
@@ -51,7 +53,7 @@ namespace Rabbot.Commands
             }
             else
             {
-                using (RabbotContext db = new RabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
 
                     await Context.Message.DeleteAsync();
@@ -90,7 +92,7 @@ namespace Rabbot.Commands
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _muteService.MuteTargetUser(db, user, duration, Context);
         }
 
@@ -123,7 +125,7 @@ namespace Rabbot.Commands
         public async Task Unmute(IUser user)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _muteService.UnmuteTargetUser(db, user, Context);
         }
 
@@ -139,7 +141,7 @@ namespace Rabbot.Commands
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
 
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _warnService.Warn(db, user, Context);
         }
 
@@ -191,7 +193,7 @@ namespace Rabbot.Commands
         public async Task SetLog()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -220,7 +222,7 @@ namespace Rabbot.Commands
         public async Task SetBot()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -248,7 +250,7 @@ namespace Rabbot.Commands
         public async Task SetTrash()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -276,7 +278,7 @@ namespace Rabbot.Commands
         public async Task SetStream()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -304,7 +306,7 @@ namespace Rabbot.Commands
         public async Task SetNotification()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -333,7 +335,7 @@ namespace Rabbot.Commands
         public async Task SetLevelChannel()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -361,7 +363,7 @@ namespace Rabbot.Commands
         public async Task DelLevelChannel()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -389,7 +391,7 @@ namespace Rabbot.Commands
         public async Task DelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -418,7 +420,7 @@ namespace Rabbot.Commands
         public async Task DelBot()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -446,7 +448,7 @@ namespace Rabbot.Commands
         public async Task DelTrash()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -475,7 +477,7 @@ namespace Rabbot.Commands
         public async Task DelLog()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
@@ -504,7 +506,7 @@ namespace Rabbot.Commands
         public async Task Notification()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var currentNotify = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify;
                 if (currentNotify == false)
@@ -540,7 +542,7 @@ namespace Rabbot.Commands
         public async Task ToggleLog()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var currentLog = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log;
                 if (currentLog == false)
@@ -605,7 +607,7 @@ namespace Rabbot.Commands
         public async Task DisableExp(IUser user)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var Experience = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id);
                 const int delay = 2000;
@@ -633,7 +635,7 @@ namespace Rabbot.Commands
         public async Task Event(int eventId)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!db.Events.Where(x => x.Id == eventId).Any() && eventId != 0)
                     return;
@@ -663,7 +665,7 @@ namespace Rabbot.Commands
         public async Task AddBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
                 if (db.BadWords.Where(p => p.BadWord == word && p.GuildId == Context.Guild.Id).Any())
@@ -690,7 +692,7 @@ namespace Rabbot.Commands
         public async Task DelBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
                 var badword = db.BadWords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word) && p.GuildId == Context.Guild.Id);
@@ -716,7 +718,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var badwords = db.BadWords.Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
                 if (page > badwords.PageCount)
@@ -741,7 +743,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var answers = db.RandomAnswers.ToList().ToPagedList(page, 25);
                 if (page > answers.PageCount)
@@ -764,7 +766,7 @@ namespace Rabbot.Commands
         public async Task DelAnswer(int id)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var answer = db.RandomAnswers.FirstOrDefault(p => p.Id == id);
                 if (answer == null)
@@ -788,7 +790,7 @@ namespace Rabbot.Commands
         public async Task AddAnswer([Remainder]string answer)
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 await db.RandomAnswers.AddAsync(new RandomAnswerEntity { Answer = answer });
                 await db.SaveChangesAsync();
@@ -809,7 +811,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var namechanges = db.Namechanges.Where(p => p.UserId == user.Id).OrderByDescending(p => p.Date).ToList().ToPagedList(page, 25);
                 if (!namechanges.Any())

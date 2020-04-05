@@ -11,6 +11,8 @@ using Sentry;
 using Serilog.Core;
 using System.Linq;
 using Rabbot.Database;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Rabbot
 {
@@ -58,6 +60,7 @@ namespace Rabbot
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
                     .AddSingleton<LoggingService>()
+                    .AddSingleton<Logging>()
                     .AddSingleton<StreakService>()
                     .AddSingleton<AttackService>()
                     .AddSingleton<LevelService>()
@@ -66,7 +69,10 @@ namespace Rabbot
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
                     .AddSingleton<EasterEventService>()
-                    .AddSingleton<ImageService>();
+                    .AddSingleton<DatabaseService>()
+                    .AddSingleton<ImageService>()
+                    .AddDbContext<RabbotContext>(x => x.UseMySql("server=localhost;database=newrabbot;user=root"));
+
 
                 //Add logging     
                 ConfigureServices(services);
@@ -76,6 +82,12 @@ namespace Rabbot
 
                 //Instantiate logger/tie-in logging
                 serviceProvider.GetRequiredService<LoggingService>();
+
+                //Create Database Table
+                using (var db = serviceProvider.GetRequiredService<RabbotContext>())
+                {
+                    db.Database.EnsureCreated();
+                }
 
                 //Start the bot
                 await serviceProvider.GetRequiredService<StartupService>().StartAsync();
@@ -87,19 +99,16 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<StreakService>();
                 serviceProvider.GetRequiredService<AttackService>();
                 serviceProvider.GetRequiredService<LevelService>();
+                serviceProvider.GetRequiredService<Logging>();
                 serviceProvider.GetRequiredService<MuteService>();
                 serviceProvider.GetRequiredService<WarnService>();
+                serviceProvider.GetRequiredService<DatabaseService>();
                 serviceProvider.GetRequiredService<EventService>();
                 serviceProvider.GetRequiredService<ApiService>();
                 serviceProvider.GetRequiredService<EasterEventService>();
                 serviceProvider.GetRequiredService<ImageService>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
-
-                using (RabbotContext db = new RabbotContext())
-                {
-                    db.Database.EnsureCreated();
-                }
 
                 // Block this program until it is closed.
                 await Task.Delay(-1);

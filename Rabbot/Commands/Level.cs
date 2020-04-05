@@ -21,10 +21,12 @@ namespace Rabbot.Commands
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Level));
         private readonly StreakService _streakService;
+        private readonly DatabaseService _databaseService;
 
-        public Level(StreakService streakService)
+        public Level(StreakService streakService, DatabaseService databaseService)
         {
             _streakService = streakService;
+            _databaseService = databaseService;
         }
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
@@ -34,7 +36,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
@@ -70,7 +72,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Top 10 der User mit den meisten Ziegen an.")]
         public async Task Goats()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var top10 = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
@@ -116,7 +118,7 @@ namespace Rabbot.Commands
         public async Task RegisterSong()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (Context.User.Activity is SpotifyGame song)
                 {
@@ -152,7 +154,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt den aktuellen Song und die aktuelle Bestenliste an.")]
         public async Task Musicrank()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var top10 = db.Musicranks.Where(p => p.GuildId == Context.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds).Take(10);
@@ -211,7 +213,7 @@ namespace Rabbot.Commands
         public async Task SetupLevel()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var roles = db.Roles.Where(p => p.GuildId == Context.Guild.Id);
@@ -264,7 +266,7 @@ namespace Rabbot.Commands
         public async Task LevelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var guild = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
@@ -300,7 +302,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 if (!Helper.exp.TryGetValue(level, out var levelInfo))
                     return;
@@ -341,7 +343,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 if (user != null)
@@ -380,7 +382,7 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 if (user != null)
@@ -412,7 +414,7 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync("Nö.");
                 return;
             }
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var user = db.Users.Include(p => p.Features).FirstOrDefault(p => p.Id == Context.User.Id);
                 var feature = user.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
@@ -440,7 +442,7 @@ namespace Rabbot.Commands
             {
                 user = Context.User;
             }
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 string path = "";
                 using (Context.Channel.EnterTypingState())

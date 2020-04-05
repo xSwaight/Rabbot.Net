@@ -27,14 +27,16 @@ namespace Rabbot.Commands
         private readonly StreakService _streakService;
         private readonly ApiService _apiService;
         private readonly ImageService _imageService;
+        private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
-        public Misc(CommandService commandService, StreakService streakService, ApiService apiService, ImageService imageService)
+        public Misc(CommandService commandService, StreakService streakService, ApiService apiService, ImageService imageService, DatabaseService databaseService)
         {
             _streakService = streakService;
             _commandService = commandService;
             _apiService = apiService;
             _imageService = imageService;
+            _databaseService = databaseService;
         }
 
         [Command("help", RunMode = RunMode.Async)]
@@ -126,7 +128,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Settings()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var guild = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
@@ -232,7 +234,7 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task Active(int days, string param = null)
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var activeUsers = db.Features.Include(p => p.User).Where(p => p.LastMessage > DateTime.Now.AddDays(0 - days) && p.GuildId == Context.Guild.Id);
                 if (string.IsNullOrWhiteSpace(param))
@@ -303,7 +305,7 @@ namespace Rabbot.Commands
         {
             if (!Context.IsPrivate)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var user = db.Users.FirstOrDefault(p => p.Id == Context.User.Id);
                 if (user.Notify == true)
@@ -332,7 +334,7 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task CheckLeftUsers()
         {
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var userfeatures = db.Features;
                 foreach (var userfeature in userfeatures)
@@ -506,7 +508,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var streakList = _streakService.GetRanking(db.Features.Include(p => p.User).Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false)).ToPagedList(page, 25);
 
@@ -553,7 +555,7 @@ namespace Rabbot.Commands
 
             if (page < 1)
                 return;
-            using (RabbotContext db = new RabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);

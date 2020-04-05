@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Serilog;
 using System;
@@ -13,15 +14,17 @@ namespace Rabbot.Models
 {
     public class EasterEvent
     {
-        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEvent));
         public SocketGuild Guild { get; }
 
-        private readonly List<SocketTextChannel> _textChannels;
         public List<RestUserMessage> CurrentMessages { get; }
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEvent));
+        private readonly List<SocketTextChannel> _textChannels;
+        private readonly IServiceProvider _services;
 
-        public EasterEvent(SocketGuild guild)
+        public EasterEvent(SocketGuild guild, IServiceProvider services)
         {
             Guild = guild;
+            _services = services;
             _textChannels = GetTextChannels(Constants.EasterMinChannelUser);
             CurrentMessages = new List<RestUserMessage>();
             new Task(async () => await CheckMessageDate(Constants.EasterDespawnTime), TaskCreationOptions.LongRunning).Start();
@@ -81,7 +84,7 @@ namespace Rabbot.Models
             
 
             int eggs = 0;
-            using (RabbotContext db = new RabbotContext())
+            using (RabbotContext db = _services.GetRequiredService<RabbotContext>())
             {
                 var feature = db.Features.FirstOrDefault(p => p.GuildId == Guild.Id && p.UserId == userId);
                 if (feature == null)
