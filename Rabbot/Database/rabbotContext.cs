@@ -19,6 +19,7 @@ namespace Rabbot.Database
         public virtual DbSet<Badwords> Badwords { get; set; }
         public virtual DbSet<Combi> Combi { get; set; }
         public virtual DbSet<Currentday> Currentday { get; set; }
+        public virtual DbSet<Easterevent> Easterevent { get; set; }
         public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
         public virtual DbSet<Inventory> Inventory { get; set; }
@@ -182,6 +183,39 @@ namespace Rabbot.Database
                 entity.Property(e => e.Date)
                     .HasColumnName("date")
                     .HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<Easterevent>(entity =>
+            {
+                entity.HasKey(e => e.MessageId)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("easterevent");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("userId");
+
+                entity.Property(e => e.MessageId).HasColumnName("messageId");
+
+                entity.Property(e => e.CatchTime)
+                    .HasColumnName("catchTime")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.DespawnTime)
+                    .HasColumnName("despawnTime")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.SpawnTime)
+                    .HasColumnName("spawnTime")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+
+                entity.Property(e => e.UserId).HasColumnName("userId");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Easterevent)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("easterevent_ibfk_1");
             });
 
             modelBuilder.Entity<Event>(entity =>

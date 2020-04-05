@@ -11,6 +11,7 @@ namespace Rabbot.Database
             AttacksUser = new HashSet<Attacks>();
             CombiCombiUser = new HashSet<Combi>();
             CombiUser = new HashSet<Combi>();
+            Easterevent = new HashSet<Easterevent>();
             Musicrank = new HashSet<Musicrank>();
             Muteduser = new HashSet<Muteduser>();
             Namechanges = new HashSet<Namechanges>();
@@ -27,6 +28,7 @@ namespace Rabbot.Database
         public virtual ICollection<Attacks> AttacksUser { get; set; }
         public virtual ICollection<Combi> CombiCombiUser { get; set; }
         public virtual ICollection<Combi> CombiUser { get; set; }
+        public virtual ICollection<Easterevent> Easterevent { get; set; }
         public virtual ICollection<Musicrank> Musicrank { get; set; }
         public virtual ICollection<Muteduser> Muteduser { get; set; }
         public virtual ICollection<Namechanges> Namechanges { get; set; }
