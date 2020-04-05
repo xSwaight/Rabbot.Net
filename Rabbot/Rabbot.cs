@@ -10,7 +10,7 @@ using Serilog.Events;
 using Sentry;
 using Serilog.Core;
 using System.Linq;
-using Rabbot.Database2;
+using Rabbot.Database;
 
 namespace Rabbot
 {
@@ -96,7 +96,7 @@ namespace Rabbot
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 
-                using (NewRabbotContext db = new NewRabbotContext())
+                using (RabbotContext db = new RabbotContext())
                 {
                     db.Database.EnsureCreated();
                 }

@@ -23,13 +23,13 @@ namespace Rabbot.Preconditions
             if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.ManageRoles)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                if (db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
+                if (db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
                 {
-                    if (db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid == null)
+                    if (db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId == null)
                         return Task.FromResult(PreconditionResult.FromSuccess());
-                    var botChannel = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid;
+                    var botChannel = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId;
                     if (botChannel == context.Channel.Id)
                         return Task.FromResult(PreconditionResult.FromSuccess());
                     else

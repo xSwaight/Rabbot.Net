@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Rabbot.Services
 {
     public class StreakService
     {
-        public void AddWords(Userfeatures userFeature, SocketMessage msg)
+        public void AddWords(FeatureEntity userFeature, SocketMessage msg)
         {
             var wordCountBefore = userFeature.TodaysWords;
 
@@ -31,22 +32,22 @@ namespace Rabbot.Services
             }
         }
 
-        public int GetWordsToday(Userfeatures userFeature)
+        public int GetWordsToday(FeatureEntity userFeature)
         {
             return userFeature.TodaysWords;
         }
 
-        public int GetWordsTotal(Userfeatures userFeature)
+        public int GetWordsTotal(FeatureEntity userFeature)
         {
             return userFeature.TotalWords;
         }
 
-        public int GetStreakLevel(Userfeatures userFeature)
+        public int GetStreakLevel(FeatureEntity userFeature)
         {
             return userFeature.StreakLevel;
         }
 
-        public void CheckTodaysWordcount(Userfeatures userFeature)
+        public void CheckTodaysWordcount(FeatureEntity userFeature)
         {
             if (userFeature.TodaysWords < Constants.MinimumWordCount)
                 userFeature.StreakLevel = 0;
@@ -54,7 +55,7 @@ namespace Rabbot.Services
             userFeature.TodaysWords = 0;
         }
 
-        public List<Userfeatures> GetRanking(IQueryable<Userfeatures> userFeatures)
+        public List<FeatureEntity> GetRanking(IQueryable<FeatureEntity> userFeatures)
         {
             return userFeatures.Where(p => p.StreakLevel > 0).OrderByDescending(p => p.StreakLevel).ThenByDescending(p => p.TodaysWords).ToList();
         }

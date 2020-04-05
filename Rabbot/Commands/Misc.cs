@@ -126,15 +126,15 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task Settings()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var guild = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
+                var guild = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
                 if (guild == null)
                     return;
-                var logChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.LogchannelId);
-                var notificationChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.NotificationchannelId);
-                var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.Botchannelid);
+                var logChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.LogChannelId);
+                var notificationChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.NotificationChannelId);
+                var botcChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == guild.BotChannelId);
 
                 var embed = new EmbedBuilder();
                 embed.WithTitle($"Settings");
@@ -142,10 +142,10 @@ namespace Rabbot.Commands
 
                 switch (guild.Notify)
                 {
-                    case 0:
+                    case false:
                         embed.AddField("Notification", "Disabled", true);
                         break;
-                    case 1:
+                    case true:
                         embed.AddField("Notification", "Enabled", true);
                         break;
                     default:
@@ -165,10 +165,10 @@ namespace Rabbot.Commands
 
                 switch (guild.Log)
                 {
-                    case 0:
+                    case false:
                         embed.AddField("Log", "Disabled", true);
                         break;
-                    case 1:
+                    case true:
                         embed.AddField("Log", "Enabled", true);
                         break;
                     default:
@@ -183,10 +183,10 @@ namespace Rabbot.Commands
 
                 switch (guild.Level)
                 {
-                    case 0:
+                    case false:
                         embed.AddField("Level", "Disabled", true);
                         break;
-                    case 1:
+                    case true:
                         embed.AddField("Level", "Enabled", true);
                         break;
                     default:
@@ -232,18 +232,18 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task Active(int days, string param = null)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var activeUsers = db.Userfeatures.Include(p => p.User).Where(p => p.Lastmessage > DateTime.Now.AddDays(0 - days) && p.ServerId == Context.Guild.Id);
+                var activeUsers = db.Features.Include(p => p.User).Where(p => p.LastMessage > DateTime.Now.AddDays(0 - days) && p.GuildId == Context.Guild.Id);
                 if (string.IsNullOrWhiteSpace(param))
                     await ReplyAsync($"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.");
                 else
                 {
                     string output = $"**{activeUsers.Count()} User** haben in den **letzten {days} Tagen** eine Nachricht geschrieben.\n```";
                     int counter = 1;
-                    foreach (var user in activeUsers.OrderByDescending(p => p.Lastmessage.Value))
+                    foreach (var user in activeUsers.OrderByDescending(p => p.LastMessage))
                     {
-                        output += $"{counter}. {user.User.Name} - {user.Lastmessage.Value.ToFormattedString()}\n";
+                        output += $"{counter}. {user.User.Name} - {user.LastMessage.ToFormattedString()}\n";
                         counter++;
                     }
                     output += "```";
@@ -303,17 +303,17 @@ namespace Rabbot.Commands
         {
             if (!Context.IsPrivate)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var user = db.User.FirstOrDefault(p => p.Id == Context.User.Id);
-                if (user.Notify == 1)
+                var user = db.Users.FirstOrDefault(p => p.Id == Context.User.Id);
+                if (user.Notify == true)
                 {
-                    user.Notify = 0;
+                    user.Notify = false;
                     await Context.Channel.SendMessageAsync("Na gut.");
                 }
                 else
                 {
-                    user.Notify = 1;
+                    user.Notify = false;
                     await Context.Channel.SendMessageAsync("Yay!");
                 }
                 await db.SaveChangesAsync();
@@ -332,14 +332,14 @@ namespace Rabbot.Commands
         [RequireOwner]
         public async Task CheckLeftUsers()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var userfeatures = db.Userfeatures;
+                var userfeatures = db.Features;
                 foreach (var userfeature in userfeatures)
                 {
-                    if (Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.ServerId).Any())
+                    if (Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.GuildId).Any())
                     {
-                        if (!Context.Client.Guilds.First(p => p.Id == (ulong)userfeature.ServerId).Users.Where(p => p.Id == (ulong)userfeature.UserId).Any())
+                        if (!Context.Client.Guilds.First(p => p.Id == (ulong)userfeature.GuildId).Users.Where(p => p.Id == (ulong)userfeature.UserId).Any())
                             userfeature.HasLeft = true;
                         else
                             userfeature.HasLeft = false;
@@ -506,9 +506,9 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var streakList = _streakService.GetRanking(db.Userfeatures.Include(p => p.User).Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false)).ToPagedList(page, 25);
+                var streakList = _streakService.GetRanking(db.Features.Include(p => p.User).Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false)).ToPagedList(page, 25);
 
                 if (page > streakList.PageCount)
                     return;
@@ -553,10 +553,10 @@ namespace Rabbot.Commands
 
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);
+                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -567,7 +567,7 @@ namespace Rabbot.Commands
                 {
                     try
                     {
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
                         embed.AddField($"{i}. {user.Name}", $"{Constants.EggGoatR} {top.Eggs.ToFormattedString()}");
                         i++;
 

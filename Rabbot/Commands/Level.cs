@@ -13,6 +13,7 @@ using PagedList;
 using Serilog;
 using Serilog.Core;
 using Rabbot.Services;
+using Rabbot.Database.Rabbot;
 
 namespace Rabbot.Commands
 {
@@ -33,10 +34,10 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
+                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -48,7 +49,7 @@ namespace Rabbot.Commands
                     try
                     {
                         uint level = Helper.GetLevel(top.Exp);
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.Exp;
                         embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
                         i++;
@@ -69,10 +70,10 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Top 10 der User mit den meisten Ziegen an.")]
         public async Task Goats()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var top10 = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
+                var top10 = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.Description = "Ziegen Ranking";
                 embed.WithColor(new Color(239, 220, 7));
@@ -83,8 +84,8 @@ namespace Rabbot.Commands
                         continue;
                     try
                     {
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
-                        var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == top.Id);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
+                        var inventory = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == top.Id);
                         var stall = Helper.GetStall(top.Wins);
                         var atk = stall.Attack;
                         var def = stall.Defense;
@@ -115,11 +116,11 @@ namespace Rabbot.Commands
         public async Task RegisterSong()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
                 if (Context.User.Activity is SpotifyGame song)
                 {
-                    await db.Songlist.AddAsync(new Songlist { Name = song.TrackTitle + " - " + song.Artists.First(), Link = song.TrackUrl, Active = 0 });
+                    await db.Songs.AddAsync(new SongEntity { Name = song.TrackTitle + " - " + song.Artists.First(), Link = song.TrackUrl, Active = false });
                     await db.SaveChangesAsync();
                 }
             }
@@ -151,11 +152,11 @@ namespace Rabbot.Commands
         [Summary("Zeigt den aktuellen Song und die aktuelle Bestenliste an.")]
         public async Task Musicrank()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var top10 = db.Musicrank.Where(p => p.ServerId == Context.Guild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden).Take(10);
-                var song = db.Songlist.Where(p => p.Active == 1);
+                var top10 = db.Musicranks.Where(p => p.GuildId == Context.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds).Take(10);
+                var song = db.Songs.Where(p => p.Active == false);
                 if (!song.Any())
                 {
                     await Context.Channel.SendMessageAsync("Something went wrong! :(");
@@ -174,8 +175,8 @@ namespace Rabbot.Commands
                 {
                     try
                     {
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
-                        TimeSpan time = (DateTime.Now.AddSeconds(top.Sekunden + 1) - DateTime.Now);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
+                        TimeSpan time = (DateTime.Now.AddSeconds(top.Seconds + 1) - DateTime.Now);
                         switch (i)
                         {
                             case 1:
@@ -210,49 +211,49 @@ namespace Rabbot.Commands
         public async Task SetupLevel()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var roles = db.Roles.Where(p => p.ServerId == Context.Guild.Id);
+                var roles = db.Roles.Where(p => p.GuildId == Context.Guild.Id);
                 if (roles.FirstOrDefault(p => p.Description == "S4") == null)
                 {
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S4" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S4" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "S3") == null)
                 {
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S3", null, new Color(239, 69, 50), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S3" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S3" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "S2") == null)
                 {
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S2", null, new Color(239, 69, 50), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S2" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S2" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "S1") == null)
                 {
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S1", null, new Color(239, 69, 50), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S1" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S1" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Pro") == null)
                 {
                     Discord.Rest.RestRole rolePro = await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = rolePro.Id, Description = "Pro" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = rolePro.Id, Description = "Pro" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Semi") == null)
                 {
                     Discord.Rest.RestRole roleSemi = await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleSemi.Id, Description = "Semi" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleSemi.Id, Description = "Semi" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Amateur") == null)
                 {
                     Discord.Rest.RestRole roleAmateur = await Context.Guild.CreateRoleAsync("Amateur", null, new Color(232, 160, 34), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleAmateur.Id, Description = "Amateur" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleAmateur.Id, Description = "Amateur" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Rookie") == null)
                 {
                     Discord.Rest.RestRole roleRookie = await Context.Guild.CreateRoleAsync("Rookie", null, new Color(219, 199, 164), true);
-                    await db.Roles.AddAsync(new Roles { ServerId = Context.Guild.Id, RoleId = roleRookie.Id, Description = "Rookie" });
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleRookie.Id, Description = "Rookie" });
                 }
                 await db.SaveChangesAsync();
             }
@@ -263,13 +264,13 @@ namespace Rabbot.Commands
         public async Task LevelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var guild = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                if (guild.Level == 1)
+                var guild = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                if (guild.Level == true)
                 {
-                    guild.Level = 0;
+                    guild.Level = false;
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
                     embed.WithDescription("Die Level Benachrichtigungen wurden deaktiviert.");
@@ -280,7 +281,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    guild.Level = 1;
+                    guild.Level = true;
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
                     embed.WithDescription("Die Level Benachrichtigungen wurden aktiviert.");
@@ -299,18 +300,18 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
                 if (!Helper.exp.TryGetValue(level, out var levelInfo))
                     return;
                 if (user != null)
                 {
-                    if (!db.User.Where(p => p.Id == user.Id).Any())
+                    if (!db.Users.Where(p => p.Id == user.Id).Any())
                     {
-                        db.User.Add(new User { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                        db.Users.Add(new UserEntity { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
                         await db.SaveChangesAsync();
                     }
-                    var userEXP = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, ServerId = Context.Guild.Id, UserId = user.Id }).Result.Entity;
+                    var userEXP = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, GuildId = Context.Guild.Id, UserId = user.Id }).Result.Entity;
 
                     userEXP.Exp = levelInfo.NeededEXP;
                     await db.SaveChangesAsync();
@@ -322,7 +323,7 @@ namespace Rabbot.Commands
                     await msg.DeleteAsync();
                     return;
                 }
-                var experience = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                var experience = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                 experience.Exp = levelInfo.NeededEXP;
                 await db.SaveChangesAsync();
                 var embed = new EmbedBuilder();
@@ -340,17 +341,17 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
                 if (user != null)
                 {
-                    if (!db.User.Where(p => p.Id == user.Id).Any())
+                    if (!db.Users.Where(p => p.Id == user.Id).Any())
                     {
-                        db.User.Add(new User { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                        db.Users.Add(new UserEntity { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
                         await db.SaveChangesAsync();
                     }
-                    var userEXP = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, ServerId = Context.Guild.Id, UserId = user.Id }).Result.Entity;
+                    var userEXP = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, GuildId = Context.Guild.Id, UserId = user.Id }).Result.Entity;
                     userEXP.Exp += exp;
                     await db.SaveChangesAsync();
                     var embedUser = new EmbedBuilder();
@@ -361,7 +362,7 @@ namespace Rabbot.Commands
                     await msg.DeleteAsync();
                     return;
                 }
-                var experience = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                var experience = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                 experience.Exp += exp;
                 await db.SaveChangesAsync();
                 var embed = new EmbedBuilder();
@@ -379,12 +380,12 @@ namespace Rabbot.Commands
         {
             await Context.Message.DeleteAsync();
             const int delay = 2000;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
                 if (user != null)
                 {
-                    var userEXP = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id);
+                    var userEXP = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
                     userEXP.Exp -= exp;
                     await db.SaveChangesAsync();
                     var embedUser = new EmbedBuilder();
@@ -395,7 +396,7 @@ namespace Rabbot.Commands
                     await msg.DeleteAsync();
                     return;
                 }
-                var experience = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                var experience = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                 experience.Exp -= exp;
                 await db.SaveChangesAsync();
             }
@@ -411,10 +412,10 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync("Nö.");
                 return;
             }
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var user = db.User.Include(p => p.Userfeatures).FirstOrDefault(p => p.Id == Context.User.Id);
-                var feature = user.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
+                var user = db.Users.Include(p => p.Features).FirstOrDefault(p => p.Id == Context.User.Id);
+                var feature = user.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
                 EmbedBuilder embed = new EmbedBuilder();
                 if (Helper.GetLevel(feature.Exp) >= level)
                 {
@@ -439,14 +440,14 @@ namespace Rabbot.Commands
             {
                 user = Context.User;
             }
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
                 string path = "";
                 using (Context.Channel.EnterTypingState())
                 {
                     string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
-                    var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = user.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                    int exp = dbUser.Exp ?? 0;
+                    var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                    int exp = dbUser.Exp;
                     int goat = dbUser.Goats;
                     var level = Helper.GetLevel(exp);
                     var neededExp1 = Helper.GetEXP((int)level);
@@ -463,7 +464,7 @@ namespace Rabbot.Commands
                         percent = 100;
                         progress = $"{currentLevelExp.ToFormattedString()}";
                     }
-                    var ranks = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
+                    var ranks = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
                     {

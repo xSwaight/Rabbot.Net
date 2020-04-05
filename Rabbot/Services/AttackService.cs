@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -20,7 +21,7 @@ namespace Rabbot.Services
             _client = client;
         }
 
-        public async Task CheckAttacks(rabbotContext db)
+        public async Task CheckAttacks(RabbotContext db)
         {
             if (!db.Attacks.Any())
                 return;
@@ -28,7 +29,7 @@ namespace Rabbot.Services
             var attacks = db.Attacks.ToList();
             foreach (var attack in attacks)
             {
-                if (attack.AttackEnds < DateTime.Now)
+                if (attack.EndTime < DateTime.Now)
                 {
                     await AttackResult(attack, db);
                     db.Attacks.Remove(attack);
@@ -38,21 +39,21 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task AttackResult(Attacks attack, rabbotContext db)
+        private async Task AttackResult(AttackEntity attack, RabbotContext db)
         {
-            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)attack.ServerId);
+            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)attack.GuildId);
             if (dcServer == null)
                 return;
             var dcTarget = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.TargetId);
             var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.UserId);
             var dcChannel = dcServer.Channels.FirstOrDefault(p => p.Id == (ulong)attack.ChannelId) as ISocketMessageChannel;
 
-            var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.TargetId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
-            var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == attack.ServerId && p.UserId == attack.UserId) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = attack.ServerId, UserId = attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbTarget = db.Features.FirstOrDefault(p => p.GuildId == attack.GuildId && p.UserId == attack.TargetId) ?? db.Features.AddAsync(new FeatureEntity { Guild = attack.Guild, UserId = attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
+            var dbUser = db.Features.FirstOrDefault(p => p.GuildId == attack.GuildId && p.UserId == attack.UserId) ?? db.Features.AddAsync(new FeatureEntity { GuildId = attack.GuildId, UserId = attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
             var targetStallBefore = Helper.GetStall(dbTarget.Wins);
             var userStallBefore = Helper.GetStall(dbUser.Wins);
-            var inventoryUser = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
-            var inventoryTarget = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbTarget.Id);
+            var inventoryUser = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
+            var inventoryTarget = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbTarget.Id);
             var atkUser = userStallBefore.Attack;
             var defTarget = targetStallBefore.Defense;
             bool hirtenstab = false;
@@ -87,7 +88,7 @@ namespace Rabbot.Services
                         {
                             item.Inventory.Durability--;
                             if (item.Inventory.Durability <= 0)
-                                db.Inventory.Remove(item.Inventory);
+                                db.Inventorys.Remove(item.Inventory);
                         }
                     }
 
@@ -103,7 +104,7 @@ namespace Rabbot.Services
                         {
                             item.Inventory.Durability--;
                             if (item.Inventory.Durability <= 0)
-                                db.Inventory.Remove(item.Inventory);
+                                db.Inventorys.Remove(item.Inventory);
                         }
                     }
                 }
@@ -114,7 +115,7 @@ namespace Rabbot.Services
             var winChance = ((double)atkUser / (double)sum) * 100;
             var chance = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
-            var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == dcServer.Id && p.UserId == _client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = dcServer.Id, UserId = _client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+            var rabbotUser = db.Features.FirstOrDefault(p => p.GuildId == dcServer.Id && p.UserId == _client.CurrentUser.Id) ?? db.AddAsync(new FeatureEntity { GuildId = dcServer.Id, UserId = _client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
             if (chance <= winChance)
             {
                 int amount = rnd.Next(40, targetStallBefore.MaxOutput + 1);
@@ -175,8 +176,8 @@ namespace Rabbot.Services
                 dbUser.Loses++;
             }
 
-            dbUser.Locked = 0;
-            dbTarget.Locked = 0;
+            dbUser.Locked = false;
+            dbTarget.Locked = false;
             await db.SaveChangesAsync();
 
             var targetStallAfter = Helper.GetStall(dbTarget.Wins);

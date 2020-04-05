@@ -247,15 +247,15 @@ namespace Rabbot
                 if (msg.Author.Id != client.CurrentUser.Id)
                     return;
 
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
 
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == user.Guild.Id && p.UserId == user.Id);
+                var dbUser = db.Features.FirstOrDefault(p => p.GuildId == user.Guild.Id && p.UserId == user.Id);
                 if (dbUser == null)
                     return;
 
 
-                if (dbUser.Locked == 1)
+                if (dbUser.Locked == true)
                 {
                     await channel.SendMessageAsync($"{user.Mention} du bist gerade in einem Angriff!");
                     if (msg != null)
@@ -460,11 +460,11 @@ namespace Rabbot
 
         public static ulong? GetBotChannel(ICommandContext context)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                if (!db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
                 {
-                    return (ulong?)db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid;
+                    return (ulong?)db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId;
                 }
                 else
                 {

@@ -81,9 +81,9 @@ namespace Rabbot.Models
             
 
             int eggs = 0;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = new RabbotContext())
             {
-                var feature = db.Userfeatures.FirstOrDefault(p => p.ServerId == Guild.Id && p.UserId == userId);
+                var feature = db.Features.FirstOrDefault(p => p.GuildId == Guild.Id && p.UserId == userId);
                 if (feature == null)
                     return;
 
