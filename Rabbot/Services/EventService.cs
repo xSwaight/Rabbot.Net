@@ -50,25 +50,25 @@ namespace Rabbot.Services
 
         public void InitializeAsync()
         {
-            new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckBannedUsers(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckWarnings(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckSong(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
+            //new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(EventService)}: Loaded successfully");
-            _client.UserJoined += UserJoined;
-            _client.UserLeft += UserLeft;
-            _client.MessageReceived += MessageReceived;
-            _client.MessageDeleted += MessageDeleted;
-            _client.MessageUpdated += MessageUpdated;
-            _client.JoinedGuild += JoinedGuild;
-            _client.Connected += ClientConnected;
-            _client.ReactionAdded += ReactionAdded;
-            _client.ReactionRemoved += ReactionRemoved;
-            _client.UserUpdated += UserUpdated;
-            _client.ChannelCreated += ChannelCreated;
+            //_client.UserJoined += UserJoined;
+            //_client.UserLeft += UserLeft;
+            //_client.MessageReceived += MessageReceived;
+            //_client.MessageDeleted += MessageDeleted;
+            //_client.MessageUpdated += MessageUpdated;
+            //_client.JoinedGuild += JoinedGuild;
+            //_client.Connected += ClientConnected;
+            //_client.ReactionAdded += ReactionAdded;
+            //_client.ReactionRemoved += ReactionRemoved;
+            //_client.UserUpdated += UserUpdated;
+            //_client.ChannelCreated += ChannelCreated;
         }
 
         private async Task UserUpdated(SocketUser oldUser, SocketUser newUser)

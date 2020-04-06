@@ -48,15 +48,15 @@ namespace Rabbot
                     _logger.Information(result.ErrorReason);
                 }
             }
-            else
-            {
-                await SendAnswerIfTagged(msg.Content, context);
-            }
+            //else
+            //{
+            //    await SendAnswerIfTagged(msg.Content, context);
+            //}
 
-            if (result != null && result.Error == CommandError.UnknownCommand)
-            {
-                await SendAnswerIfTagged(msg.Content, context);
-            }
+            //if (result != null && result.Error == CommandError.UnknownCommand)
+            //{
+            //    await SendAnswerIfTagged(msg.Content, context);
+            //}
         }
         private async Task SendAnswerIfTagged(string message, SocketCommandContext context)
         {
