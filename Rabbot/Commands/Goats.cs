@@ -858,42 +858,5 @@ namespace Rabbot.Commands
             var user = Context.User as SocketGuildUser;
             await Helper.UpdateSpin(Context.Channel, user, Context.Message, Context.Client, einsatz);
         }
-
-        [Command("combiRanking", RunMode = RunMode.Async), Alias("combiranks")]
-        [BotCommand]
-        [Summary("Zeigt die Top User sortiert nach Combi EXP an.")]
-        public async Task CombiRanking(int page = 1)
-        {
-            if (page < 1)
-                return;
-            using (var db = _databaseService.Open<RabbotContext>())
-            {
-
-                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
-                if (page > ranking.PageCount)
-                    return;
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.Description = $"Combi Ranking Seite {ranking.PageNumber}/{ranking.PageCount}";
-                embed.WithColor(new Color(239, 220, 7));
-                int i = ranking.PageSize * ranking.PageNumber - (ranking.PageSize - 1);
-                foreach (var top in ranking)
-                {
-                    try
-                    {
-                        uint level = Helper.GetCombiLevel(top.CombiExp);
-                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
-                        int exp = (int)top.CombiExp;
-                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
-                        i++;
-
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, $"Error in command {nameof(CombiRanking)}");
-                    }
-                }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
-            }
-        }
     }
 }

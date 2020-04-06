@@ -28,21 +28,26 @@ namespace Rabbot.Services
             _client.ReactionAdded += ReactionAdded;
         }
 
-        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task ReactionAdded(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            if (reaction.Emote.Name != Constants.EggGoatL.Name || !reaction.User.IsSpecified || reaction.User.Value.IsBot)
-                return;
+            new Task(async() => {
 
-            var guild = (channel as SocketGuildChannel).Guild;
-            var @event = _events.FirstOrDefault(p => p.Guild.Id == guild.Id);
+                if (reaction.Emote.Name != Constants.EggGoatL.Name || !reaction.User.IsSpecified || reaction.User.Value.IsBot)
+                    return;
 
-            if (@event == null)
-                return;
+                var guild = (channel as SocketGuildChannel).Guild;
+                var @event = _events.FirstOrDefault(p => p.Guild.Id == guild.Id);
 
-            if (!@event.CurrentMessages.Any(p => p.Id == reaction.MessageId))
-                return;
+                if (@event == null)
+                    return;
 
-            await @event.CatchEgg(reaction.UserId, reaction.MessageId);
+                if (!@event.CurrentMessages.Any(p => p.Id == reaction.MessageId))
+                    return;
+
+                await @event.CatchEgg(reaction.UserId, reaction.MessageId);
+
+            }).Start();
+            return Task.CompletedTask;
         }
 
         public void RegisterServers(params ulong[] guildIds)
@@ -94,8 +99,8 @@ namespace Rabbot.Services
                     await @event.SendEasterEgg();
                 }
 
-                var rndNumber = new Random().Next(Constants.EasterMinRespawnTime, Constants.EasterMaxRespawnTime + 1);
-                await Task.Delay(rndNumber * 60000);
+                var rndNumber = new Random().Next(Constants.EasterMinRespawnTime * 60000, (Constants.EasterMaxRespawnTime + 1) * 60000);
+                await Task.Delay(rndNumber);
                 if (DateTime.Now > Constants.EndTime)
                     break;
             }

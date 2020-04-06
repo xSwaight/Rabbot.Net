@@ -54,6 +54,15 @@ namespace Rabbot.Models
                         {
                             CurrentMessages.Remove(message);
                             await message.DeleteAsync();
+                            using (rabbotContext db = new rabbotContext())
+                            {
+                                var easterevent = db.Easterevent.FirstOrDefault(p => p.MessageId == message.Id);
+                                if(easterevent != null)
+                                {
+                                    easterevent.DespawnTime = DateTime.Now;
+                                }
+                                await db.SaveChangesAsync();
+                            }
                         }
                     }
                 }
@@ -70,6 +79,11 @@ namespace Rabbot.Models
             var message = await textChannel.SendMessageAsync($"{Constants.EggGoatR}");
             await message.AddReactionAsync(Constants.EggGoatL);
             CurrentMessages.Add(message);
+            using (rabbotContext db = new rabbotContext())
+            {
+                await db.Easterevent.AddAsync(new Easterevent { MessageId = message.Id, SpawnTime = DateTime.Now });
+                await db.SaveChangesAsync();
+            }
         }
 
         public async Task CatchEgg(ulong userId, ulong messageId)
@@ -81,29 +95,35 @@ namespace Rabbot.Models
             var channel = message.Channel;
             var author = Guild.Users.FirstOrDefault(p => p.Id == userId);
 
-            
-
             int eggs = 0;
             using (RabbotContext db = _services.GetRequiredService<RabbotContext>())
             {
-                var feature = db.Features.FirstOrDefault(p => p.GuildId == Guild.Id && p.UserId == userId);
+                var user = db.User.FirstOrDefault(p => p.Id == userId) ?? db.User.AddAsync(new User { Id = userId, Name = $"{author.Username}#{author.Discriminator}" }).Result.Entity;
+                var feature = db.Userfeatures.FirstOrDefault(p => p.ServerId == Guild.Id && p.UserId == userId) ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = userId, ServerId = Guild.Id }).Result.Entity;
                 if (feature == null)
                     return;
 
                 feature.Eggs++;
                 eggs = feature.Eggs;
+                var easterevent = db.Easterevent.FirstOrDefault(p => p.MessageId == messageId);
+                if (easterevent != null)
+                {
+                    easterevent.UserId = userId;
+                    easterevent.CatchTime = DateTime.Now;
+                }
+
                 await db.SaveChangesAsync();
             }
             const int delay = 8000;
             var embed = new EmbedBuilder();
             embed.WithDescription($"Glückwunsch! {author.Mention} du hast jetzt {eggs} {Constants.EggGoatR} gefangen!");
             embed.WithColor(new Color(90, 92, 96));
+            CurrentMessages.Remove(message);
             await message.ModifyAsync(p =>
             {
                 p.Content = "";
                 p.Embed = embed.Build();
             });
-            CurrentMessages.Remove(message);
             await Task.Delay(delay);
             await message.DeleteAsync();
         }
