@@ -84,30 +84,29 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<LoggingService>();
 
                 //Create Database Table
-                //using (var db = serviceProvider.GetRequiredService<RabbotContext>())
-                //{
-                //    db.Database.EnsureCreated();
-                //}
+                using (var db = serviceProvider.GetRequiredService<RabbotContext>())
+                {
+                    db.Database.EnsureCreated();
+                }
 
                 //Start the bot
                 await serviceProvider.GetRequiredService<StartupService>().StartAsync();
 
                 //Load up services
-
                 serviceProvider.GetRequiredService<CommandHandler>();
-                //serviceProvider.GetRequiredService<TwitchService>();
-                //serviceProvider.GetRequiredService<YouTubeVideoService>();
-                //serviceProvider.GetRequiredService<StreakService>();
-                //serviceProvider.GetRequiredService<AttackService>();
-                //serviceProvider.GetRequiredService<LevelService>();
-                //serviceProvider.GetRequiredService<Logging>();
-                //serviceProvider.GetRequiredService<MuteService>();
-                //serviceProvider.GetRequiredService<WarnService>();
+                serviceProvider.GetRequiredService<TwitchService>();
+                serviceProvider.GetRequiredService<YouTubeVideoService>();
+                serviceProvider.GetRequiredService<StreakService>();
+                serviceProvider.GetRequiredService<AttackService>();
+                serviceProvider.GetRequiredService<LevelService>();
+                serviceProvider.GetRequiredService<Logging>();
+                serviceProvider.GetRequiredService<MuteService>();
+                serviceProvider.GetRequiredService<WarnService>();
                 serviceProvider.GetRequiredService<DatabaseService>();
-                //serviceProvider.GetRequiredService<EventService>();
-                //serviceProvider.GetRequiredService<ApiService>();
-                //serviceProvider.GetRequiredService<EasterEventService>();
-                //serviceProvider.GetRequiredService<ImageService>();
+                serviceProvider.GetRequiredService<EventService>();
+                serviceProvider.GetRequiredService<ApiService>();
+                serviceProvider.GetRequiredService<EasterEventService>();
+                serviceProvider.GetRequiredService<ImageService>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 

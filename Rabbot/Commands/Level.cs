@@ -142,7 +142,7 @@ namespace Rabbot.Commands
             string msg = $"```Seite {levels.PageNumber}/{levels.PageCount}\n";
             foreach (var level in levels)
             {
-                msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
+                    msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
             }
             msg += "```";
             await Context.Channel.SendMessageAsync(msg);
@@ -182,16 +182,16 @@ namespace Rabbot.Commands
                         switch (i)
                         {
                             case 1:
-                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
                                 break;
                             case 2:
-                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (30% EXP)");
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (30% EXP)");
                                 break;
                             case 3:
-                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+10% EXP)");
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+10% EXP)");
                                 break;
                             default:
-                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s");
+                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s");
                                 break;
                         }
                         i++;
@@ -442,57 +442,60 @@ namespace Rabbot.Commands
             {
                 user = Context.User;
             }
-            string path = "";
-            using (Context.Channel.EnterTypingState())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
-                var dbUser = await _databaseService.GetFeature(user.Id, Context.Guild.Id);
-                int exp = dbUser.Exp;
-                int goat = dbUser.Goats;
-                var level = Helper.GetLevel(exp);
-                var neededExp1 = Helper.GetEXP((int)level);
-                var neededExp2 = Helper.GetEXP((int)level + 1);
-                var currentExp = exp - Helper.GetEXP((int)level);
-                int totalExp = (int)exp;
-                int currentLevelExp = (int)currentExp;
-                int neededLevelExp = (int)neededExp2 - (int)neededExp1;
-                double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
-                int percent = (int)dblPercent;
-                string progress = $"{currentLevelExp.ToFormattedString()} | {neededLevelExp.ToFormattedString()}";
-                if (level == Helper.exp.OrderByDescending(p => p.Key).First().Key)
+                string path = "";
+                using (Context.Channel.EnterTypingState())
                 {
-                    percent = 100;
-                    progress = $"{currentLevelExp.ToFormattedString()}";
-                }
-                //var ranks = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
-                int rank = 1;
-                //foreach (var Rank in ranks)
-                //{
-                //    if (Rank.UserId == user.Id)
-                //        break;
-                //    rank++;
-                //}
-                string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
-                if (profilePicture == null)
-                    profilePicture = user.GetDefaultAvatarUrl();
-                var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/profile.html");
-                var html = template.Render(new
-                {
-                    AVATAR = profilePicture,
-                    NAME = name,
-                    LEVEL = level.ToString(),
-                    RANK = rank.ToString(),
-                    EXP = exp.ToFormattedString(),
-                    PROGRESS = progress,
-                    PERCENT = percent.ToString(),
-                    GOATCOINS = goat.ToFormattedString()
-                });
+                    string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
+                    var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = user.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                    int exp = dbUser.Exp;
+                    int goat = dbUser.Goats;
+                    var level = Helper.GetLevel(exp);
+                    var neededExp1 = Helper.GetEXP((int)level);
+                    var neededExp2 = Helper.GetEXP((int)level + 1);
+                    var currentExp = exp - Helper.GetEXP((int)level);
+                    int totalExp = (int)exp;
+                    int currentLevelExp = (int)currentExp;
+                    int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                    double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
+                    int percent = (int)dblPercent;
+                    string progress = $"{currentLevelExp.ToFormattedString()} | {neededLevelExp.ToFormattedString()}";
+                    if (level == Helper.exp.OrderByDescending(p => p.Key).First().Key)
+                    {
+                        percent = 100;
+                        progress = $"{currentLevelExp.ToFormattedString()}";
+                    }
+                    var ranks = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
+                    int rank = 1;
+                    foreach (var Rank in ranks)
+                    {
+                        if (Rank.UserId == user.Id)
+                            break;
+                        rank++;
+                    }
+                    string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
+                    if (profilePicture == null)
+                        profilePicture = user.GetDefaultAvatarUrl();
+                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/profile.html");
+                    var html = template.Render(new
+                    {
+                        AVATAR = profilePicture,
+                        NAME = name,
+                        LEVEL = level.ToString(),
+                        RANK = rank.ToString(),
+                        EXP = exp.ToFormattedString(),
+                        PROGRESS = progress,
+                        PERCENT = percent.ToString(),
+                        GOATCOINS = goat.ToFormattedString()
+                    });
 
-                path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
-                await Context.Channel.SendFileAsync(path, $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
-                await _databaseService.SaveChangesAsync();
+                    path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
+                    await Context.Channel.SendFileAsync(path, $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
+                    await db.SaveChangesAsync();
+                }
+                File.Delete(path);
             }
-            File.Delete(path);
         }
     }
 }
