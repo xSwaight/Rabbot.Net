@@ -169,10 +169,10 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
+                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -184,7 +184,7 @@ namespace Rabbot.Commands
                     try
                     {
                         uint level = Helper.GetCombiLevel(top.CombiExp);
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.CombiExp;
                         embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
                         i++;

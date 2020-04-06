@@ -27,5 +27,6 @@ namespace Rabbot.Database.Rabbot
         public List<AttackEntity> AttackTargets { get; set; } = new List<AttackEntity>();
         public List<MusicrankEntity> Musicranks { get; set; } = new List<MusicrankEntity>();
         public List<MutedUserEntity> MutedUsers { get; set; } = new List<MutedUserEntity>();
+        public List<EasterEventEntity> EasterEvents { get; set; } = new List<EasterEventEntity>();
     }
 }

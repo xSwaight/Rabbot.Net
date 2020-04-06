@@ -28,6 +28,7 @@ namespace Rabbot.Database
         public DbSet<BadWordEntity> BadWords { get; set; }
         public DbSet<AttackEntity> Attacks { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
+        public DbSet<EasterEventEntity> EasterEvents { get; set; }
 
         public RabbotContext(DbContextOptions<RabbotContext> options)
             : base(options)
@@ -252,6 +253,13 @@ namespace Rabbot.Database
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Warnings)
+                    .HasForeignKey(x => x.UserId);
+            });
+
+            //EasterEvents
+            modelBuilder.Entity<EasterEventEntity>(entity => {
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.EasterEvents)
                     .HasForeignKey(x => x.UserId);
             });
         }
