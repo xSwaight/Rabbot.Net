@@ -9,7 +9,7 @@ namespace Rabbot.Database.Rabbot
     public class UserEntity
     {
         [Key]
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong Id { get; set; }
         [Column]

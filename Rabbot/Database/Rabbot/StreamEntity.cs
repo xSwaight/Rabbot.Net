@@ -10,10 +10,10 @@ namespace Rabbot.Database.Rabbot
     public class StreamEntity
     {
         [Key]
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong StreamId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong TwitchUserId { get; set; }
         [Column]
         public DateTime StartTime { get; set; }

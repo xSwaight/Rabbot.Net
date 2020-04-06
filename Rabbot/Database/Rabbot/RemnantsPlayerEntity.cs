@@ -10,7 +10,7 @@ namespace Rabbot.Database.Rabbot
     public class RemnantsPlayerEntity
     {
         [Key]
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong Id { get; set; }
         [Column]

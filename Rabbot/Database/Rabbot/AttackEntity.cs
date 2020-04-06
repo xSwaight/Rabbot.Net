@@ -12,21 +12,21 @@ namespace Rabbot.Database.Rabbot
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong UserId { get; set; }
         public UserEntity User { get; set; }
 
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong GuildId { get; set; }
         public GuildEntity Guild { get; set; }
 
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong TargetId { get; set; }
         public UserEntity Target { get; set; }
 
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong ChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong MessageId { get; set; }
         [Column]
         public DateTime EndTime { get; set; }

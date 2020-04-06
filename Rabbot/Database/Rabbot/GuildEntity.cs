@@ -9,22 +9,22 @@ namespace Rabbot.Database.Rabbot
     public class GuildEntity
     {
         [Key]
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong GuildId { get; set; }
         [Column]
         public string GuildName { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? LogChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? NotificationChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? BotChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? TrashChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? StreamChannelId { get; set; }
-        [Column(TypeName = "bigint(20)")]
+        [Column]
         public ulong? LevelChannelId { get; set; }
         [Column]
         public bool Notify { get; set; }
