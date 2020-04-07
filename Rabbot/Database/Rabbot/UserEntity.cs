@@ -9,7 +9,6 @@ namespace Rabbot.Database.Rabbot
     public class UserEntity
     {
         [Key]
-        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong Id { get; set; }
         [Column]

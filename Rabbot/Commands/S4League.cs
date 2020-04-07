@@ -37,50 +37,54 @@ namespace Rabbot.Commands
                 {
                     if (param == "remnants" || param == "rem" || param == "both")
                     {
-                        // Remnants 
-                        var dailyPlayer = db.RemnantsPlayers.Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
+                        //Remnants 
+                        var embedRemnants = new EmbedBuilder();
 
-                        var playerPeak = db.RemnantsPlayers.OrderByDescending(p => p.Playercount).FirstOrDefault();
-                        var firstDate = db.RemnantsPlayers.OrderBy(p => p.Date).FirstOrDefault();
-                        var lastDate = db.RemnantsPlayers.OrderByDescending(p => p.Date).FirstOrDefault();
+                        var remnantsDailyPlayer = db.RemnantsPlayers.Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
+                        var remnantsPlayerPeak = db.RemnantsPlayers.OrderByDescending(p => p.Playercount).FirstOrDefault();
+                        var remnantsFirstDate = db.RemnantsPlayers.OrderBy(p => p.Date).FirstOrDefault();
+                        var remnantsLastDate = db.RemnantsPlayers.OrderByDescending(p => p.Date).FirstOrDefault();
 
-                        var yesterday = dailyPlayer.FirstOrDefault(p => p.Key == DateTime.Now.AddDays(-1).ToShortDateString());
-                        var today = dailyPlayer.FirstOrDefault(p => p.Key == DateTime.Now.ToShortDateString());
-                        var lastWeek = dailyPlayer.FirstOrDefault(p => p.Key == DateTime.Now.AddDays(-8).ToShortDateString());
+                        var remnantsToday = remnantsDailyPlayer.FirstOrDefault(p => p.Key == DateTime.Now.ToShortDateString());
+                        IGrouping<string, RemnantsPlayerEntity> remnantsYesterday = null;
+                        var remnantsYesterdayList = remnantsDailyPlayer.Where(p => p.Key == DateTime.Now.AddDays(-1).ToShortDateString());
+                        if (remnantsYesterdayList.Any())
+                            remnantsYesterday = remnantsYesterdayList.FirstOrDefault();
 
-                        if (yesterday == null || today == null || lastWeek == null)
-                        {
-                            await ReplyAsync("Shit, hier lief was schief.");
-                            return;
-                        }
+                        IGrouping<string, RemnantsPlayerEntity> remnantsLastWeek = null;
+                        var remnantsLastWeekList = remnantsDailyPlayer.Where(p => p.Key == DateTime.Now.AddDays(-8).ToShortDateString());
+                        if (remnantsLastWeekList.Any())
+                            remnantsLastWeek = remnantsLastWeekList.FirstOrDefault();
 
                         var culture = new System.Globalization.CultureInfo("de-DE");
                         var dayYesterday = culture.DateTimeFormat.GetDayName(DateTime.Now.AddDays(-1).DayOfWeek);
                         var dayLastWeek = culture.DateTimeFormat.GetDayName(DateTime.Now.AddDays(-8).DayOfWeek);
 
-                        var avgYesteray = Math.Floor(yesterday.Average(p => p.Playercount));
-                        var avgLastWeek = Math.Floor(lastWeek.Average(p => p.Playercount));
+                        embedRemnants.WithTitle($"S4 Remnants Spieler Statistiken\nDaten seit dem {remnantsFirstDate.Date.ToString("dd.MM.yyyy")}");
+                        embedRemnants.AddField($"Spieler Online", $"**{remnantsLastDate.Playercount.ToFormattedString()} Spieler** ({remnantsLastDate.Date.ToFormattedString()})");
+                        embedRemnants.AddField($"All Time Spieler Peak", $"**{remnantsPlayerPeak.Playercount.ToFormattedString()} Spieler** ({remnantsPlayerPeak.Date.ToFormattedString()})");
+                        embedRemnants.AddField($"Heutiger Spieler Peak", $"**{remnantsToday.Max(p => p.Playercount).ToFormattedString()} Spieler** ({remnantsToday.First(p => p.Playercount == remnantsToday.Max(x => x.Playercount)).Date.ToFormattedString()})");
+                        if (remnantsYesterday != null && remnantsLastWeek != null)
+                        {
+                            var officialAvgYesteray = Math.Floor(remnantsYesterday.Average(p => p.Playercount));
+                            var officialAvgLastWeek = Math.Floor(remnantsLastWeek.Average(p => p.Playercount));
 
-                        var peakYesteray = (double)yesterday.Max(p => p.Playercount);
-                        var peakLastWeek = (double)lastWeek.Max(p => p.Playercount);
+                            var officialPeakYesteray = (double)remnantsYesterday.Max(p => p.Playercount);
+                            var officialPeakLastWeek = (double)remnantsLastWeek.Max(p => p.Playercount);
 
-                        var percentAvg = Math.Floor(100 / avgLastWeek * avgYesteray) - 100;
-                        var percentPeak = Math.Floor(100 / peakLastWeek * peakYesteray) - 100;
+                            var officialPercentAvg = Math.Floor(100 / officialAvgLastWeek * officialAvgYesteray) - 100;
+                            var officialPercentPeak = Math.Floor(100 / officialPeakLastWeek * officialPeakYesteray) - 100;
 
-                        string percentOutputAvg = percentAvg.ToString();
-                        string percentOutputPeak = percentPeak.ToString();
-                        if (percentAvg > 0)
-                            percentOutputAvg = "+" + percentAvg;
-                        if (percentPeak > 0)
-                            percentOutputPeak = "+" + percentPeak;
+                            string officialPercentOutputAvg = officialPercentAvg.ToString();
+                            string officialPercentOutputPeak = officialPercentPeak.ToString();
+                            if (officialPercentAvg > 0)
+                                officialPercentOutputAvg = "+" + officialPercentAvg;
+                            if (officialPercentPeak > 0)
+                                officialPercentOutputPeak = "+" + officialPercentPeak;
 
-                        var embedRemnants = new EmbedBuilder();
-                        embedRemnants.WithTitle($"S4 Remnants Spieler Statistiken\nDaten seit dem {firstDate.Date.ToString("dd.MM.yyyy")}");
-                        embedRemnants.AddField($"Spieler Online", $"**{lastDate.Playercount.ToFormattedString()} Spieler** ({lastDate.Date.ToFormattedString()})");
-                        embedRemnants.AddField($"All Time Spieler Peak", $"**{playerPeak.Playercount.ToFormattedString()} Spieler** ({playerPeak.Date.ToFormattedString()})");
-                        embedRemnants.AddField($"Heutiger Spieler Peak", $"**{today.Max(p => p.Playercount).ToFormattedString()} Spieler** ({today.First(p => p.Playercount == today.Max(x => x.Playercount)).Date.ToFormattedString()})");
-                        embedRemnants.AddField($"Vergleich Durchschnitt ({percentOutputAvg}%)", $"{dayYesterday}: **{avgYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{avgLastWeek} Spieler**");
-                        embedRemnants.AddField($"Vergleich Peak ({percentOutputPeak}%)", $"{dayYesterday}: **{peakYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{peakLastWeek} Spieler**");
+                            embedRemnants.AddField($"Vergleich Durchschnitt ({officialPercentOutputAvg}%)", $"{dayYesterday}: **{officialAvgYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{officialAvgLastWeek} Spieler**");
+                            embedRemnants.AddField($"Vergleich Peak ({officialPercentOutputPeak}%)", $"{dayYesterday}: **{officialPeakYesteray} Spieler** | Letzte Woche {dayLastWeek}: **{officialPeakLastWeek} Spieler**");
+                        }
                         embedRemnants.Color = Color.DarkGreen;
                         await ReplyAsync(null, false, embedRemnants.Build());
                     }

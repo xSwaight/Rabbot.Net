@@ -85,6 +85,8 @@ namespace Rabbot.Services
             {
                 bonusInfo += $"**{bonusPercent}% EXP Bonus insgesamt**";
             }
+            if (string.IsNullOrWhiteSpace(bonusInfo))
+                bonusInfo = "Kein Bonus :(";
 
             return (bonusInfo, bonusPercent);
         }

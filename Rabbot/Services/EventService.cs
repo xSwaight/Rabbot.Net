@@ -588,6 +588,11 @@ namespace Rabbot.Services
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
+                if(!db.Users.Any(p => p.Id == _client.CurrentUser.Id))
+                {
+                    await db.Users.AddAsync(new UserEntity { Id = _client.CurrentUser.Id, Name = $"{_client.CurrentUser.Username}#{_client.CurrentUser.Discriminator}" });
+                    await db.SaveChangesAsync();
+                }
                 if (!db.Events.Where(p => p.Status == true).Any())
                 {
                     await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
@@ -979,7 +984,12 @@ namespace Rabbot.Services
                 }
                 var dbUser = db.Users.FirstOrDefault(p => p.Id == msg.Author.Id) ?? db.Users.AddAsync(new UserEntity { Id = msg.Author.Id, Name = $"{msg.Author.Username}#{msg.Author.Discriminator}" }).Result.Entity;
                 dbUser.Name = $"{msg.Author.Username}#{msg.Author.Discriminator}";
-                var feature = db.Features.FirstOrDefault(p => p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id) ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
+                var feature = db.Features.FirstOrDefault(p => p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id);
+                if (feature == null && !msg.Content.StartsWith(Config.Bot.CmdPrefix))
+                    feature = db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
+                else if (feature == null)
+                    return;
+
                 feature.LastMessage = DateTime.Now;
 
                 if (!msg.Content.StartsWith(Config.Bot.CmdPrefix))

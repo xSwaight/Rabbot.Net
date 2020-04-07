@@ -10,7 +10,6 @@ namespace Rabbot.Database.Rabbot
     public class StreamEntity
     {
         [Key]
-        [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public ulong StreamId { get; set; }
         [Column]

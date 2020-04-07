@@ -274,7 +274,8 @@ namespace Rabbot.Commands
             }
             using (var db = _databaseService.Open<RabbotContext>())
             {
-
+                if (!db.Users.Any(p => p.Id == target.Id))
+                    await db.Users.AddAsync(new UserEntity { Id = target.Id, Name = $"{target.Username}#{target.Discriminator}" });
                 var dbTarget = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == target.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = target.Id, Exp = 0, Goats = 0 }).Result.Entity;
                 var dbUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id);
                 if (dbUser == null)
@@ -335,9 +336,9 @@ namespace Rabbot.Commands
                 dbTarget.Locked = true;
                 var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
                 await db.Attacks.AddAsync(new AttackEntity { GuildId = Context.Guild.Id, UserId = Context.User.Id, ChannelId = Context.Channel.Id, MessageId = msg.Id, TargetId = target.Id, EndTime = DateTime.Now.AddMinutes(3) });
+                await db.SaveChangesAsync();
                 await msg.AddReactionAsync(Constants.Sword);
                 await msg.AddReactionAsync(Constants.Shield);
-                await db.SaveChangesAsync();
                 Helper.AttackActive = false;
             }
         }

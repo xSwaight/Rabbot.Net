@@ -12,6 +12,7 @@ namespace Rabbot.Database.Rabbot
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
         [Column]
         public ulong GuildId { get; set; }
         public GuildEntity Guild { get; set; }
