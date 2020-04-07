@@ -1,4 +1,6 @@
-﻿using Rabbot.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Rabbot.Models;
 using Rabbot.Models.API;
 using System;
 using System.Collections.Generic;
@@ -83,6 +85,21 @@ namespace Rabbot
                 uptime.AppendFormat(value.Seconds > 1 ? "{0} seconds " : "{0} second ", value.Seconds);
 
             return uptime.ToString();
+        }
+
+        public static IServiceCollection AddDbContext<TContext>(this IServiceCollection This,
+            Action<DbContextOptionsBuilder> optionsBuilder)
+            where TContext : DbContext
+        {
+            return This
+                .AddSingleton(x =>
+                {
+                    var builder = new DbContextOptionsBuilder<TContext>();
+                    optionsBuilder(builder);
+                    return builder.Options;
+                })
+                .AddTransient<TContext>()
+                .AddTransient<DbContext>(x => x.GetRequiredService<TContext>());
         }
     }
 }
