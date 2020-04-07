@@ -448,6 +448,11 @@ namespace Rabbot.Commands
                 using (Context.Channel.EnterTypingState())
                 {
                     string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
+                    if(!db.Users.Any(p => p.Id == user.Id))
+                    {
+                        await db.Users.AddAsync(new UserEntity {Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                    }
+
                     var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = user.Id, Exp = 0, Goats = 0 }).Result.Entity;
                     int exp = dbUser.Exp;
                     int goat = dbUser.Goats;

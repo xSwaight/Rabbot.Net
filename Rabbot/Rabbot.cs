@@ -97,6 +97,10 @@ namespace Rabbot
                             _logger.Information($"Applying database={db.GetType().Name} migrations...");
                             db.Database.Migrate();
                         }
+                        else
+                        {
+                            _logger.Information($"{db.GetType().Name} is up2date!");
+                        }
                     }
                 }
 
