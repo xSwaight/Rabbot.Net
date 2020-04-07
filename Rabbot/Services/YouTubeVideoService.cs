@@ -22,6 +22,7 @@ namespace Rabbot.Services
         public YouTubeVideoService(DiscordSocketClient client, DatabaseService databaseService)
         {
             _client = client;
+            _databaseService = databaseService;
 
             Task.Run(() =>
             {
