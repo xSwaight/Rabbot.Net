@@ -13,6 +13,7 @@ using System.Linq;
 using Rabbot.Database;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Rabbot
 {
@@ -71,10 +72,10 @@ namespace Rabbot
                     .AddSingleton<EasterEventService>()
                     .AddSingleton<DatabaseService>()
                     .AddSingleton<ImageService>()
-                    .AddDbContext<RabbotContext>(x => x.UseMySql("server=localhost;database=newrabbot;user=root"));
+                    .AddDbContext<RabbotContext>(x => x.UseMySql(Config.Bot.ConnectionString));
 
 
-                //Add logging     
+                //Add logging
                 ConfigureServices(services);
 
                 //Build services
@@ -83,10 +84,20 @@ namespace Rabbot
                 //Instantiate logger/tie-in logging
                 serviceProvider.GetRequiredService<LoggingService>();
 
-                //Create Database Table
-                using (var db = serviceProvider.GetRequiredService<RabbotContext>())
+                // Run Migrations
+                var contexts = serviceProvider.GetRequiredService<IEnumerable<DbContext>>();
+                foreach (var db in contexts)
                 {
-                    db.Database.EnsureCreated();
+                    _logger.Information($"Checking database={db.GetType().Name}...");
+
+                    using (db)
+                    {
+                        if (db.Database.GetPendingMigrations().Any())
+                        {
+                            _logger.Information($"Applying database={db.GetType().Name} migrations...");
+                            db.Database.Migrate();
+                        }
+                    }
                 }
 
                 //Start the bot
