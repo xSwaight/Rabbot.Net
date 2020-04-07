@@ -8,6 +8,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using PagedList;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
@@ -18,12 +19,14 @@ namespace Rabbot.Commands
     {
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
+        private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Administration));
 
-        public Administration(WarnService warnService, MuteService muteService)
+        public Administration(WarnService warnService, MuteService muteService, DatabaseService databaseService)
         {
             _warnService = warnService;
             _muteService = muteService;
+            _databaseService = databaseService;
         }
 
         [Command("del", RunMode = RunMode.Async)]
@@ -50,14 +53,14 @@ namespace Rabbot.Commands
             }
             else
             {
-                using (rabbotContext db = new rabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
 
                     await Context.Message.DeleteAsync();
                     var msgs = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
                     msgs = msgs.Where(x => x.Author.Id == user.Id).Take((int)amount);
                     await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
-                    var exp = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id);
+                    var exp = db.Features.FirstOrDefault(p => p.UserId == user.Id);
                     if (exp.Exp > (50 * amount))
                         exp.Exp -= (int)(50 * amount);
                     else
@@ -89,7 +92,7 @@ namespace Rabbot.Commands
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _muteService.MuteTargetUser(db, user, duration, Context);
         }
 
@@ -122,7 +125,7 @@ namespace Rabbot.Commands
         public async Task Unmute(IUser user)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _muteService.UnmuteTargetUser(db, user, Context);
         }
 
@@ -138,7 +141,7 @@ namespace Rabbot.Commands
             if (dcUser.GuildPermissions.Administrator || dcUser.GuildPermissions.ManageMessages)
                 return;
 
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
                 await _warnService.Warn(db, user, Context);
         }
 
@@ -190,18 +193,18 @@ namespace Rabbot.Commands
         public async Task SetLog()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, LogchannelId = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, LogChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.LogchannelId = Context.Channel.Id;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.LogChannelId = Context.Channel.Id;
                 }
-                db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Log = 1;
+                db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log = true;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -219,16 +222,16 @@ namespace Rabbot.Commands
         public async Task SetBot()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, Botchannelid = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, BotChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.Botchannelid = Context.Channel.Id;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.BotChannelId = Context.Channel.Id;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -247,17 +250,17 @@ namespace Rabbot.Commands
         public async Task SetTrash()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, TrashchannelId = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, TrashChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.TrashchannelId = Context.Channel.Id;
-                    defaultChannel.Trash = 1;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.TrashChannelId = Context.Channel.Id;
+                    defaultChannel.Trash = true;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -275,16 +278,16 @@ namespace Rabbot.Commands
         public async Task SetStream()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, StreamchannelId = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, StreamChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.StreamchannelId = Context.Channel.Id;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.StreamChannelId = Context.Channel.Id;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -303,18 +306,18 @@ namespace Rabbot.Commands
         public async Task SetNotification()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, NotificationchannelId = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, NotificationChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.NotificationchannelId = Context.Channel.Id;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.NotificationChannelId = Context.Channel.Id;
                 }
-                db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Notify = 1;
+                db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify = true;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -332,16 +335,16 @@ namespace Rabbot.Commands
         public async Task SetLevelChannel()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
-                    await db.Guild.AddAsync(new Guild { ServerId = Context.Guild.Id, NotificationchannelId = Context.Channel.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, NotificationChannelId = Context.Channel.Id });
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.LevelchannelId = Context.Channel.Id;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.LevelChannelId = Context.Channel.Id;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -360,16 +363,16 @@ namespace Rabbot.Commands
         public async Task DelLevelChannel()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.LevelchannelId = null;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.LevelChannelId = null;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -388,18 +391,18 @@ namespace Rabbot.Commands
         public async Task DelNotification()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.NotificationchannelId = null;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.NotificationChannelId = null;
                 }
-                db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Notify = 0;
+                db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify = false;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -417,16 +420,16 @@ namespace Rabbot.Commands
         public async Task DelBot()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.Botchannelid = null;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.BotChannelId = null;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -445,17 +448,17 @@ namespace Rabbot.Commands
         public async Task DelTrash()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.Botchannelid = null;
-                    defaultChannel.Trash = 0;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.BotChannelId = null;
+                    defaultChannel.Trash = false;
                 }
                 await db.SaveChangesAsync();
                 const int delay = 2000;
@@ -474,18 +477,18 @@ namespace Rabbot.Commands
         public async Task DelLog()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == Context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
                 else
                 {
-                    var defaultChannel = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id);
-                    defaultChannel.LogchannelId = null;
+                    var defaultChannel = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id);
+                    defaultChannel.LogChannelId = null;
                 }
-                db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Log = 0;
+                db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log = false;
                 await db.SaveChangesAsync();
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
@@ -503,12 +506,12 @@ namespace Rabbot.Commands
         public async Task Notification()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var currentNotify = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Notify;
-                if (currentNotify == 0)
+                var currentNotify = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify;
+                if (currentNotify == false)
                 {
-                    db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Notify = 1;
+                    db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify = true;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -520,7 +523,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Notify = 0;
+                    db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Notify = false;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -539,12 +542,12 @@ namespace Rabbot.Commands
         public async Task ToggleLog()
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var currentLog = db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Log;
-                if (currentLog == 0)
+                var currentLog = db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log;
+                if (currentLog == false)
                 {
-                    db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Log = 1;
+                    db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log = true;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -556,7 +559,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    db.Guild.FirstOrDefault(p => p.ServerId == Context.Guild.Id).Log = 0;
+                    db.Guilds.FirstOrDefault(p => p.GuildId == Context.Guild.Id).Log = false;
                     await db.SaveChangesAsync();
                     const int delay = 2000;
                     var embed = new EmbedBuilder();
@@ -604,19 +607,19 @@ namespace Rabbot.Commands
         public async Task DisableExp(IUser user)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var Experience = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == user.Id);
+                var Experience = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id);
                 const int delay = 2000;
                 var embed = new EmbedBuilder();
-                if (Experience.Gain == 0)
+                if (Experience.GainExp == false)
                 {
-                    Experience.Gain = 1;
+                    Experience.GainExp = true;
                     embed.WithDescription($"{user.Mention} bekommt jetzt wieder EXP.");
                 }
                 else
                 {
-                    Experience.Gain = 0;
+                    Experience.GainExp = false;
                     embed.WithDescription($"{user.Mention} bekommt jetzt keine EXP mehr.");
                 }
                 await db.SaveChangesAsync();
@@ -632,15 +635,15 @@ namespace Rabbot.Commands
         public async Task Event(int eventId)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Event.Where(x => x.Id == eventId).Any() && eventId != 0)
+                if (!db.Events.Where(x => x.Id == eventId).Any() && eventId != 0)
                     return;
 
-                var events = db.Event.ToList();
+                var events = db.Events.ToList();
                 foreach (var myEvent in events)
                 {
-                    myEvent.Status = 0;
+                    myEvent.Status = false;
                 }
 
                 if (eventId == 0)
@@ -650,8 +653,8 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                var Event = db.Event.FirstOrDefault(x => x.Id == eventId);
-                Event.Status = 1;
+                var Event = db.Events.FirstOrDefault(x => x.Id == eventId);
+                Event.Status = true;
                 await Context.Client.SetGameAsync($"{Event.Name} Event aktiv!", null, ActivityType.Watching);
                 await db.SaveChangesAsync();
             }
@@ -662,16 +665,16 @@ namespace Rabbot.Commands
         public async Task AddBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
-                if (db.Badwords.Where(p => p.BadWord == word && p.ServerId == Context.Guild.Id).Any())
+                if (db.BadWords.Where(p => p.BadWord == word && p.GuildId == Context.Guild.Id).Any())
                 {
                     await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
                     return;
                 }
 
-                await db.Badwords.AddAsync(new Badwords { BadWord = Helper.ReplaceCharacter(word), ServerId = Context.Guild.Id });
+                await db.BadWords.AddAsync(new BadWordEntity { BadWord = Helper.ReplaceCharacter(word), GuildId = Context.Guild.Id });
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -689,14 +692,14 @@ namespace Rabbot.Commands
         public async Task DelBadword([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
-                var badword = db.Badwords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word) && p.ServerId == Context.Guild.Id);
+                var badword = db.BadWords.FirstOrDefault(p => p.BadWord == Helper.ReplaceCharacter(word) && p.GuildId == Context.Guild.Id);
                 if (badword == null)
                     return;
 
-                db.Badwords.Remove(badword);
+                db.BadWords.Remove(badword);
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -715,9 +718,9 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var badwords = db.Badwords.Where(p => p.ServerId == Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
+                var badwords = db.BadWords.Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
                 if (page > badwords.PageCount)
                     return;
                 var eb = new EmbedBuilder();
@@ -740,9 +743,9 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var answers = db.Randomanswer.ToList().ToPagedList(page, 25);
+                var answers = db.RandomAnswers.ToList().ToPagedList(page, 25);
                 if (page > answers.PageCount)
                     return;
                 var eb = new EmbedBuilder();
@@ -763,13 +766,13 @@ namespace Rabbot.Commands
         public async Task DelAnswer(int id)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var answer = db.Randomanswer.FirstOrDefault(p => p.Id == id);
+                var answer = db.RandomAnswers.FirstOrDefault(p => p.Id == id);
                 if (answer == null)
                     return;
 
-                db.Randomanswer.Remove(answer);
+                db.RandomAnswers.Remove(answer);
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -787,9 +790,9 @@ namespace Rabbot.Commands
         public async Task AddAnswer([Remainder]string answer)
         {
             await Context.Message.DeleteAsync();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                await db.Randomanswer.AddAsync(new Randomanswer { Answer = answer });
+                await db.RandomAnswers.AddAsync(new RandomAnswerEntity { Answer = answer });
                 await db.SaveChangesAsync();
 
                 const int delay = 2000;
@@ -808,7 +811,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var namechanges = db.Namechanges.Where(p => p.UserId == user.Id).OrderByDescending(p => p.Date).ToList().ToPagedList(page, 25);
                 if (!namechanges.Any())

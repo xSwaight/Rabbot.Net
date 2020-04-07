@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Rabbot.ImageGenerator;
 using Serilog;
 using Serilog.Core;
@@ -16,15 +17,17 @@ namespace Rabbot.Services
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         private readonly StreakService _streakService;
+        private readonly DatabaseService _databaseService;
 
-        public LevelService(StreakService streakService)
+        public LevelService(StreakService streakService, DatabaseService databaseService)
         {
             _streakService = streakService;
+            _databaseService = databaseService;
         }
 
-        public (string bonusInfo, int bonusPercent) GetBonusEXP(rabbotContext db, SocketGuildUser user)
+        public (string bonusInfo, int bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)
         {
-            var feature = db.Userfeatures.Include(p => p.Inventory).FirstOrDefault(p => p.UserId == user.Id && p.ServerId == user.Guild.Id);
+            var feature = db.Features.Include(p => p.Inventory).FirstOrDefault(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
             if (feature == null)
                 return ("Kein Bonus :(", 0);
 
@@ -35,13 +38,13 @@ namespace Rabbot.Services
                 bonusPercent += 50;
                 bonusInfo += $"**+50% EXP** (Supporter Bonus)\n";
             }
-            if (feature.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpirationDate > DateTime.Now) != null)
+            if (feature.Inventory.FirstOrDefault(p => p.ItemId == 3 && p.ExpiryDate > DateTime.Now) != null)
             {
                 bonusPercent += 50;
                 bonusInfo += $"**+50% EXP** (EXP +50% Item)\n";
             }
 
-            var ranks = db.Musicrank.Where(p => p.ServerId == user.Guild.Id && p.Date.Value.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Sekunden);
+            var ranks = db.Musicranks.Where(p => p.GuildId == user.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds);
             int rank = 0;
             foreach (var Rank in ranks)
             {
@@ -66,9 +69,9 @@ namespace Rabbot.Services
                 bonusInfo += $"**+10% EXP** (Musicrank 3. Platz)\n";
             }
 
-            if (db.Event.Where(p => p.Status == 1).Any())
+            if (db.Events.Where(p => p.Status == true).Any())
             {
-                var myEvent = db.Event.FirstOrDefault(p => p.Status == 1);
+                var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
                 bonusPercent += myEvent.BonusPercent;
                 bonusInfo += $" **+{myEvent.BonusPercent}% EXP** ({myEvent.Name} Event)\n";
             }
@@ -82,6 +85,8 @@ namespace Rabbot.Services
             {
                 bonusInfo += $"**{bonusPercent}% EXP Bonus insgesamt**";
             }
+            if (string.IsNullOrWhiteSpace(bonusInfo))
+                bonusInfo = "Kein Bonus :(";
 
             return (bonusInfo, bonusPercent);
         }
@@ -90,10 +95,10 @@ namespace Rabbot.Services
         {
             var dcMessage = msg as SocketUserMessage;
             var dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var guild = db.Guild.FirstOrDefault(p => p.ServerId == dcGuild.Id) ?? db.Guild.AddAsync(new Guild { ServerId = dcGuild.Id }).Result.Entity;
-                var EXP = db.Userfeatures.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.ServerId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Userfeatures.AddAsync(new Userfeatures { Exp = 0, UserId = msg.Author.Id, ServerId = dcGuild.Id }).Result.Entity;
+                var guild = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id) ?? db.Guilds.AddAsync(new GuildEntity { GuildId = dcGuild.Id }).Result.Entity;
+                var EXP = db.Features.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
                 var oldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
                 var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
@@ -141,10 +146,10 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task SendLevelUp(SocketGuild dcGuild, Guild guild, SocketUserMessage dcMessage, uint OldLevel, uint NewLevel)
+        private async Task SendLevelUp(SocketGuild dcGuild, GuildEntity guild, SocketUserMessage dcMessage, uint OldLevel, uint NewLevel)
         {
             var reward = Helper.GetReward((int)NewLevel);
-            if (NewLevel > OldLevel && guild.Level == 1)
+            if (NewLevel > OldLevel && guild.Level == true)
             {
                 string path = "";
                 using (dcMessage.Channel.EnterTypingState())
@@ -159,9 +164,9 @@ namespace Rabbot.Services
                     });
 
                     path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
-                    using (rabbotContext db = new rabbotContext())
+                    using (var db = _databaseService.Open<RabbotContext>())
                     {
-                        var levelChannelId = db.Guild.FirstOrDefault(p => p.ServerId == dcGuild.Id)?.LevelchannelId;
+                        var levelChannelId = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id)?.LevelChannelId;
                         if (levelChannelId == null)
                             await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
                         else
@@ -174,9 +179,9 @@ namespace Rabbot.Services
 
             if (NewLevel > OldLevel)
             {
-                using (rabbotContext db = new rabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
-                    var feature = db.Userfeatures.FirstOrDefault(p => p.UserId == dcMessage.Author.Id && p.ServerId == dcGuild.Id);
+                    var feature = db.Features.FirstOrDefault(p => p.UserId == dcMessage.Author.Id && p.GuildId == dcGuild.Id);
 
                     if (Helper.IsFull(feature.Goats + reward, feature.Wins))
                         feature.Goats = Helper.GetStall(feature.Wins).Capacity;
@@ -184,7 +189,7 @@ namespace Rabbot.Services
                         feature.Goats += reward;
 
 
-                    var combis = db.Combi.Include(p => p.User).ThenInclude(p => p.Userfeatures).Include(p => p.CombiUser).ThenInclude(p => p.Userfeatures).Where(p => p.ServerId == dcGuild.Id && (p.UserId == dcMessage.Author.Id || p.CombiUserId == dcMessage.Author.Id));
+                    var combis = db.Combis.Include(p => p.User).ThenInclude(p => p.Features).Include(p => p.CombiUser).ThenInclude(p => p.Features).Where(p => p.GuildId == dcGuild.Id && (p.UserId == dcMessage.Author.Id || p.CombiUserId == dcMessage.Author.Id));
 
                     foreach (var combi in combis)
                     {
@@ -193,9 +198,9 @@ namespace Rabbot.Services
                         try
                         {
                             if (combi.CombiUserId == dcMessage.Author.Id)
-                                combi.User.Userfeatures.FirstOrDefault(p => p.ServerId == dcGuild.Id).CombiExp++;
+                                combi.User.Features.FirstOrDefault(p => p.GuildId == dcGuild.Id).CombiExp++;
                             if (combi.UserId == dcMessage.Author.Id)
-                                combi.CombiUser.Userfeatures.FirstOrDefault(p => p.ServerId == dcGuild.Id).CombiExp++;
+                                combi.CombiUser.Features.FirstOrDefault(p => p.GuildId == dcGuild.Id).CombiExp++;
                         }
                         catch { }
                     }
@@ -207,18 +212,18 @@ namespace Rabbot.Services
 
         private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, uint NewLevel)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var roles = db.Roles.Where(p => p.ServerId == dcGuild.Id);
+                var roles = db.Roles.Where(p => p.GuildId == dcGuild.Id);
 
-                var S4Id = roles.FirstOrDefault(x => x.Description == "S4") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "S4" };
-                var S3Id = roles.FirstOrDefault(x => x.Description == "S3") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "S3" };
-                var S2Id = roles.FirstOrDefault(x => x.Description == "S2") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "S2" };
-                var S1Id = roles.FirstOrDefault(x => x.Description == "S1") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "S1" };
-                var ProId = roles.FirstOrDefault(x => x.Description == "Pro") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "Pro" };
-                var SemiId = roles.FirstOrDefault(x => x.Description == "Semi") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "Semi" };
-                var AmateurId = roles.FirstOrDefault(x => x.Description == "Amateur") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "Amateur" };
-                var RookieId = roles.FirstOrDefault(x => x.Description == "Rookie") ?? new Roles { ServerId = dcGuild.Id, RoleId = 0, Description = "Rookie" };
+                var S4Id = roles.FirstOrDefault(x => x.Description == "S4") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S4" };
+                var S3Id = roles.FirstOrDefault(x => x.Description == "S3") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S3" };
+                var S2Id = roles.FirstOrDefault(x => x.Description == "S2") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S2" };
+                var S1Id = roles.FirstOrDefault(x => x.Description == "S1") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S1" };
+                var ProId = roles.FirstOrDefault(x => x.Description == "Pro") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Pro" };
+                var SemiId = roles.FirstOrDefault(x => x.Description == "Semi") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Semi" };
+                var AmateurId = roles.FirstOrDefault(x => x.Description == "Amateur") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Amateur" };
+                var RookieId = roles.FirstOrDefault(x => x.Description == "Rookie") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Rookie" };
 
                 var roleS4 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S4Id.RoleId);
                 var roleS3 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S3Id.RoleId);

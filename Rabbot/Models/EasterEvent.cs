@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -13,15 +15,17 @@ namespace Rabbot.Models
 {
     public class EasterEvent
     {
-        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEvent));
         public SocketGuild Guild { get; }
 
-        private readonly List<SocketTextChannel> _textChannels;
         public List<RestUserMessage> CurrentMessages { get; }
+        private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEvent));
+        private readonly List<SocketTextChannel> _textChannels;
+        private readonly IServiceProvider _services;
 
-        public EasterEvent(SocketGuild guild)
+        public EasterEvent(SocketGuild guild, IServiceProvider services)
         {
             Guild = guild;
+            _services = services;
             _textChannels = GetTextChannels(Constants.EasterMinChannelUser);
             CurrentMessages = new List<RestUserMessage>();
             new Task(async () => await CheckMessageDate(Constants.EasterDespawnTime), TaskCreationOptions.LongRunning).Start();
@@ -51,9 +55,9 @@ namespace Rabbot.Models
                         {
                             CurrentMessages.Remove(message);
                             await message.DeleteAsync();
-                            using (rabbotContext db = new rabbotContext())
+                            using (var db = _services.GetRequiredService<RabbotContext>())
                             {
-                                var easterevent = db.Easterevent.FirstOrDefault(p => p.MessageId == message.Id);
+                                var easterevent = db.EasterEvents.FirstOrDefault(p => p.MessageId == message.Id);
                                 if(easterevent != null)
                                 {
                                     easterevent.DespawnTime = DateTime.Now;
@@ -76,9 +80,9 @@ namespace Rabbot.Models
             var message = await textChannel.SendMessageAsync($"{Constants.EggGoatR}");
             await message.AddReactionAsync(Constants.EggGoatL);
             CurrentMessages.Add(message);
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _services.GetRequiredService<RabbotContext>())
             {
-                await db.Easterevent.AddAsync(new Easterevent { MessageId = message.Id, SpawnTime = DateTime.Now });
+                await db.EasterEvents.AddAsync(new EasterEventEntity { MessageId = message.Id, SpawnTime = DateTime.Now });
                 await db.SaveChangesAsync();
             }
         }
@@ -93,16 +97,16 @@ namespace Rabbot.Models
             var author = Guild.Users.FirstOrDefault(p => p.Id == userId);
 
             int eggs = 0;
-            using (rabbotContext db = new rabbotContext())
+            using (RabbotContext db = _services.GetRequiredService<RabbotContext>())
             {
-                var user = db.User.FirstOrDefault(p => p.Id == userId) ?? db.User.AddAsync(new User { Id = userId, Name = $"{author.Username}#{author.Discriminator}" }).Result.Entity;
-                var feature = db.Userfeatures.FirstOrDefault(p => p.ServerId == Guild.Id && p.UserId == userId) ?? db.Userfeatures.AddAsync(new Userfeatures { UserId = userId, ServerId = Guild.Id }).Result.Entity;
+                var user = db.Users.FirstOrDefault(p => p.Id == userId) ?? db.Users.AddAsync(new UserEntity { Id = userId, Name = $"{author.Username}#{author.Discriminator}" }).Result.Entity;
+                var feature = db.Features.FirstOrDefault(p => p.GuildId == Guild.Id && p.UserId == userId) ?? db.Features.AddAsync(new FeatureEntity { UserId = userId, GuildId = Guild.Id }).Result.Entity;
                 if (feature == null)
                     return;
 
                 feature.Eggs++;
                 eggs = feature.Eggs;
-                var easterevent = db.Easterevent.FirstOrDefault(p => p.MessageId == messageId);
+                var easterevent = db.EasterEvents.FirstOrDefault(p => p.MessageId == messageId);
                 if (easterevent != null)
                 {
                     easterevent.UserId = userId;

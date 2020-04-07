@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using PagedList;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Rabbot.Preconditions;
 using Rabbot.Services;
 using Serilog;
@@ -20,11 +21,13 @@ namespace Rabbot.Commands
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Goats));
         private readonly StreakService _streakService;
         private readonly LevelService _levelService;
+        private readonly DatabaseService _databaseService;
 
-        public Goats(StreakService streakService, LevelService levelService)
+        public Goats(StreakService streakService, LevelService levelService, DatabaseService databaseService)
         {
             _streakService = streakService;
             _levelService = levelService;
+            _databaseService = databaseService;
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -32,17 +35,17 @@ namespace Rabbot.Commands
         [Summary("Du kannst 1x täglich eine Belohnung bekommen.")]
         public async Task Daily()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var user = db.User.FirstOrDefault(p => p.Id == Context.User.Id) ?? db.User.AddAsync(new User { Id = Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                var user = db.Users.FirstOrDefault(p => p.Id == Context.User.Id) ?? db.Users.AddAsync(new UserEntity { Id = Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
+                var dbUser = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                 if (dbUser == null)
                     return;
-                if (dbUser.Lastdaily != null)
+                if (dbUser.LastDaily != null)
                 {
-                    if (dbUser.Lastdaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
+                    if (dbUser.LastDaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
                     {
-                        dbUser.Lastdaily = DateTime.Now;
+                        dbUser.LastDaily = DateTime.Now;
                         await db.SaveChangesAsync();
                         await GetDailyReward(Context);
                     }
@@ -56,7 +59,7 @@ namespace Rabbot.Commands
                 }
                 else
                 {
-                    dbUser.Lastdaily = DateTime.Now;
+                    dbUser.LastDaily = DateTime.Now;
                     await db.SaveChangesAsync();
                     await GetDailyReward(Context);
                 }
@@ -69,12 +72,12 @@ namespace Rabbot.Commands
             int chance = rnd.Next(1, 18);
             int jackpot = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 if (chance > 1)
                 {
-                    var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                    var dbUser = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                     var stall = Helper.GetStall(dbUser.Wins);
                     if (jackpot <= 3)
                     {
@@ -101,7 +104,7 @@ namespace Rabbot.Commands
                     int bonus = rnd.Next(1, 11);
                     if (Helper.IsFull(dbUser.Goats + goats, dbUser.Wins))
                     {
-                        var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.Client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                        var rabbotUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.Client.CurrentUser.Id) ?? db.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                         embed.Color = Color.Green;
                         embed.Description = $"Wow, du konntest heute unfassbare **{goats} Ziegen** einfangen!\nAllerdings ist **dein Stall ({stall.Name}) voll** und **{(dbUser.Goats + goats) - stall.Capacity} Ziegen** sind zu **Rabbot** geflüchtet..";
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
@@ -117,10 +120,10 @@ namespace Rabbot.Commands
                     }
                     if (bonus == 2)
                     {
-                        var features = db.Userfeatures
+                        var features = db.Features
                                         .Include(p => p.Inventory)
                                         .ThenInclude(p => p.Item)
-                                        .FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                                        .FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
 
                         int rndChance = rnd.Next(1, 3);
                         int usage = rnd.Next(2, 11);
@@ -130,7 +133,7 @@ namespace Rabbot.Commands
                             if (stab != null)
                                 stab.Durability += usage;
                             else
-                                await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = usage });
+                                await db.Inventorys.AddAsync(new InventoryEntity { FeatureId = features.Id, ItemId = 1, Durability = usage });
                         }
                         else
                         {
@@ -138,7 +141,7 @@ namespace Rabbot.Commands
                             if (zaun != null)
                                 zaun.Durability += usage;
                             else
-                                await db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = usage });
+                                await db.Inventorys.AddAsync(new InventoryEntity { FeatureId = features.Id, ItemId = 2, Durability = usage });
                         }
                         embed.Color = Color.LightOrange;
                         string item = rndChance == 1 ? "Hirtenstab" : "Stacheldrahtzaun";
@@ -173,11 +176,11 @@ namespace Rabbot.Commands
         {
             if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
             {
-                using (rabbotContext db = new rabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
 
                     var embed = new EmbedBuilder();
-                    var senderUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id);
+                    var senderUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id);
                     if (senderUser == null)
                         return;
                     if (senderUser.Goats < amount)
@@ -195,14 +198,14 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var targetUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == user.Id) ?? db.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = user.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var targetUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id) ?? db.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = user.Id, Goats = 0, Exp = 0 }).Result.Entity;
                     if (targetUser == senderUser)
                     {
                         await Context.Channel.SendMessageAsync($"Nö.");
                         return;
                     }
 
-                    if (targetUser.Locked == 1)
+                    if (targetUser.Locked == true)
                     {
                         embed.Color = Color.Red;
                         embed.Description = $"**{user.Mention} hat gerade eine Trading Sperre!**";
@@ -210,7 +213,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    if (senderUser.Locked == 1)
+                    if (senderUser.Locked == true)
                     {
                         embed.Color = Color.Red;
                         embed.Description = $"**{Context.User.Mention} du hast gerade eine Trading Sperre!**";
@@ -218,7 +221,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var rabbotUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.Client.CurrentUser.Id) ?? db.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
+                    var rabbotUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.Client.CurrentUser.Id) ?? db.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = Context.Client.CurrentUser.Id, Goats = 0, Exp = 0 }).Result.Entity;
                     senderUser.Goats -= amount;
                     int fees = amount / 4;
                     if (Helper.IsFull(targetUser.Goats + amount - fees, targetUser.Wins))
@@ -269,11 +272,12 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
                 return;
             }
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-
-                var dbTarget = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == target.Id) ?? db.Userfeatures.AddAsync(new Userfeatures { ServerId = Context.Guild.Id, UserId = target.Id, Exp = 0, Goats = 0 }).Result.Entity;
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id);
+                if (!db.Users.Any(p => p.Id == target.Id))
+                    await db.Users.AddAsync(new UserEntity { Id = target.Id, Name = $"{target.Username}#{target.Discriminator}" });
+                var dbTarget = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == target.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = target.Id, Exp = 0, Goats = 0 }).Result.Entity;
+                var dbUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id);
                 if (dbUser == null)
                     return;
                 var targetStall = Helper.GetStall(dbTarget.Wins);
@@ -295,14 +299,14 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                if (dbTarget.Locked == 1)
+                if (dbTarget.Locked == true)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} dein Opfer ist aktuell schon in einem **Kampf**!";
                     await Context.Channel.SendMessageAsync(null, false, embed.Build());
                     return;
                 }
-                if (dbUser.Locked == 1)
+                if (dbUser.Locked == true)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du bist aktuell schon in einem **Kampf**!";
@@ -328,13 +332,13 @@ namespace Rabbot.Commands
 
                 string chance = $"**{Math.Round(winChance)}% {Context.User.Mention} - {target.Mention} {100 - Math.Round(winChance)}%**";
 
-                dbUser.Locked = 1;
-                dbTarget.Locked = 1;
+                dbUser.Locked = true;
+                dbTarget.Locked = true;
                 var msg = await Context.Channel.SendMessageAsync(chance, false, embed.Build());
-                await db.Attacks.AddAsync(new Attacks { ServerId = Context.Guild.Id, UserId = Context.User.Id, ChannelId = Context.Channel.Id, MessageId = msg.Id, TargetId = target.Id, AttackEnds = DateTime.Now.AddMinutes(3) });
+                await db.Attacks.AddAsync(new AttackEntity { GuildId = Context.Guild.Id, UserId = Context.User.Id, ChannelId = Context.Channel.Id, MessageId = msg.Id, TargetId = target.Id, EndTime = DateTime.Now.AddMinutes(3) });
+                await db.SaveChangesAsync();
                 await msg.AddReactionAsync(Constants.Sword);
                 await msg.AddReactionAsync(Constants.Shield);
-                await db.SaveChangesAsync();
                 Helper.AttackActive = false;
             }
         }
@@ -361,16 +365,16 @@ namespace Rabbot.Commands
         [BotCommand]
         public async Task Hirtenstab()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
                 EmbedBuilder embed = new EmbedBuilder();
-                var features = db.Userfeatures
+                var features = db.Features
                     .Include(p => p.Inventory)
                     .ThenInclude(p => p.Item)
-                    .FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                    .FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
 
-                if (features.Locked == 1)
+                if (features.Locked == true)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
@@ -393,7 +397,7 @@ namespace Rabbot.Commands
                 if (hirtenstab != null)
                     hirtenstab.Durability += 7;
                 else
-                    hirtenstab = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 1, Durability = 7 }).Result.Entity;
+                    hirtenstab = db.Inventorys.AddAsync(new InventoryEntity { FeatureId = features.Id, ItemId = 1, Durability = 7 }).Result.Entity;
 
                 if (hirtenstab.Durability > 50)
                 {
@@ -416,15 +420,15 @@ namespace Rabbot.Commands
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var features = db.Userfeatures
+                var features = db.Features
                .Include(p => p.Inventory)
                .ThenInclude(p => p.Item)
-               .FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+               .FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
 
-                if (features.Locked == 1)
+                if (features.Locked == true)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
@@ -446,7 +450,7 @@ namespace Rabbot.Commands
                 if (zaun != null)
                     zaun.Durability += 7;
                 else
-                    zaun = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 2, Durability = 7 }).Result.Entity;
+                    zaun = db.Inventorys.AddAsync(new InventoryEntity { FeatureId = features.Id, ItemId = 2, Durability = 7 }).Result.Entity;
 
                 if (zaun.Durability > 50)
                 {
@@ -469,15 +473,15 @@ namespace Rabbot.Commands
         public async Task Expboost()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var features = db.Userfeatures
+                var features = db.Features
                .Include(p => p.Inventory)
                .ThenInclude(p => p.Item)
-               .FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+               .FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
 
-                if (features.Locked == 1)
+                if (features.Locked == true)
                 {
                     embed.Color = Color.Red;
                     embed.Description = $"{Context.User.Mention} du hast gerade eine **Trading Sperre**!";
@@ -497,8 +501,8 @@ namespace Rabbot.Commands
 
 
                 if (expBoost != null)
-                    if (expBoost.ExpirationDate.Value < DateTime.Now.AddDays(6))
-                        expBoost.ExpirationDate = expBoost.ExpirationDate.Value.AddDays(1);
+                    if (expBoost.ExpiryDate < DateTime.Now.AddDays(6))
+                        expBoost.ExpiryDate = expBoost.ExpiryDate.Value.AddDays(1);
                     else
                     {
                         await ReplyAsync($"{Context.User.Mention} du kannst maximal **7 Tage** EXP Boost auf Vorrat kaufen!");
@@ -506,7 +510,7 @@ namespace Rabbot.Commands
                     }
                 else
                 {
-                    expBoost = db.Inventory.AddAsync(new Inventory { FeatureId = features.Id, ItemId = 3, ExpirationDate = DateTime.Now.AddDays(1) }).Result.Entity;
+                    expBoost = db.Inventorys.AddAsync(new InventoryEntity { FeatureId = features.Id, ItemId = 3, ExpiryDate = DateTime.Now.AddDays(1) }).Result.Entity;
                 }
 
 
@@ -529,10 +533,10 @@ namespace Rabbot.Commands
             if (user.IsBot)
                 return;
 
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
                 var embed = new EmbedBuilder();
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id);
+                var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
                 if (dbUser == null)
                     return;
                 var stall = Helper.GetStall(dbUser.Wins);
@@ -560,12 +564,12 @@ namespace Rabbot.Commands
                 return;
 
             var embed = new EmbedBuilder();
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.UserId == user.Id && p.ServerId == Context.Guild.Id);
+                var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
                 if (dbUser == null)
                     return;
-                var inventory = db.Inventory.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
+                var inventory = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
                 var stall = Helper.GetStall(dbUser.Wins);
                 var atk = stall.Attack;
                 var def = stall.Defense;
@@ -595,9 +599,9 @@ namespace Rabbot.Commands
                 embed.AddField($"Combi", $" **Level: {combiLevel} | {currentExp}/{neededExp2} EXP**");
 
                 Emoji emote = null;
-                if (dbUser.Lastdaily != null)
+                if (dbUser.LastDaily != null)
                 {
-                    if (dbUser.Lastdaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
+                    if (dbUser.LastDaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
                     {
                         emote = Constants.Yes;
                     }
@@ -627,7 +631,7 @@ namespace Rabbot.Commands
                         if (item.Inventory.Durability > 0)
                             items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         else
-                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpirationDate.Value.ToFormattedString()}**\n";
+                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpiryDate.Value.ToFormattedString()}**\n";
 
                     }
                     embed.AddField($"Inventar", items);
@@ -668,10 +672,10 @@ namespace Rabbot.Commands
         [Summary("Die Bestenliste sortiert nach Siegen")]
         public async Task Wins()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var top25 = db.Userfeatures.Include(p => p.User).Where(p => p.Wins != 0 && p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Wins).Take(25);
+                var top25 = db.Features.Include(p => p.User).Where(p => p.Wins != 0 && p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Wins).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var top in top25)
@@ -694,11 +698,11 @@ namespace Rabbot.Commands
         [RequireBotPermission(GuildPermission.ManageNicknames)]
         public async Task Namechange([Remainder]string Name)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id);
+                var dbUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id);
 
-                if (dbUser.Locked == 1)
+                if (dbUser.Locked == true)
                 {
                     EmbedBuilder embed = new EmbedBuilder();
                     embed.Color = Color.Red;
@@ -745,7 +749,7 @@ namespace Rabbot.Commands
             {
                 if (amount < 1)
                     return;
-                using (rabbotContext db = new rabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
 
                     EmbedBuilder embed = new EmbedBuilder();
@@ -756,7 +760,7 @@ namespace Rabbot.Commands
                         await Context.Channel.SendMessageAsync(null, false, embed.Build());
                         return;
                     }
-                    var myUser = db.Userfeatures.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id);
+                    var myUser = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
                     if (myUser.Goats < amount)
                     {
                         embed.Color = Color.Red;
@@ -765,7 +769,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    if (myUser.Locked == 1)
+                    if (myUser.Locked == true)
                     {
                         embed.Color = Color.Red;
                         embed.Description = $"{Context.User.Mention} du hast gerade eine **Sperre**, da du in einem Kampf bist.";
@@ -782,7 +786,7 @@ namespace Rabbot.Commands
                         return;
                     }
 
-                    var myPot = db.Pot.FirstOrDefault(p => p.UserId == Context.User.Id && p.ServerId == Context.Guild.Id) ?? db.Pot.AddAsync(new Pot { UserId = Context.User.Id, ServerId = Context.Guild.Id, Goats = 0 }).Result.Entity;
+                    var myPot = db.Pots.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id) ?? db.Pots.AddAsync(new PotEntity { UserId = Context.User.Id, GuildId = Context.Guild.Id, Goats = 0 }).Result.Entity;
                     if (amount + myPot.Goats > stall.MaxPot)
                     {
                         embed.Color = Color.Red;
@@ -814,17 +818,17 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Chancen im aktuellen Pot an.")]
         public async Task Chance()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var sum = db.Pot.Where(p => p.ServerId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
-                var pot = db.Pot.Where(p => p.ServerId == Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
+                var sum = db.Pots.Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
+                var pot = db.Pots.Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var item in pot)
                 {
                     var chance = (double)item.Goats / (double)sum * 100;
-                    var user = db.User.FirstOrDefault(p => p.Id == item.UserId);
+                    var user = db.Users.FirstOrDefault(p => p.Id == item.UserId);
                     embed.Title = $"{sum.ToFormattedString()} Ziegen im Pot!";
                     embed.AddField($"{counter}. {user.Name}", $"**{item.Goats.ToFormattedString()}** Ziegen | **{Math.Round(chance)}%** Chance");
                     counter++;

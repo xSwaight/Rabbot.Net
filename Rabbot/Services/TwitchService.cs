@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -13,11 +14,13 @@ namespace Rabbot.Services
 {
     class TwitchService
     {
-        DiscordSocketClient _client;
+        private readonly DiscordSocketClient _client;
+        private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(TwitchService));
-        public TwitchService(DiscordSocketClient client)
+        public TwitchService(DiscordSocketClient client, DatabaseService databaseService)
         {
             _client = client;
+            _databaseService = databaseService;
             Task.Run(() =>
             {
                 ConfigureLiveMonitorAsync();
@@ -106,23 +109,23 @@ namespace Rabbot.Services
         {
             try
             {
-                using (rabbotContext db = new rabbotContext())
+                using (var db = _databaseService.Open<RabbotContext>())
                 {
-                    var dbStream = db.Stream.FirstOrDefault(p => p.StreamId == Convert.ToInt64(e.Id));
+                    var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == (ulong)Convert.ToInt64(e.Id));
                     if (dbStream != null)
                         return;
 
-                    await db.Stream.AddAsync(new Stream { StreamId = Convert.ToInt64(e.Id), StartTime = e.CreatedAt, Title = e.Channel.Status, TwitchUserId = Convert.ToInt64(e.Channel.Id) });
+                    await db.Streams.AddAsync(new StreamEntity { StreamId = (ulong)Convert.ToInt64(e.Id), StartTime = e.CreatedAt, Title = e.Channel.Status, TwitchUserId = (ulong)Convert.ToInt64(e.Channel.Id) });
                     await db.SaveChangesAsync();
 
-                    foreach (var item in db.Guild)
+                    foreach (var item in db.Guilds)
                     {
-                        if (item.StreamchannelId != null)
+                        if (item.StreamChannelId != null)
                         {
-                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == item.ServerId);
+                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == item.GuildId);
                             if (guild == null)
                                 continue;
-                            if (!(guild.Channels.FirstOrDefault(p => p.Id == item.StreamchannelId) is SocketTextChannel channel))
+                            if (!(guild.Channels.FirstOrDefault(p => p.Id == item.StreamChannelId) is SocketTextChannel channel))
                                 continue;
 
                             var embed = new EmbedBuilder();

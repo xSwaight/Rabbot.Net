@@ -13,11 +13,18 @@ using Rabbot.Models;
 using System.IO;
 using System.Reflection;
 using System.Diagnostics;
+using Rabbot.Services;
 
 namespace Rabbot
 {
-    public static class Helper
+    public class Helper
     {
+        private static DatabaseService _databaseService;
+        public Helper(DatabaseService databaseService)
+        {
+            _databaseService = databaseService;
+        }
+
         public readonly static Dictionary<int, StallDto> stall = new Dictionary<int, StallDto> {
             { 0, new StallDto{Level = 1, Name = "Wiese Lv. 1", Capacity = 2000, Attack = 1, Defense = 1, Jackpot = 500, MaxOutput = 40, MaxPot = 1000 } },
             { 2, new StallDto{Level = 2, Name = "Wiese Lv. 2", Capacity = 2400, Attack = 1, Defense = 1, Jackpot = 600, MaxOutput = 45, MaxPot = 1200  } },
@@ -247,15 +254,15 @@ namespace Rabbot
                 if (msg.Author.Id != client.CurrentUser.Id)
                     return;
 
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var dbUser = db.Userfeatures.FirstOrDefault(p => p.ServerId == user.Guild.Id && p.UserId == user.Id);
+                var dbUser = db.Features.FirstOrDefault(p => p.GuildId == user.Guild.Id && p.UserId == user.Id);
                 if (dbUser == null)
                     return;
 
 
-                if (dbUser.Locked == 1)
+                if (dbUser.Locked == true)
                 {
                     await channel.SendMessageAsync($"{user.Mention} du bist gerade in einem Angriff!");
                     if (msg != null)
@@ -460,11 +467,11 @@ namespace Rabbot
 
         public static ulong? GetBotChannel(ICommandContext context)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guild.Where(p => p.ServerId == context.Guild.Id).Any())
+                if (!db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
                 {
-                    return (ulong?)db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id).Botchannelid;
+                    return (ulong?)db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId;
                 }
                 else
                 {
@@ -515,24 +522,6 @@ namespace Rabbot
         {
             var myExp = combi.Where(y => y.Key <= level).Max(x => x.Value.NeededEXP);
             return (uint)myExp;
-        }
-
-        public static string ToHumanReadable(this TimeSpan value)
-        {
-            var uptime = new StringBuilder();
-            if (value.Days > 0)
-                uptime.AppendFormat(value.Days > 1 ? "{0} days " : "{0} day ", value.Days);
-
-            if (value.Days > 0 || value.Hours > 0)
-                uptime.AppendFormat(value.Hours > 1 ? "{0} hours " : "{0} hour ", value.Hours);
-
-            if (value.Hours > 0 || value.Minutes > 0)
-                uptime.AppendFormat(value.Minutes > 1 ? "{0} minutes " : "{0} minute ", value.Minutes);
-
-            if (value.Seconds > 0)
-                uptime.AppendFormat(value.Seconds > 1 ? "{0} seconds " : "{0} second ", value.Seconds);
-
-            return uptime.ToString();
         }
 
         public static string MessageReplace(string myMessage)

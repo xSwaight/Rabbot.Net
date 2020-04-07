@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Rabbot.Models;
 using Rabbot.Models.API;
 using Serilog;
@@ -16,10 +17,12 @@ namespace Rabbot.Services
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(YouTubeVideoService));
         private readonly DiscordSocketClient _client;
+        private readonly DatabaseService _databaseService;
 
-        public YouTubeVideoService(DiscordSocketClient client)
+        public YouTubeVideoService(DiscordSocketClient client, DatabaseService databaseService)
         {
             _client = client;
+            _databaseService = databaseService;
 
             Task.Run(() =>
             {
@@ -50,14 +53,14 @@ namespace Rabbot.Services
                         }
                         if (video != null)
                         {
-                            using (rabbotContext db = new rabbotContext())
+                            using (var db = _databaseService.Open<RabbotContext>())
                             {
-                                var dbVideo = db.Youtubevideo.FirstOrDefault(p => p.VideoId == video.Id);
+                                var dbVideo = db.YouTubeVideos.FirstOrDefault(p => p.VideoId == video.Id);
                                 if (dbVideo == null)
                                 {
                                     if (video.Title.Contains(Constants.AnnouncementIgnoreTag))
                                         continue;
-                                    await db.Youtubevideo.AddAsync(new Youtubevideo { VideoId = video.Id, VideoTitle = video.Title });
+                                    await db.YouTubeVideos.AddAsync(new YouTubeVideoEntity { VideoId = video.Id, VideoTitle = video.Title });
                                     await db.SaveChangesAsync();
                                     await NewVideo(db, video);
                                 }
@@ -72,19 +75,19 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task NewVideo(rabbotContext db, YouTubeVideoDto video)
+        private async Task NewVideo(RabbotContext db, YouTubeVideoDto video)
         {
-            foreach (var dbGuild in db.Guild)
+            foreach (var dbGuild in db.Guilds)
             {
                 try
                 {
-                    if (dbGuild.StreamchannelId == null)
+                    if (dbGuild.StreamChannelId == null)
                         continue;
 
-                    var guild = _client.Guilds.FirstOrDefault(p => p.Id == dbGuild.ServerId);
+                    var guild = _client.Guilds.FirstOrDefault(p => p.Id == dbGuild.GuildId);
                     if (guild == null)
                         continue;
-                    if (!(guild.Channels.FirstOrDefault(p => p.Id == dbGuild.StreamchannelId) is SocketTextChannel channel))
+                    if (!(guild.Channels.FirstOrDefault(p => p.Id == dbGuild.StreamChannelId) is SocketTextChannel channel))
                         continue;
 
                     var youTubeUrl = $"https://www.youtube.com/watch?v={video.Id}";

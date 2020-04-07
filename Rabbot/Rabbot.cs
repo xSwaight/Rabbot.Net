@@ -10,6 +10,10 @@ using Serilog.Events;
 using Sentry;
 using Serilog.Core;
 using System.Linq;
+using Rabbot.Database;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Rabbot
 {
@@ -57,6 +61,7 @@ namespace Rabbot
                     .AddSingleton<StartupService>()
                     .AddSingleton<AudioService>()
                     .AddSingleton<LoggingService>()
+                    .AddSingleton<Logging>()
                     .AddSingleton<StreakService>()
                     .AddSingleton<AttackService>()
                     .AddSingleton<LevelService>()
@@ -65,9 +70,12 @@ namespace Rabbot
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
                     .AddSingleton<EasterEventService>()
-                    .AddSingleton<ImageService>();
+                    .AddSingleton<DatabaseService>()
+                    .AddSingleton<ImageService>()
+                    .AddDbContext<RabbotContext>(x => x.UseMySql(Config.Bot.ConnectionString));
 
-                //Add logging     
+
+                //Add logging
                 ConfigureServices(services);
 
                 //Build services
@@ -75,6 +83,26 @@ namespace Rabbot
 
                 //Instantiate logger/tie-in logging
                 serviceProvider.GetRequiredService<LoggingService>();
+
+                // Run Migrations
+                var contexts = serviceProvider.GetRequiredService<IEnumerable<DbContext>>();
+                foreach (var db in contexts)
+                {
+                    _logger.Information($"Checking database={db.GetType().Name}...");
+
+                    using (db)
+                    {
+                        if (db.Database.GetPendingMigrations().Any())
+                        {
+                            _logger.Information($"Applying database={db.GetType().Name} migrations...");
+                            db.Database.Migrate();
+                        }
+                        else
+                        {
+                            _logger.Information($"{db.GetType().Name} is up2date!");
+                        }
+                    }
+                }
 
                 //Start the bot
                 await serviceProvider.GetRequiredService<StartupService>().StartAsync();
@@ -86,8 +114,10 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<StreakService>();
                 serviceProvider.GetRequiredService<AttackService>();
                 serviceProvider.GetRequiredService<LevelService>();
+                serviceProvider.GetRequiredService<Logging>();
                 serviceProvider.GetRequiredService<MuteService>();
                 serviceProvider.GetRequiredService<WarnService>();
+                serviceProvider.GetRequiredService<DatabaseService>();
                 serviceProvider.GetRequiredService<EventService>();
                 serviceProvider.GetRequiredService<ApiService>();
                 serviceProvider.GetRequiredService<EasterEventService>();
@@ -98,7 +128,7 @@ namespace Rabbot
                 // Block this program until it is closed.
                 await Task.Delay(-1);
             }
-            catch
+            catch (Exception e)
             {
                 Console.WriteLine($"Startup failed. Please check the config file.");
                 Console.WriteLine("Press any key to exit...");

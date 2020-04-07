@@ -1,4 +1,6 @@
-﻿using Rabbot.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Rabbot.Models;
 using Rabbot.Models.API;
 using System;
 using System.Collections.Generic;
@@ -65,6 +67,39 @@ namespace Rabbot
         public static string[] GetArgs(this string @this)
         {
             return @this.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        public static string ToHumanReadable(this TimeSpan value)
+        {
+            var uptime = new StringBuilder();
+            if (value.Days > 0)
+                uptime.AppendFormat(value.Days > 1 ? "{0} days " : "{0} day ", value.Days);
+
+            if (value.Days > 0 || value.Hours > 0)
+                uptime.AppendFormat(value.Hours > 1 ? "{0} hours " : "{0} hour ", value.Hours);
+
+            if (value.Hours > 0 || value.Minutes > 0)
+                uptime.AppendFormat(value.Minutes > 1 ? "{0} minutes " : "{0} minute ", value.Minutes);
+
+            if (value.Seconds > 0)
+                uptime.AppendFormat(value.Seconds > 1 ? "{0} seconds " : "{0} second ", value.Seconds);
+
+            return uptime.ToString();
+        }
+
+        public static IServiceCollection AddDbContext<TContext>(this IServiceCollection This,
+            Action<DbContextOptionsBuilder> optionsBuilder)
+            where TContext : DbContext
+        {
+            return This
+                .AddSingleton(x =>
+                {
+                    var builder = new DbContextOptionsBuilder<TContext>();
+                    optionsBuilder(builder);
+                    return builder.Options;
+                })
+                .AddTransient<TContext>()
+                .AddTransient<DbContext>(x => x.GetRequiredService<TContext>());
         }
     }
 }

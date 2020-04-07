@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
+using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -14,8 +15,9 @@ namespace Rabbot
 {
     class CommandHandler
     {
-        DiscordSocketClient _client;
-        CommandService _commands;
+        private readonly DiscordSocketClient _client;
+        private readonly CommandService _commands;
+        private readonly DatabaseService _databaseService;
         private readonly IServiceProvider _provider;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CommandHandler));
 
@@ -24,6 +26,7 @@ namespace Rabbot
             _provider = provider;
             _client = _provider.GetService<DiscordSocketClient>();
             _commands = _provider.GetService<CommandService>();
+            _databaseService = _provider.GetService<DatabaseService>();
             _client.MessageReceived += HandleCommandAsync;
         }
 
@@ -62,13 +65,13 @@ namespace Rabbot
             if (!matches.Any(p => p.Value.Contains(context.Client.CurrentUser.Id.ToString())))
                 return;
 
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Randomanswer.Any())
+                if (!db.RandomAnswers.Any())
                     return;
                 using (context.Channel.EnterTypingState())
                 {
-                    var answerList = db.Randomanswer.ToList();
+                    var answerList = db.RandomAnswers.ToList();
                     var rnd = new Random();
                     var index = rnd.Next(0, answerList.Count());
                     await Task.Delay(rnd.Next(500, 2000));

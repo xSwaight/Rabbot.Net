@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -19,17 +20,17 @@ namespace Rabbot.Services
         {
             _client = client;
         }
-        public async Task CheckMutes(rabbotContext db)
+        public async Task CheckMutes(RabbotContext db)
         {
-            if (!db.Muteduser.Any() || !_client.Guilds.Any())
+            if (!db.MutedUsers.Any() || !_client.Guilds.Any())
                 return;
-            var muteUsers = db.Muteduser.ToList();
+            var muteUsers = db.MutedUsers.ToList();
             foreach (var mute in muteUsers)
             {
-                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == mute.ServerId);
+                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == mute.GuildId);
                 if (dcGuild == null)
                 {
-                    db.Muteduser.Remove(mute);
+                    db.MutedUsers.Remove(mute);
                     await db.SaveChangesAsync();
                     continue;
                 }
@@ -45,7 +46,7 @@ namespace Rabbot.Services
                 {
                     if (mute.Duration < DateTime.Now)
                     {
-                        db.Muteduser.Remove(mute);
+                        db.MutedUsers.Remove(mute);
                         await db.SaveChangesAsync();
                     }
                     continue;
@@ -55,7 +56,7 @@ namespace Rabbot.Services
                 {
                     if (mute.Duration < DateTime.Now)
                     {
-                        db.Muteduser.Remove(mute);
+                        db.MutedUsers.Remove(mute);
                         try
                         {
                             await dcTargetUser.RemoveRoleAsync(mutedRole);
@@ -102,7 +103,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task MuteTargetUser(rabbotContext db, IUser user, string duration, SocketCommandContext context)
+        public async Task MuteTargetUser(RabbotContext db, IUser user, string duration, SocketCommandContext context)
         {
             var mutedRole = context.Guild.Roles.FirstOrDefault(p => p.Name == "Muted");
             if (mutedRole == null)
@@ -145,7 +146,7 @@ namespace Rabbot.Services
             else
                 return;
 
-            if (!db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id).Any())
+            if (!db.MutedUsers.Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id).Any())
             {
                 string userRoles = "";
                 foreach (var role in dcTargetUser.Roles)
@@ -154,11 +155,11 @@ namespace Rabbot.Services
                         userRoles += role.Name + "|";
                 }
                 userRoles = userRoles.TrimEnd('|');
-                await db.Muteduser.AddAsync(new Muteduser { ServerId = context.Guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
+                await db.MutedUsers.AddAsync(new MutedUserEntity { GuildId = context.Guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
             }
             else
             {
-                var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
+                var ban = db.MutedUsers.FirstOrDefault(p => p.GuildId == context.Guild.Id && p.UserId == user.Id);
                 ban.Duration = banUntil;
             }
             await SendPrivate(dcGuild, banUntil, duration, dcTargetUser);
@@ -166,7 +167,7 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task MuteWarnedUser(rabbotContext db, SocketGuildUser user, SocketGuild guild)
+        public async Task MuteWarnedUser(RabbotContext db, SocketGuildUser user, SocketGuild guild)
         {
             var mutedRole = guild.Roles.FirstOrDefault(p => p.Name == "Muted");
             if (mutedRole == null)
@@ -183,7 +184,7 @@ namespace Rabbot.Services
             DateTime date = DateTime.Now;
             DateTime banUntil = date.AddHours(1);
 
-            if (!db.Muteduser.Where(p => p.ServerId == guild.Id && p.UserId == user.Id).Any())
+            if (!db.MutedUsers.Where(p => p.GuildId == guild.Id && p.UserId == user.Id).Any())
             {
                 string userRoles = "";
                 foreach (var role in user.Roles)
@@ -192,11 +193,11 @@ namespace Rabbot.Services
                         userRoles += role.Name + "|";
                 }
                 userRoles = userRoles.TrimEnd('|');
-                await db.Muteduser.AddAsync(new Muteduser { ServerId = guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
+                await db.MutedUsers.AddAsync(new MutedUserEntity { GuildId = guild.Id, UserId = user.Id, Duration = banUntil, Roles = userRoles });
             }
             else
             {
-                var ban = db.Muteduser.FirstOrDefault(p => p.ServerId == guild.Id && p.UserId == user.Id);
+                var ban = db.MutedUsers.FirstOrDefault(p => p.GuildId == guild.Id && p.UserId == user.Id);
                 ban.Duration = banUntil;
             }
             await SendPrivate(guild, banUntil, "1 Stunde", user);
@@ -204,9 +205,9 @@ namespace Rabbot.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task UnmuteTargetUser(rabbotContext db, IUser user, SocketCommandContext context)
+        public async Task UnmuteTargetUser(RabbotContext db, IUser user, SocketCommandContext context)
         {
-            var mute = db.Muteduser.Where(p => p.ServerId == context.Guild.Id && p.UserId == user.Id);
+            var mute = db.MutedUsers.Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id);
             if (!mute.Any())
             {
                 await SendError($"{user.Mention} ist nicht gemuted.", context);
@@ -214,12 +215,12 @@ namespace Rabbot.Services
             }
             else
             {
-                var dcGuild = db.Guild.FirstOrDefault(p => p.ServerId == context.Guild.Id);
+                var dcGuild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 var dcTargetUser = user as SocketGuildUser;
                 var mutedRole = dcTargetUser.Roles.FirstOrDefault(p => p.Name == "Muted");
                 if (mutedRole != null)
                 {
-                    db.Muteduser.Remove(mute.FirstOrDefault());
+                    db.MutedUsers.Remove(mute.FirstOrDefault());
                     await dcTargetUser.RemoveRoleAsync(mutedRole);
                     var oldRoles = mute.FirstOrDefault().Roles.Split('|');
                     await db.SaveChangesAsync();

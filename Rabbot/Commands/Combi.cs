@@ -4,7 +4,9 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using PagedList;
 using Rabbot.Database;
+using Rabbot.Database.Rabbot;
 using Rabbot.Preconditions;
+using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -16,6 +18,12 @@ namespace Rabbot.Commands
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CombiCmd));
+        private readonly DatabaseService _databaseService;
+
+        public CombiCmd(DatabaseService databaseService)
+        {
+            _databaseService = databaseService;
+        }
 
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]
@@ -34,19 +42,19 @@ namespace Rabbot.Commands
                 return;
             }
 
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (db.Combi.Where(p => p.ServerId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
+                if (db.Combis.Where(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
                 {
                     await ReplyAsync($"{Context.User.Mention} du hast bereits 5 bestehende Combis.");
                     return;
                 }
-                if (db.Combi.Where(p => p.ServerId == Context.Guild.Id && p.UserId == user.Id).Count() >= 5)
+                if (db.Combis.Where(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id).Count() >= 5)
                 {
                     await ReplyAsync($"{user.Mention} hat bereits 5 bestehende Combis.");
                     return;
                 }
-                if (db.Combi.Any(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id && p.CombiUserId == user.Id) || p.CombiUserId == Context.User.Id && p.UserId == user.Id))
+                if (db.Combis.Any(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id && p.CombiUserId == user.Id) || p.CombiUserId == Context.User.Id && p.UserId == user.Id))
                 {
                     await ReplyAsync($"{Context.User.Mention} du hast bereits eine **bestehende** Combi oder Combi Anfrage mit {user.Mention}.");
                     return;
@@ -56,7 +64,7 @@ namespace Rabbot.Commands
                 embed.WithDescription($"Du hast Erfolgreich eine Combi Anfrage an {user.Mention} gestellt.");
                 embed.WithFooter("Die Anfrage kann über die Reactions angenommen oder abgelehnt werden.");
                 var msg = await ReplyAsync($"{user.Mention}", false, embed.Build());
-                await db.Combi.AddAsync(new Combi { ServerId = Context.Guild.Id, UserId = Context.User.Id, CombiUserId = user.Id, Accepted = false, MessageId = msg.Id, Date = DateTime.Now });
+                await db.Combis.AddAsync(new CombiEntity { GuildId = Context.Guild.Id, UserId = Context.User.Id, CombiUserId = user.Id, Accepted = false, MessageId = msg.Id, Date = DateTime.Now });
                 await db.SaveChangesAsync();
                 var emoteAccept = new Emoji("✅");
                 var emoteDeny = new Emoji("⛔");
@@ -71,9 +79,9 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task CombiList()
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var combis = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id));
+                var combis = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id));
 
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.WithTitle("Combis");
@@ -87,9 +95,9 @@ namespace Rabbot.Commands
                         status = "Ausstehend";
 
                     if (combi.CombiUserId == Context.User.Id)
-                        embed.AddField($"[{count}] {combi.User.Name}", $"Status: {status}\nBesteht seit: {combi.Date.Value.ToString("dd.MM.yyyy")}");
+                        embed.AddField($"[{count}] {combi.User.Name}", $"Status: {status}\nBesteht seit: {combi.Date.ToString("dd.MM.yyyy")}");
                     if (combi.UserId == Context.User.Id)
-                        embed.AddField($"[{count}] {combi.CombiUser.Name}", $"Status: {status}\nBesteht seit: {combi.Date.Value.ToString("dd.MM.yyyy")}");
+                        embed.AddField($"[{count}] {combi.CombiUser.Name}", $"Status: {status}\nBesteht seit: {combi.Date.ToString("dd.MM.yyyy")}");
 
                     count++;
                 }
@@ -103,9 +111,9 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task DelCombi(int id)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var combi = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
+                var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
                 if (combi == null)
                 {
@@ -113,7 +121,7 @@ namespace Rabbot.Commands
                     return;
                 }
 
-                db.Combi.Remove(combi);
+                db.Combis.Remove(combi);
                 await db.SaveChangesAsync();
 
                 if (combi.CombiUserId == Context.User.Id)
@@ -129,9 +137,9 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task AcceptCombi(int id)
         {
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
-                var combi = db.Combi.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.ServerId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
+                var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
                 if (combi == null)
                 {
@@ -161,10 +169,10 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (rabbotContext db = new rabbotContext())
+            using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var ranking = db.Userfeatures.Where(p => p.ServerId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
+                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -176,7 +184,7 @@ namespace Rabbot.Commands
                     try
                     {
                         uint level = Helper.GetCombiLevel(top.CombiExp);
-                        var user = db.User.FirstOrDefault(p => p.Id == top.UserId);
+                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.CombiExp;
                         embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
                         i++;
