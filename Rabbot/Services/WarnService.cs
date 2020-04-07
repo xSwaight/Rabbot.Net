@@ -40,8 +40,8 @@ namespace Rabbot.Services
                 }
                 if (warn.Counter >= 3)
                 {
-                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)warn.GuildId);
-                    var dcTargetUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)warn.UserId);
+                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == warn.GuildId);
+                    var dcTargetUser = dcGuild.Users.FirstOrDefault(p => p.Id == warn.UserId);
                     var dbUser = db.Features.FirstOrDefault(p => p.GuildId == warn.GuildId && p.UserId == warn.UserId);
                     await _muteService.MuteWarnedUser(db, dcTargetUser, dcGuild);
                     if (dbUser != null)

@@ -680,7 +680,7 @@ namespace Rabbot.Commands
                 int counter = 1;
                 foreach (var top in top25)
                 {
-                    if (!Context.Guild.Users.Where(p => p.Id == (ulong)top.User.Id).Any())
+                    if (!Context.Guild.Users.Where(p => p.Id == top.User.Id).Any())
                         continue;
 
                     var stall = Helper.GetStall(top.Wins);

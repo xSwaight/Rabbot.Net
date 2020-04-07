@@ -98,7 +98,7 @@ namespace Rabbot.Services
             using (var db = _databaseService.Open<RabbotContext>())
             {
                 var guild = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id) ?? db.Guilds.AddAsync(new GuildEntity { GuildId = dcGuild.Id }).Result.Entity;
-                var EXP = db.Features.Include(p => p.User).Where(p => (ulong)p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
+                var EXP = db.Features.Include(p => p.User).Where(p => p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
                 var oldLevel = Helper.GetLevel(EXP.Exp);
                 var oldEXP = Convert.ToDouble(EXP.Exp);
                 var roundedEXP = Math.Ceiling(oldEXP / 10000d) * 10000;
@@ -170,7 +170,7 @@ namespace Rabbot.Services
                         if (levelChannelId == null)
                             await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
                         else
-                            await dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)levelChannelId)?.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
+                            await dcGuild.TextChannels.FirstOrDefault(p => p.Id == levelChannelId)?.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
 
                     }
                 }
@@ -225,14 +225,14 @@ namespace Rabbot.Services
                 var AmateurId = roles.FirstOrDefault(x => x.Description == "Amateur") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Amateur" };
                 var RookieId = roles.FirstOrDefault(x => x.Description == "Rookie") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "Rookie" };
 
-                var roleS4 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S4Id.RoleId);
-                var roleS3 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S3Id.RoleId);
-                var roleS2 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S2Id.RoleId);
-                var roleS1 = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)S1Id.RoleId);
-                var rolePro = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)ProId.RoleId);
-                var roleSemi = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)SemiId.RoleId);
-                var roleAmateur = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)AmateurId.RoleId);
-                var roleRookie = dcGuild.Roles.FirstOrDefault(p => p.Id == (ulong)RookieId.RoleId);
+                var roleS4 = dcGuild.Roles.FirstOrDefault(p => p.Id == S4Id.RoleId);
+                var roleS3 = dcGuild.Roles.FirstOrDefault(p => p.Id == S3Id.RoleId);
+                var roleS2 = dcGuild.Roles.FirstOrDefault(p => p.Id == S2Id.RoleId);
+                var roleS1 = dcGuild.Roles.FirstOrDefault(p => p.Id == S1Id.RoleId);
+                var rolePro = dcGuild.Roles.FirstOrDefault(p => p.Id == ProId.RoleId);
+                var roleSemi = dcGuild.Roles.FirstOrDefault(p => p.Id == SemiId.RoleId);
+                var roleAmateur = dcGuild.Roles.FirstOrDefault(p => p.Id == AmateurId.RoleId);
+                var roleRookie = dcGuild.Roles.FirstOrDefault(p => p.Id == RookieId.RoleId);
 
                 if (roleS4 != null && roleS3 != null && roleS2 != null && roleS1 != null && rolePro != null && roleSemi != null && roleAmateur != null && roleRookie != null)
                 {

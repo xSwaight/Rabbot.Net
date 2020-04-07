@@ -111,11 +111,11 @@ namespace Rabbot.Services
             {
                 using (var db = _databaseService.Open<RabbotContext>())
                 {
-                    var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == (ulong)Convert.ToInt64(e.Id));
+                    var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == Convert.ToUInt64(e.Id));
                     if (dbStream != null)
                         return;
 
-                    await db.Streams.AddAsync(new StreamEntity { StreamId = (ulong)Convert.ToInt64(e.Id), StartTime = e.CreatedAt, Title = e.Channel.Status, TwitchUserId = (ulong)Convert.ToInt64(e.Channel.Id) });
+                    await db.Streams.AddAsync(new StreamEntity { StreamId = Convert.ToUInt64(e.Id), StartTime = e.CreatedAt, Title = e.Channel.Status, TwitchUserId = Convert.ToUInt64(e.Channel.Id) });
                     await db.SaveChangesAsync();
 
                     foreach (var item in db.Guilds)

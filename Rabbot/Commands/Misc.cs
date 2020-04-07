@@ -339,9 +339,9 @@ namespace Rabbot.Commands
                 var userfeatures = db.Features;
                 foreach (var userfeature in userfeatures)
                 {
-                    if (Context.Client.Guilds.Where(p => p.Id == (ulong)userfeature.GuildId).Any())
+                    if (Context.Client.Guilds.Where(p => p.Id == userfeature.GuildId).Any())
                     {
-                        if (!Context.Client.Guilds.First(p => p.Id == (ulong)userfeature.GuildId).Users.Where(p => p.Id == (ulong)userfeature.UserId).Any())
+                        if (!Context.Client.Guilds.First(p => p.Id == userfeature.GuildId).Users.Where(p => p.Id == userfeature.UserId).Any())
                             userfeature.HasLeft = true;
                         else
                             userfeature.HasLeft = false;

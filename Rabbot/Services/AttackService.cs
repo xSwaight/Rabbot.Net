@@ -41,12 +41,12 @@ namespace Rabbot.Services
 
         private async Task AttackResult(AttackEntity attack, RabbotContext db)
         {
-            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)attack.GuildId);
+            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == attack.GuildId);
             if (dcServer == null)
                 return;
-            var dcTarget = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.TargetId);
-            var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)attack.UserId);
-            var dcChannel = dcServer.Channels.FirstOrDefault(p => p.Id == (ulong)attack.ChannelId) as ISocketMessageChannel;
+            var dcTarget = dcServer.Users.FirstOrDefault(p => p.Id == attack.TargetId);
+            var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == attack.UserId);
+            var dcChannel = dcServer.Channels.FirstOrDefault(p => p.Id == attack.ChannelId) as ISocketMessageChannel;
 
             var dbTarget = db.Features.FirstOrDefault(p => p.GuildId == attack.GuildId && p.UserId == attack.TargetId) ?? db.Features.AddAsync(new FeatureEntity { Guild = attack.Guild, UserId = attack.TargetId, Exp = 0, Goats = 0 }).Result.Entity;
             var dbUser = db.Features.FirstOrDefault(p => p.GuildId == attack.GuildId && p.UserId == attack.UserId) ?? db.Features.AddAsync(new FeatureEntity { GuildId = attack.GuildId, UserId = attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
@@ -59,7 +59,7 @@ namespace Rabbot.Services
             bool hirtenstab = false;
             bool zaun = false;
 
-            var dcMessage = dcChannel.CachedMessages.FirstOrDefault(p => p.Id == (ulong)attack.MessageId) as SocketUserMessage;
+            var dcMessage = dcChannel.CachedMessages.FirstOrDefault(p => p.Id == attack.MessageId) as SocketUserMessage;
 
             if (dcMessage != null)
                 foreach (var reaction in dcMessage.Reactions)

@@ -26,7 +26,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Username} hat {user.Mention} unmuted.");
                     embed.WithColor(new Color(0, 255, 0));
@@ -45,7 +45,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{user.Mention} wurde automatisch entmuted.");
                     embed.WithColor(new Color(0, 255, 0));
-                    var logchannel = user.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = user.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     await logchannel.SendMessageAsync("", false, embed.Build());
                 }
             }
@@ -58,7 +58,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Username} hat {user.Mention} für {duration} gemuted.");
                     embed.WithColor(new Color(255, 0, 0));
@@ -75,7 +75,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var logEmbed = new EmbedBuilder();
                     logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten in {(context.Channel as ITextChannel).Mention} gelöscht.");
                     logEmbed.WithColor(new Color(255, 0, 0));
@@ -91,7 +91,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var logEmbed = new EmbedBuilder();
                     logEmbed.WithDescription($"{context.User.Username} hat die letzten {amount} Nachrichten von {user.Mention} in {(context.Channel as ITextChannel).Mention} gelöscht und {150 * amount} EXP abgezogen.");
                     logEmbed.WithColor(new Color(255, 0, 0));
@@ -111,7 +111,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{user.Mention} wurde von {context.User.Username} verwarnt!");
                     embed.WithColor(new Color(255, 0, 0));
-                    await context.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    await context.Guild.GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
                 }
             }
         }
@@ -123,7 +123,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} hat sich die S4 League Rolle gegeben.");
                     embed.WithColor(new Color(0, 255, 0));
@@ -139,7 +139,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = context.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} hat sich die PS & Bat Rolle gegeben.");
                     embed.WithColor(new Color(0, 255, 0));
@@ -155,7 +155,7 @@ namespace Rabbot
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
                 {
-                    var logchannel = user.Guild.TextChannels.FirstOrDefault(p => p.Id == (ulong)Guild.LogChannelId);
+                    var logchannel = user.Guild.TextChannels.FirstOrDefault(p => p.Id == Guild.LogChannelId);
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{user.Mention} wurde aufgrund von 3 Warnings für 1 Stunde gemuted.");
                     embed.WithColor(new Color(255, 0, 0));
@@ -177,7 +177,7 @@ namespace Rabbot
                     embed.WithColor(new Color(255, 0, 0));
                     embed.AddField("Message", msg.Content.ToString(), false);
                     embed.AddField("Badword", badword, false);
-                    await user.Guild.GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    await user.Guild.GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
                 }
             }
         }
@@ -193,7 +193,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} wurde aufgrund von Cooldownspam für **10 Minuten** gemuted!");
                     embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    await (context.Guild as SocketGuild).GetTextChannel(channelId).SendMessageAsync("", false, embed.Build());
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} wurde aufgrund von Spam für **10 Minuten** gemuted!");
                     embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                    await (context.Guild as SocketGuild).GetTextChannel(channelId).SendMessageAsync("", false, embed.Build());
                 }
             }
         }

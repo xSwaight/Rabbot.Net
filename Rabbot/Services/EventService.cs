@@ -308,14 +308,14 @@ namespace Rabbot.Services
 
                 if (emote.Id == Constants.Shield.Id)
                 {
-                    if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                    if (reaction.User.Value.Id != dbAtk.TargetId)
                         return;
                     if (zaun == null)
                         return;
                 }
                 else if (emote.Id == Constants.Sword.Id)
                 {
-                    if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                    if (reaction.User.Value.Id != dbAtk.UserId)
                         return;
                     if (stab == null)
                         return;
@@ -370,8 +370,8 @@ namespace Rabbot.Services
                 var sum = userAtk + def;
                 var winChance = ((double)userAtk / (double)sum) * 100;
 
-                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.UserId);
-                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.TargetId);
+                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == dbAtk.UserId);
+                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == dbAtk.TargetId);
 
                 string chance = $"**{Math.Round(winChance)}% {atkUser.Mention} - {defUser.Mention} {100 - Math.Round(winChance)}%**";
 
@@ -408,7 +408,7 @@ namespace Rabbot.Services
 
                 if (emote.Id == Constants.Shield.Id)
                 {
-                    if (reaction.User.Value.Id != (ulong)dbAtk.TargetId)
+                    if (reaction.User.Value.Id != dbAtk.TargetId)
                     {
                         await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                         return;
@@ -421,7 +421,7 @@ namespace Rabbot.Services
                 }
                 else if (emote.Id == Constants.Sword.Id)
                 {
-                    if (reaction.User.Value.Id != (ulong)dbAtk.UserId)
+                    if (reaction.User.Value.Id != dbAtk.UserId)
                     {
                         await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
                         return;
@@ -483,8 +483,8 @@ namespace Rabbot.Services
                 var sum = userAtk + def;
                 var winChance = ((double)userAtk / (double)sum) * 100;
 
-                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.UserId);
-                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == (ulong)dbAtk.TargetId);
+                var atkUser = dcGuild.Users.FirstOrDefault(p => p.Id == dbAtk.UserId);
+                var defUser = dcGuild.Users.FirstOrDefault(p => p.Id == dbAtk.TargetId);
 
                 string chance = $"**{Math.Round(winChance)}% {atkUser.Mention} - {defUser.Mention} {100 - Math.Round(winChance)}%**";
 
@@ -531,10 +531,10 @@ namespace Rabbot.Services
                     return;
                 var dcTextchannel = channel as SocketTextChannel;
                 var dbGuild = db.Guilds.FirstOrDefault(p => p.GuildId == dcUser.Guild.Id);
-                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)dbGuild.GuildId);
+                var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == dbGuild.GuildId);
                 if (dbGuild.Trash == false || dbGuild.TrashChannelId == null)
                     return;
-                var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)dbGuild.TrashChannelId);
+                var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == dbGuild.TrashChannelId);
                 if (dcTrashChannel == null)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -564,10 +564,10 @@ namespace Rabbot.Services
                         return;
                     var dcTextchannel = channel as SocketTextChannel;
                     var dbGuild = db.Guilds.FirstOrDefault(p => p.GuildId == dcUser.Guild.Id);
-                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)dbGuild.GuildId);
+                    var dcGuild = _client.Guilds.FirstOrDefault(p => p.Id == dbGuild.GuildId);
                     if (dbGuild.Trash == false || dbGuild.TrashChannelId == null)
                         return;
-                    var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == (ulong)dbGuild.TrashChannelId);
+                    var dcTrashChannel = dcGuild.TextChannels.FirstOrDefault(p => p.Id == dbGuild.TrashChannelId);
                     if (dcTrashChannel == null)
                         return;
                     EmbedBuilder embed = new EmbedBuilder();
@@ -783,12 +783,12 @@ namespace Rabbot.Services
                             Random rnd = new Random();
                             var luck = rnd.Next(1, 101);
                             var botChannelId = db.Guilds.FirstOrDefault(p => p.GuildId == serverId).BotChannelId;
-                            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == (ulong)serverId);
+                            var dcServer = _client.Guilds.FirstOrDefault(p => p.Id == serverId);
 
                             if (dcServer == null || botChannelId == null)
                                 continue;
 
-                            var dcBotChannel = dcServer.TextChannels.FirstOrDefault(p => p.Id == (ulong)botChannelId);
+                            var dcBotChannel = dcServer.TextChannels.FirstOrDefault(p => p.Id == botChannelId);
 
                             if (dcBotChannel == null)
                                 continue;
@@ -797,8 +797,8 @@ namespace Rabbot.Services
                             {
                                 if (item.Min <= luck && item.Max >= luck)
                                 {
-                                    var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == (ulong)item.UserId);
-                                    var dbUserfeature = db.Features.FirstOrDefault(p => p.GuildId == dcServer.Id && p.UserId == (ulong)item.UserId);
+                                    var dcUser = dcServer.Users.FirstOrDefault(p => p.Id == item.UserId);
+                                    var dbUserfeature = db.Features.FirstOrDefault(p => p.GuildId == dcServer.Id && p.UserId == item.UserId);
                                     EmbedBuilder embed = new EmbedBuilder();
                                     embed.Color = Color.Green;
                                     var stall = Helper.GetStall(dbUserfeature.Wins);
@@ -1029,7 +1029,7 @@ namespace Rabbot.Services
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
                 embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToCET().ToFormattedString(), false);
-                await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                await _client.GetGuild(user.Guild.Id).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Features.Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
                 foreach (var leftUser in dbUser)
@@ -1061,7 +1061,7 @@ namespace Rabbot.Services
                 embed.AddField("Username", user.Username + "#" + user.Discriminator, true);
                 embed.ThumbnailUrl = user.GetAvatarUrl(ImageFormat.Auto, 1024);
                 embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToCET().ToFormattedString(), false);
-                await _client.GetGuild(user.Guild.Id).GetTextChannel((ulong)channelId).SendMessageAsync("", false, embed.Build());
+                await _client.GetGuild(user.Guild.Id).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
 
                 var dbUser = db.Features.Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
                 foreach (var joinedUser in dbUser)
