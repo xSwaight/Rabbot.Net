@@ -26,13 +26,13 @@ namespace Rabbot.Services
             _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
-        public (string bonusInfo, int bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)
+        public (string bonusInfo, double bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)
         {
             var feature = db.Features.Include(p => p.Inventory).FirstOrDefault(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
             if (feature == null)
                 return ("Kein Bonus :(", 0);
 
-            int bonusPercent = 0;
+            double bonusPercent = 0;
             string bonusInfo = string.Empty;
             if (user.Roles.Where(p => p.Name == "Nitro Booster" || p.Name == "Twitch Sub" || p.Name == "YouTube Mitglied").Any())
             {
@@ -79,7 +79,7 @@ namespace Rabbot.Services
 
             if (_streakService.GetStreakLevel(feature) > 0)
             {
-                bonusPercent += (int)Math.Ceiling(_streakService.GetStreakLevel(feature) * Constants.ExpBoostPerLevel);
+                bonusPercent += _streakService.GetStreakLevel(feature) * Constants.ExpBoostPerLevel;
                 bonusInfo += $"**+{ (Constants.ExpBoostPerLevel * _streakService.GetStreakLevel(feature))}% EXP** ({ Constants.ExpBoostPerLevel}%  × { Constants.Fire} { _streakService.GetStreakLevel(feature).ToFormattedString()})\n";
             }
             if(bonusPercent > 0)
