@@ -39,6 +39,7 @@ namespace Rabbot.Database.Rabbot
         public List<PotEntity> Pots { get; set; } = new List<PotEntity>();
         public List<CombiEntity> Combis { get; set; } = new List<CombiEntity>();
         public List<BadWordEntity> BadWords { get; set; } = new List<BadWordEntity>();
+        public List<GoodWordEntry> GoodWords { get; set; } = new List<GoodWordEntry>();
         public List<MusicrankEntity> Musicranks { get; set; } = new List<MusicrankEntity>();
         public List<MutedUserEntity> MutedUsers { get; set; } = new List<MutedUserEntity>();
         public List<RoleEntity> Roles { get; set; } = new List<RoleEntity>();

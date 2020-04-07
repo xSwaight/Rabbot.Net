@@ -26,6 +26,7 @@ namespace Rabbot.Database
         public DbSet<CurrentDayEntity> CurrentDay { get; set; }
         public DbSet<CombiEntity> Combis { get; set; }
         public DbSet<BadWordEntity> BadWords { get; set; }
+        public DbSet<GoodWordEntry> GoodWords { get; set; }
         public DbSet<AttackEntity> Attacks { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
         public DbSet<EasterEventEntity> EasterEvents { get; set; }
@@ -242,6 +243,13 @@ namespace Rabbot.Database
             modelBuilder.Entity<BadWordEntity>(entity => {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.BadWords)
+                    .HasForeignKey(x => x.GuildId);
+            });
+
+            //Goodwords
+            modelBuilder.Entity<GoodWordEntry>(entity => {
+                entity.HasOne(d => d.Guild)
+                    .WithMany(p => p.GoodWords)
                     .HasForeignKey(x => x.GuildId);
             });
 

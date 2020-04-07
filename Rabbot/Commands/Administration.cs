@@ -689,6 +689,58 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("addGoodWord", RunMode = RunMode.Async)]
+        public async Task AddGoodWord([Remainder]string word)
+        {
+            await Context.Message.DeleteAsync();
+            using (var db = _databaseService.Open<RabbotContext>())
+            {
+                word = word.ToLower();
+                if (db.GoodWords.Where(p => p.GoodWord == word && p.GuildId == Context.Guild.Id).Any())
+                {
+                    await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
+                    return;
+                }
+
+                await db.GoodWords.AddAsync(new GoodWordEntry { GoodWord = Helper.ReplaceCharacter(word), GuildId = Context.Guild.Id });
+                await db.SaveChangesAsync();
+
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"{word} wurde erfolgreich zur Whitelist hinzugefügt.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delGoodWord", RunMode = RunMode.Async)]
+        public async Task DelGoodWord([Remainder]string word)
+        {
+            await Context.Message.DeleteAsync();
+            using (var db = _databaseService.Open<RabbotContext>())
+            {
+                word = word.ToLower();
+                var goodword = db.GoodWords.FirstOrDefault(p => p.GoodWord == Helper.ReplaceCharacter(word) && p.GuildId == Context.Guild.Id);
+                if (goodword == null)
+                    return;
+
+                db.GoodWords.Remove(goodword);
+                await db.SaveChangesAsync();
+
+                const int delay = 2000;
+                var embed = new EmbedBuilder();
+                embed.WithDescription($"{word} wurde erfolgreich von der Whitelist gelöscht.");
+                embed.WithColor(new Color(90, 92, 96));
+                IUserMessage m = await ReplyAsync("", false, embed.Build());
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("delBadword", RunMode = RunMode.Async)]
         public async Task DelBadword([Remainder]string word)
         {
@@ -733,6 +785,30 @@ namespace Rabbot.Commands
                 }
                 eb.WithDescription(output);
                 eb.WithTitle($"Seite {page} von {badwords.PageCount}");
+                await Context.Channel.SendMessageAsync(null, false, eb.Build());
+            }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("goodwords", RunMode = RunMode.Async), Alias("whitelist")]
+        public async Task Goodwords(int page = 1)
+        {
+            if (page < 1)
+                return;
+            using (var db = _databaseService.Open<RabbotContext>())
+            {
+                var goodwords = db.GoodWords.Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.GoodWord).ToPagedList(page, 25);
+                if (page > goodwords.PageCount)
+                    return;
+                var eb = new EmbedBuilder();
+                eb.Color = new Color(90, 92, 96);
+                string output = "**Alle Whitlisted Wörter:**\n\n";
+                foreach (var goodword in goodwords)
+                {
+                    output += $"**{goodword.GoodWord}**\n";
+                }
+                eb.WithDescription(output);
+                eb.WithTitle($"Seite {page} von {goodwords.PageCount}");
                 await Context.Channel.SendMessageAsync(null, false, eb.Build());
             }
         }

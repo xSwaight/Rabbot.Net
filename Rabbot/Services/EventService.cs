@@ -501,7 +501,7 @@ namespace Rabbot.Services
                 if (!(newMessage.Channel is SocketGuildChannel guildChannel))
                     return;
                 SocketGuild dcServer = guildChannel.Guild;
-                if (db.BadWords.Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages)
+                if (db.BadWords.Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages && !db.GoodWords.Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
                 {
                     await newMessage.DeleteAsync();
                     var myUser = newMessage.Author as SocketGuildUser;
@@ -519,6 +519,7 @@ namespace Rabbot.Services
                         var warn = db.Warnings.FirstOrDefault(p => p.UserId == newMessage.Author.Id && p.GuildId == dcServer.Id);
                         warn.Counter++;
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung {warn.Counter}/3**");
+                        await db.SaveChangesAsync();
                     }
                     var badword = db.BadWords.FirstOrDefault(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && p.GuildId == dcServer.Id).BadWord;
                     await Logging.Warning(myUser, newMessage, badword);
@@ -986,7 +987,7 @@ namespace Rabbot.Services
             using (var db = _databaseService.Open<RabbotContext>())
             {
                 SocketGuild dcGuild = dcUser.Guild;
-                if (db.BadWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages))
+                if (db.BadWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages) && !db.GoodWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
                 {
                     await msg.DeleteAsync();
                     await _warnService.AutoWarn(db, msg);

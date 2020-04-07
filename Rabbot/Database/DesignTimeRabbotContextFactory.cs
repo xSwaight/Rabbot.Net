@@ -10,7 +10,8 @@ namespace Rabbot.Database
     {
         public RabbotContext CreateDbContext(string[] args)
         {
-            var connectionString = Config.Bot.ConnectionString;
+            // local connection string
+            var connectionString = "server=localhost;database=rabbot;user=root";
 
             return new RabbotContext(
                 new DbContextOptionsBuilder<RabbotContext>()
