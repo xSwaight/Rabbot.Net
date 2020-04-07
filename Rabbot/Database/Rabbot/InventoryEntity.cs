@@ -23,6 +23,6 @@ namespace Rabbot.Database.Rabbot
         [Column]
         public int Durability { get; set; }
         [Column]
-        public DateTime ExpiryDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 }

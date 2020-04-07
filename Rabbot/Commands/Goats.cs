@@ -43,7 +43,7 @@ namespace Rabbot.Commands
                     return;
                 if (dbUser.LastDaily != null)
                 {
-                    if (dbUser.LastDaily.ToShortDateString() != DateTime.Now.ToShortDateString())
+                    if (dbUser.LastDaily.Value.ToShortDateString() != DateTime.Now.ToShortDateString())
                     {
                         dbUser.LastDaily = DateTime.Now;
                         await db.SaveChangesAsync();
@@ -502,7 +502,7 @@ namespace Rabbot.Commands
 
                 if (expBoost != null)
                     if (expBoost.ExpiryDate < DateTime.Now.AddDays(6))
-                        expBoost.ExpiryDate = expBoost.ExpiryDate.AddDays(1);
+                        expBoost.ExpiryDate = expBoost.ExpiryDate.Value.AddDays(1);
                     else
                     {
                         await ReplyAsync($"{Context.User.Mention} du kannst maximal **7 Tage** EXP Boost auf Vorrat kaufen!");
@@ -601,7 +601,7 @@ namespace Rabbot.Commands
                 Emoji emote = null;
                 if (dbUser.LastDaily != null)
                 {
-                    if (dbUser.LastDaily.ToShortDateString() == DateTime.Now.ToShortDateString())
+                    if (dbUser.LastDaily.Value.ToShortDateString() == DateTime.Now.ToShortDateString())
                     {
                         emote = Constants.Yes;
                     }
@@ -631,7 +631,7 @@ namespace Rabbot.Commands
                         if (item.Inventory.Durability > 0)
                             items += $"**{item.Item.Name}** - übrige Benutzungen: **{item.Inventory.Durability}**\n";
                         else
-                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpiryDate.ToFormattedString()}**\n";
+                            items += $"**{item.Item.Name}** - Haltbar bis: **{item.Inventory.ExpiryDate.Value.ToFormattedString()}**\n";
 
                     }
                     embed.AddField($"Inventar", items);

@@ -586,27 +586,36 @@ namespace Rabbot.Services
 
         private async Task ClientConnected()
         {
+
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if(!db.Users.Any(p => p.Id == _client.CurrentUser.Id))
+                if (!db.Users.Any(p => p.Id == _client.CurrentUser.Id))
                 {
                     await db.Users.AddAsync(new UserEntity { Id = _client.CurrentUser.Id, Name = $"{_client.CurrentUser.Username}#{_client.CurrentUser.Discriminator}" });
                     await db.SaveChangesAsync();
                 }
+
                 if (!db.Events.Where(p => p.Status == true).Any())
                 {
                     await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
-                    return;
                 }
-                var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
-                await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
-            }
-            if (!_eventRegistered)
-            {
-                _easterEventService.RegisterServers(432908323042623508);
-                _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
-                new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
-                _eventRegistered = true;
+                else
+                {
+                    var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
+                    await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
+                }
+                new Task(async () =>
+                {
+                    if (!_eventRegistered)
+                    {
+                        await Task.Delay(20000);
+                        _logger.Information("Loading easter event..");
+                        _easterEventService.RegisterServers(432908323042623508);
+                        _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
+                        new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
+                        _eventRegistered = true;
+                    }
+                }).Start();
             }
         }
 

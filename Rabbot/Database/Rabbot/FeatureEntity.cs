@@ -52,9 +52,9 @@ namespace Rabbot.Database.Rabbot
         [Column]
         public bool GainExp { get; set; }
         [Column]
-        public DateTime LastDaily { get; set; }
+        public DateTime? LastDaily { get; set; }
         [Column]
-        public DateTime LastMessage { get; set; }
+        public DateTime? LastMessage { get; set; }
         [Column]
         public bool Locked { get; set; }
 

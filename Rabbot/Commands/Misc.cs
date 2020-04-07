@@ -245,7 +245,7 @@ namespace Rabbot.Commands
                     int counter = 1;
                     foreach (var user in activeUsers.OrderByDescending(p => p.LastMessage))
                     {
-                        output += $"{counter}. {user.User.Name} - {user.LastMessage.ToFormattedString()}\n";
+                        output += $"{counter}. {user.User.Name} - {user.LastMessage.Value.ToFormattedString()}\n";
                         counter++;
                     }
                     output += "```";
