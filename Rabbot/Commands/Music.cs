@@ -2,6 +2,7 @@
 using CliWrap.Buffered;
 using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
@@ -18,26 +19,26 @@ namespace Rabbot.Commands
 {
     public class Music : ModuleBase<SocketCommandContext>
     {
-        private readonly AudioService _service;
+        private readonly AudioService _audioService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Music));
 
-        public Music(AudioService service)
+        public Music(IServiceProvider services)
         {
-            _service = service;
+            _audioService = services.GetRequiredService<AudioService>();
         }
 
         [RequireOwner]
         [Command("join", RunMode = RunMode.Async)]
         public async Task Join()
         {
-            await _service.JoinAudio(Context.Guild, (Context.User as IVoiceState).VoiceChannel);
+            await _audioService.JoinAudio(Context.Guild, (Context.User as IVoiceState).VoiceChannel);
         }
 
         [RequireOwner]
         [Command("leave", RunMode = RunMode.Async)]
         public async Task Leave()
         {
-            await _service.LeaveAudio(Context.Guild);
+            await _audioService.LeaveAudio(Context.Guild);
         }
 
         [RequireOwner]
@@ -56,7 +57,7 @@ namespace Rabbot.Commands
                     url = result.getUrl();
                 }
             }
-            if (_service.Play(Context.Guild, url))
+            if (_audioService.Play(Context.Guild, url))
             {
                 try
                 {
@@ -93,7 +94,7 @@ namespace Rabbot.Commands
                     url = result.getUrl();
                 }
             }
-            if (await _service.AddToPlaylist(Context.Guild, url))
+            if (await _audioService.AddToPlaylist(Context.Guild, url))
             {
                 var videoInfos = DownloadUrlResolver.GetDownloadUrls(url, false).FirstOrDefault();
                 if (videoInfos != null)
@@ -109,7 +110,7 @@ namespace Rabbot.Commands
         [Command("playlist", RunMode = RunMode.Async)]
         public async Task Playlist()
         {
-            var playlist = _service.GetPlaylist(Context.Guild);
+            var playlist = _audioService.GetPlaylist(Context.Guild);
             int counter = 1;
             string output = "**Aktuelle Playlist**\n";
             foreach (var song in playlist)
@@ -124,7 +125,7 @@ namespace Rabbot.Commands
         [Command("currentsong", RunMode = RunMode.Async)]
         public async Task Currentsong()
         {
-            var info = _service.GetSongInfo(Context.Guild);
+            var info = _audioService.GetSongInfo(Context.Guild);
             if (!string.IsNullOrWhiteSpace(info))
                 await Context.Channel.SendMessageAsync(info);
         }

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Serilog;
@@ -17,10 +18,10 @@ namespace Rabbot.Services
         private readonly DiscordSocketClient _client;
         private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(TwitchService));
-        public TwitchService(DiscordSocketClient client, DatabaseService databaseService)
+        public TwitchService(IServiceProvider services)
         {
-            _client = client;
-            _databaseService = databaseService;
+            _client = services.GetRequiredService<DiscordSocketClient>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
             Task.Run(() =>
             {
                 ConfigureLiveMonitorAsync();

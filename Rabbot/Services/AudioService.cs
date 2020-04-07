@@ -7,6 +7,7 @@ using CliWrap.Buffered;
 using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
 using Serilog;
 
@@ -18,9 +19,9 @@ namespace Rabbot.Services
         private readonly DiscordSocketClient _client;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioService));
 
-        public AudioService(DiscordSocketClient client)
+        public AudioService(IServiceProvider services)
         {
-            _client = client;
+            _client = services.GetRequiredService<DiscordSocketClient>();
             _client.UserVoiceStateUpdated += UserVoiceStateUpdated;
         }
 

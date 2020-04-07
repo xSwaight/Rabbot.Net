@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
@@ -20,9 +21,9 @@ namespace Rabbot.Commands
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CombiCmd));
         private readonly DatabaseService _databaseService;
 
-        public CombiCmd(DatabaseService databaseService)
+        public CombiCmd(IServiceProvider services)
         {
-            _databaseService = databaseService;
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [Command("addCombi", RunMode = RunMode.Async)]

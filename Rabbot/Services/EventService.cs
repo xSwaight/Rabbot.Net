@@ -14,6 +14,7 @@ using Serilog.Core;
 using Rabbot.Models;
 using Discord.Rest;
 using Rabbot.Database.Rabbot;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Rabbot.Services
 {
@@ -32,19 +33,18 @@ namespace Rabbot.Services
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
         private bool _eventRegistered = false;
 
-        public EventService(DiscordSocketClient client, CommandService commandService, StreakService streakService, AttackService attackService,
-            LevelService levelService, WarnService warnService, MuteService muteService, ApiService apiService, EasterEventService easterEventService, DatabaseService databaseService)
+        public EventService(IServiceProvider services)
         {
-            _attackService = attackService;
-            _streakService = streakService;
-            _commandService = commandService;
-            _levelService = levelService;
-            _warnService = warnService;
-            _muteService = muteService;
-            _apiService = apiService;
-            _easterEventService = easterEventService;
-            _databaseService = databaseService;
-            _client = client;
+            _attackService = services.GetRequiredService<AttackService>();
+            _streakService = services.GetRequiredService<StreakService>();
+            _commandService = services.GetRequiredService<CommandService>();
+            _levelService = services.GetRequiredService<LevelService>();
+            _warnService = services.GetRequiredService<WarnService>();
+            _muteService = services.GetRequiredService<MuteService>();
+            _apiService = services.GetRequiredService<ApiService>();
+            _easterEventService = services.GetRequiredService<EasterEventService>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
+            _client = services.GetRequiredService<DiscordSocketClient>();
             InitializeAsync();
         }
 

@@ -193,7 +193,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} wurde aufgrund von Cooldownspam für **10 Minuten** gemuted!");
                     embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel(channelId).SendMessageAsync("", false, embed.Build());
+                    await (context.Guild as SocketGuild).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace Rabbot
                     var embed = new EmbedBuilder();
                     embed.WithDescription($"{context.User.Mention} wurde aufgrund von Spam für **10 Minuten** gemuted!");
                     embed.WithColor(new Color(255, 0, 0));
-                    await (context.Guild as SocketGuild).GetTextChannel(channelId).SendMessageAsync("", false, embed.Build());
+                    await (context.Guild as SocketGuild).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
                 }
             }
         }

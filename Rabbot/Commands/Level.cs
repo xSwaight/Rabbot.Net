@@ -14,6 +14,7 @@ using Serilog;
 using Serilog.Core;
 using Rabbot.Services;
 using Rabbot.Database.Rabbot;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Rabbot.Commands
 {
@@ -23,10 +24,10 @@ namespace Rabbot.Commands
         private readonly StreakService _streakService;
         private readonly DatabaseService _databaseService;
 
-        public Level(StreakService streakService, DatabaseService databaseService)
+        public Level(IServiceProvider services)
         {
-            _streakService = streakService;
-            _databaseService = databaseService;
+            _streakService = services.GetRequiredService<StreakService>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]

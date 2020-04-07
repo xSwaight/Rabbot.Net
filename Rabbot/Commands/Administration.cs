@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
@@ -22,11 +23,11 @@ namespace Rabbot.Commands
         private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Administration));
 
-        public Administration(WarnService warnService, MuteService muteService, DatabaseService databaseService)
+        public Administration(IServiceProvider services)
         {
-            _warnService = warnService;
-            _muteService = muteService;
-            _databaseService = databaseService;
+            _warnService = services.GetRequiredService<WarnService>();
+            _muteService = services.GetRequiredService<MuteService>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [Command("del", RunMode = RunMode.Async)]

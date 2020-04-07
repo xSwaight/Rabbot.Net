@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
+using System;
 using System.Threading.Tasks;
 
 namespace Rabbot.Services
@@ -13,10 +15,10 @@ namespace Rabbot.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
 
-        public LoggingService(DiscordSocketClient discord, CommandService commands)
+        public LoggingService(IServiceProvider services)
         {
-            _discord = discord;
-            _commands = commands;
+            _discord = services.GetRequiredService<DiscordSocketClient>();
+            _commands = services.GetRequiredService<CommandService>();
 
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;

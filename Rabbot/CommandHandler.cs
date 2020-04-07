@@ -32,8 +32,8 @@ namespace Rabbot
 
         private async Task HandleCommandAsync(SocketMessage s)
         {
-            SocketUserMessage msg = s as SocketUserMessage;
-            if (msg == null) return;
+            if (!(s is SocketUserMessage msg)) 
+                return;
             var context = new SocketCommandContext(_client, msg);
             if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.Bot.CmdPrefix + "hdf")))
                 return;

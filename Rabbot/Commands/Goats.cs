@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
@@ -23,11 +24,11 @@ namespace Rabbot.Commands
         private readonly LevelService _levelService;
         private readonly DatabaseService _databaseService;
 
-        public Goats(StreakService streakService, LevelService levelService, DatabaseService databaseService)
+        public Goats(IServiceProvider services)
         {
-            _streakService = streakService;
-            _levelService = levelService;
-            _databaseService = databaseService;
+            _streakService = services.GetRequiredService<StreakService>();
+            _levelService = services.GetRequiredService<LevelService>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [Command("daily", RunMode = RunMode.Async)]

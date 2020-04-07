@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Serilog;
@@ -16,9 +17,9 @@ namespace Rabbot.Services
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AttackService));
         private readonly DiscordSocketClient _client;
 
-        public AttackService(DiscordSocketClient client)
+        public AttackService(IServiceProvider services)
         {
-            _client = client;
+            _client = services.GetRequiredService<DiscordSocketClient>();
         }
 
         public async Task CheckAttacks(RabbotContext db)

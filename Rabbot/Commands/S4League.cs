@@ -13,6 +13,7 @@ using Serilog;
 using Serilog.Core;
 using Rabbot.Database.Rabbot;
 using Rabbot.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Rabbot.Commands
 {
@@ -20,9 +21,9 @@ namespace Rabbot.Commands
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(S4League));
         private readonly DatabaseService _databaseService;
-        public S4League(DatabaseService databaseService)
+        public S4League(IServiceProvider services)
         {
-            _databaseService = databaseService;
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [BotCommand]

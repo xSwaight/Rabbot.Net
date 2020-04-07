@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Serilog;
@@ -16,9 +17,9 @@ namespace Rabbot.Services
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(MuteService));
         private readonly DiscordSocketClient _client;
 
-        public MuteService(DiscordSocketClient client)
+        public MuteService(IServiceProvider services)
         {
-            _client = client;
+            _client = services.GetRequiredService<DiscordSocketClient>();
         }
         public async Task CheckMutes(RabbotContext db)
         {

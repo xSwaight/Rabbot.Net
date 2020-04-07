@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Preconditions;
 using Rabbot.Services;
 using System;
@@ -17,10 +18,10 @@ namespace Rabbot.Commands
         private static ApiService _apiService;
         private readonly CommandService _commandService;
 
-        public Pictures(ApiService apiService, CommandService commandService)
+        public Pictures(IServiceProvider services)
         {
-            _apiService = apiService;
-            _commandService = commandService;
+            _apiService = services.GetRequiredService<ApiService>();
+            _commandService = services.GetRequiredService<CommandService>();
         }
 
         public class AnimalPictures : ModuleBase<SocketCommandContext>

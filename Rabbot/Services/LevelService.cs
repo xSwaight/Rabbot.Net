@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Rabbot.ImageGenerator;
@@ -19,10 +20,10 @@ namespace Rabbot.Services
         private readonly StreakService _streakService;
         private readonly DatabaseService _databaseService;
 
-        public LevelService(StreakService streakService, DatabaseService databaseService)
+        public LevelService(IServiceProvider services)
         {
-            _streakService = streakService;
-            _databaseService = databaseService;
+            _streakService = services.GetRequiredService<StreakService>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         public (string bonusInfo, int bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
 using Serilog;
 using System;
@@ -19,10 +20,10 @@ namespace Rabbot.Services
         private IServiceProvider _services;
         private Dictionary<ulong, ulong> _guildAnnouncementChannels;
 
-        public EasterEventService(DiscordSocketClient client, IServiceProvider services)
+        public EasterEventService(IServiceProvider services)
         {
             _services = services;
-            _client = client;
+            _client = services.GetRequiredService<DiscordSocketClient>();
             _events = new List<EasterEvent>();
             _guildAnnouncementChannels = new Dictionary<ulong, ulong>();
             _client.ReactionAdded += ReactionAdded;

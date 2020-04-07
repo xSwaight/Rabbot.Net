@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Rabbot.Models;
@@ -19,10 +20,10 @@ namespace Rabbot.Services
         private readonly DiscordSocketClient _client;
         private readonly DatabaseService _databaseService;
 
-        public YouTubeVideoService(DiscordSocketClient client, DatabaseService databaseService)
+        public YouTubeVideoService(IServiceProvider services)
         {
-            _client = client;
-            _databaseService = databaseService;
+            _client = services.GetRequiredService<DiscordSocketClient>();
+            _databaseService = services.GetRequiredService<DatabaseService>();
 
             Task.Run(() =>
             {

@@ -10,6 +10,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using PagedList;
 using Rabbot.Database;
 using Rabbot.ImageGenerator;
@@ -30,13 +31,13 @@ namespace Rabbot.Commands
         private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Misc));
 
-        public Misc(CommandService commandService, StreakService streakService, ApiService apiService, ImageService imageService, DatabaseService databaseService)
+        public Misc(IServiceProvider service)
         {
-            _streakService = streakService;
-            _commandService = commandService;
-            _apiService = apiService;
-            _imageService = imageService;
-            _databaseService = databaseService;
+            _streakService = service.GetRequiredService<StreakService>();
+            _commandService = service.GetRequiredService<CommandService>();
+            _apiService = service.GetRequiredService<ApiService>();
+            _imageService = service.GetRequiredService<ImageService>();
+            _databaseService = service.GetRequiredService<DatabaseService>();
         }
 
         [Command("help", RunMode = RunMode.Async)]

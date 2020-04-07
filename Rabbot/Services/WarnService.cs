@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
 using Serilog;
@@ -18,10 +19,10 @@ namespace Rabbot.Services
 
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(WarnService));
 
-        public WarnService(DiscordSocketClient client, MuteService muteService)
+        public WarnService(IServiceProvider services)
         {
-            _muteService = muteService;
-            _client = client;
+            _muteService = services.GetRequiredService<MuteService>();
+            _client = services.GetRequiredService<DiscordSocketClient>();
         }
 
         public async Task CheckWarnings(RabbotContext db)

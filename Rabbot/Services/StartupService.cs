@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,11 +14,11 @@ namespace Rabbot.Services
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
 
-        public StartupService(DiscordSocketClient discord, CommandService commands, IServiceProvider services)
+        public StartupService(IServiceProvider services)
         {
-            _discord = discord;
-            _commands = commands;
             _services = services;
+            _discord = services.GetRequiredService<DiscordSocketClient>();
+            _commands = services.GetRequiredService<CommandService>();
         }
 
         public async Task StartAsync()

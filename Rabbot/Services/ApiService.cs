@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Rabbot.Models;
 using Rabbot.Models.API;
 using Serilog;
@@ -19,9 +20,9 @@ namespace Rabbot.Services
     {
         private readonly ImageService _imageService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(ApiService));
-        public ApiService(ImageService imageService)
+        public ApiService(IServiceProvider services)
         {
-            _imageService = imageService;
+            _imageService = services.GetRequiredService<ImageService>();
         }
 
         public string GetRandomImage()
