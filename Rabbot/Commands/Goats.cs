@@ -622,7 +622,7 @@ namespace Rabbot.Commands
                 var timespan = DateTime.Now - myUser.JoinedAt.Value.DateTime;
                 embed.AddField($"Server beigetreten", $"Vor **{Math.Floor(timespan.TotalDays)} Tagen** ({myUser.JoinedAt.Value.DateTime.ToFormattedString()})");
                 embed.AddField($"Stats", $"ATK: **{stall.Attack.ToFormattedString()}0** | DEF: **{stall.Defense.ToFormattedString()}0**");
-                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToFormattedString()}** | Gewinn Gesamt: **{dbUser.Gewinn.ToFormattedString()}**");
+                embed.AddField($"Slot Machine", $"Spins Gesamt: **{dbUser.Spins.ToFormattedString()}** | Gewinn Gesamt: **{dbUser.Profit.ToFormattedString()}**");
                 embed.AddField($"EXP Bonus", $"{_levelService.GetBonusEXP(db, myUser).bonusInfo}");
                 if (inventory.Count() != 0)
                 {

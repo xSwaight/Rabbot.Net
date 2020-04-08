@@ -443,7 +443,7 @@ namespace Rabbot
                 }
 
                 dbUser.Spins++;
-                dbUser.Gewinn += price;
+                dbUser.Profit += price;
 
                 await db.SaveChangesAsync();
             }

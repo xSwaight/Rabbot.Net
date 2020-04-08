@@ -48,7 +48,7 @@ namespace Rabbot.Database.Rabbot
         [Column]
         public int Spins { get; set; }
         [Column]
-        public int Gewinn { get; set; }
+        public int Profit { get; set; }
         [Column]
         public bool GainExp { get; set; }
         [Column]

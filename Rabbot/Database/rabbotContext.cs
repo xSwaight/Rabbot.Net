@@ -106,7 +106,7 @@ namespace Rabbot.Database
                 entity.Property(x => x.Spins)
                 .HasDefaultValue(0);
 
-                entity.Property(x => x.Gewinn)
+                entity.Property(x => x.Profit)
                 .HasDefaultValue(0);
 
                 entity.Property(x => x.GainExp)
