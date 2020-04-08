@@ -689,7 +689,7 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("addGoodWord", RunMode = RunMode.Async)]
+        [Command("addGoodWord", RunMode = RunMode.Async), Alias("addwl")]
         public async Task AddGoodWord([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
@@ -716,7 +716,7 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("delGoodWord", RunMode = RunMode.Async)]
+        [Command("delGoodWord", RunMode = RunMode.Async), Alias("delwl")]
         public async Task DelGoodWord([Remainder]string word)
         {
             await Context.Message.DeleteAsync();
