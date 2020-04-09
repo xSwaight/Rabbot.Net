@@ -74,7 +74,7 @@ namespace Rabbot.Services
             {
                 var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
                 bonusPercent += myEvent.BonusPercent;
-                bonusInfo += $" **+{myEvent.BonusPercent}% EXP** ({myEvent.Name} Event)\n";
+                bonusInfo += $"**+{myEvent.BonusPercent}% EXP** ({myEvent.Name} Event)\n";
             }
 
             if (_streakService.GetStreakLevel(feature) > 0)
