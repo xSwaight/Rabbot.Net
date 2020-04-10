@@ -76,7 +76,7 @@ namespace Rabbot.Services
                 }
 
                 var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
-                levelIcon.Mutate(x => x.Resize(26, 26));
+                levelIcon.Mutate(x => x.Resize(27, 27));
                 userAvatar.Mutate(x => x.Resize(83, 83));
                 expBar.Mutate(x => x.Resize(expBarWidth, 17));
                 image.Mutate(x => x
