@@ -80,14 +80,18 @@ namespace Rabbot.Services
                         break;
                 }
 
+                float opacity = 1f;
                 var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
+                if (expBarWidth == 0)
+                    opacity = 0;
+
                 levelIcon.Mutate(x => x.Resize(27, 27));
                 userAvatar.Mutate(x => x.Resize(83, 83));
                 expBar.Mutate(x => x.Resize(expBarWidth, 17));
                 image.Mutate(x => x
                     .DrawImage(backgroundImage, new Point(0, 0), 1f)
                     .DrawImage(userAvatar, new Point(10, 10), 1f)
-                    .DrawImage(expBar, new Point(119, 130), 1f)
+                    .DrawImage(expBar, new Point(119, 130), opacity)
                     .DrawImage(mainImage, new Point(0, 0), 1f)
                     .DrawImage(levelIcon, new Point(80, 80), 1f)
                     .DrawText(centerOptions, profileInfo.Name, nameFont, Color.FromHex("#00FFFF"), new PointF(195, 28))
