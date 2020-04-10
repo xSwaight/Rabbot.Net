@@ -161,7 +161,7 @@ namespace Rabbot.Services
                     {
                         var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                         string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
-                        var levelUpStream = await _imageService.DrawLevelUp(name, NewLevel);
+                        var levelUpStream = _imageService.DrawLevelUp(name, NewLevel);
                         var levelChannelId = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id)?.LevelChannelId;
                         if (levelChannelId == null)
                             await dcMessage.Channel.SendFileAsync(levelUpStream, $"{name}_levelup.png", $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
