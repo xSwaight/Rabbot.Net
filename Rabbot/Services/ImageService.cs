@@ -56,7 +56,14 @@ namespace Rabbot.Services
             {
                 //userAvatar..Metadata.GetFormatMetadata(GifFormat.Instance).
             }
-            profileInfo.Name = Regex.Replace(profileInfo.Name, @"[^\u0000-\u007F]+", string.Empty);
+
+            // Filter special chars
+            var encoding = Encoding.GetEncoding("ISO-8859-1",
+                                                new EncoderReplacementFallback(string.Empty),
+                                                new DecoderReplacementFallback());
+            var bytes = encoding.GetBytes(profileInfo.Name);
+            profileInfo.Name = encoding.GetString(bytes);
+
             using (var image = new Image<Rgba32>(300, 175))
             {
                 //Short name if it's too long
