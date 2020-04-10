@@ -72,6 +72,7 @@ namespace Rabbot
                     .AddSingleton<EasterEventService>()
                     .AddSingleton<DatabaseService>()
                     .AddSingleton<ImageService>()
+                    .AddSingleton<CacheService>()
                     .AddDbContext<RabbotContext>(x => x.UseMySql(Config.Bot.ConnectionString));
 
 
@@ -122,10 +123,11 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<ApiService>();
                 serviceProvider.GetRequiredService<EasterEventService>();
                 serviceProvider.GetRequiredService<ImageService>();
+                serviceProvider.GetRequiredService<CacheService>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 
-                // Block this program until it is closed.
+                //Block this program until it is closed.
                 await Task.Delay(-1);
             }
             catch (Exception e)

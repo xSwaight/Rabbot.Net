@@ -15,6 +15,7 @@ using Serilog.Core;
 using Rabbot.Services;
 using Rabbot.Database.Rabbot;
 using Microsoft.Extensions.DependencyInjection;
+using Rabbot.Models;
 
 namespace Rabbot.Commands
 {
@@ -23,11 +24,13 @@ namespace Rabbot.Commands
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Level));
         private readonly StreakService _streakService;
         private readonly DatabaseService _databaseService;
+        private readonly ImageService _imageService;
 
         public Level(IServiceProvider services)
         {
             _streakService = services.GetRequiredService<StreakService>();
             _databaseService = services.GetRequiredService<DatabaseService>();
+            _imageService = services.GetRequiredService<ImageService>();
         }
 
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
@@ -483,24 +486,13 @@ namespace Rabbot.Commands
                     string profilePicture = user.GetAvatarUrl(Discord.ImageFormat.Auto, 128);
                     if (profilePicture == null)
                         profilePicture = user.GetDefaultAvatarUrl();
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/profile.html");
-                    var html = template.Render(new
-                    {
-                        AVATAR = profilePicture,
-                        NAME = name,
-                        LEVEL = level.ToString(),
-                        RANK = rank.ToString(),
-                        EXP = exp.ToFormattedString(),
-                        PROGRESS = progress,
-                        PERCENT = percent.ToString(),
-                        GOATCOINS = goat.ToFormattedString()
-                    });
 
-                    path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "_Profile", html, 300, 175);
-                    await Context.Channel.SendFileAsync(path, $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
+                    using (var image = await _imageService.DrawProfileAsync(new UserProfileDto { Exp = exp.ToFormattedString(), AvatarUrl = profilePicture, Name = name, Goats = goat.ToFormattedString(), Level = level.ToString(), LevelInfo = progress, Percent = percent, Rank = rank.ToString() }))
+                    {
+                        await Context.Channel.SendFileAsync(image, $"{name}.png", $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
+                    }
                     await db.SaveChangesAsync();
                 }
-                File.Delete(path);
             }
         }
     }

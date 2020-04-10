@@ -1,14 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AnimatedGif;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
 using Rabbot.Models.API;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.ServiceModel.Syndication;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Rabbot
 {
@@ -84,6 +88,32 @@ namespace Rabbot
                 })
                 .AddTransient<TContext>()
                 .AddTransient<DbContext>(x => x.GetRequiredService<TContext>());
+        }
+
+        public static MemoryStream ToStream(this Image image)
+        {
+            var stream = new MemoryStream();
+            image.Save(stream, ImageFormat.Png);
+            image.Dispose();
+            stream.Position = 0;
+
+            return stream;
+        }
+
+        public static async Task<MemoryStream> ToStream(this Bitmap[] frames, int delay = 33)
+        {
+            var ms = new MemoryStream();
+            using (var gif = new AnimatedGifCreator(ms, delay))
+            {
+                foreach (var image in frames)
+                {
+                    await gif.AddFrameAsync(image, quality: GifQuality.Bit8);
+                }
+            }
+
+            ms.Position = 0;
+
+            return ms;
         }
     }
 }
