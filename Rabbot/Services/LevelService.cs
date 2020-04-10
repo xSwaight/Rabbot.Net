@@ -19,11 +19,13 @@ namespace Rabbot.Services
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         private readonly StreakService _streakService;
         private readonly DatabaseService _databaseService;
+        private readonly ImageService _imageService;
 
         public LevelService(IServiceProvider services)
         {
             _streakService = services.GetRequiredService<StreakService>();
             _databaseService = services.GetRequiredService<DatabaseService>();
+            _imageService = services.GetRequiredService<ImageService>();
         }
 
         public (string bonusInfo, double bonusPercent) GetBonusEXP(RabbotContext db, SocketGuildUser user)
@@ -155,27 +157,18 @@ namespace Rabbot.Services
                 string path = "";
                 using (dcMessage.Channel.EnterTypingState())
                 {
-                    var template = new HtmlTemplate(Directory.GetCurrentDirectory() + "/Resources/RabbotThemeNeon/levelup.html");
-                    var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
-                    string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
-                    var html = template.Render(new
-                    {
-                        NAME = name,
-                        LEVEL = NewLevel.ToString()
-                    });
-
-                    path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(name) + "Level_Up", html, 300, 100);
                     using (var db = _databaseService.Open<RabbotContext>())
                     {
+                        var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
+                        string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
+                        var levelUpStream = await _imageService.DrawLevelUp(name, NewLevel);
                         var levelChannelId = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id)?.LevelChannelId;
                         if (levelChannelId == null)
-                            await dcMessage.Channel.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
+                            await dcMessage.Channel.SendFileAsync(levelUpStream, $"{name}_levelup.png", $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
                         else
-                            await dcGuild.TextChannels.FirstOrDefault(p => p.Id == levelChannelId)?.SendFileAsync(path, $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
-
+                            await dcGuild.TextChannels.FirstOrDefault(p => p.Id == levelChannelId)?.SendFileAsync(levelUpStream, $"{name}_levelup.png", $"**Glückwunsch! Als Belohnung erhältst du {reward} Ziegen**!");
                     }
                 }
-                File.Delete(path);
             }
 
             if (NewLevel > OldLevel)

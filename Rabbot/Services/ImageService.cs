@@ -28,6 +28,46 @@ namespace Rabbot.Services
             _cacheService = services.GetRequiredService<CacheService>();
         }
 
+        public MemoryStream DrawLevelUp(string name, uint level)
+        {
+            MemoryStream outputStream = new MemoryStream();
+            var backgroundImage = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "img", "NeonLevelUp", "LevelUp.png"));
+            var levelIcon = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "img", "NeonLevelIcons", $"{level}.png"));
+
+            FontCollection fonts = new FontCollection();
+            FontFamily frutiger = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "Frutiger.ttf"));
+
+            var centerOptions = new TextGraphicsOptions { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+
+            var nameFont = new Font(frutiger, 26, FontStyle.Regular);
+            using (var image = new Image<Rgba32>(300, 100))
+            {
+                int fontSize = (int)nameFont.Size;
+
+                //Reduce font size if name is too long
+                while (true)
+                {
+                    if (TextMeasurer.Measure(name, new RendererOptions(nameFont)).Width > 180)
+                    {
+                        fontSize--;
+                        nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
+                    }
+                    else
+                        break;
+                }
+                levelIcon.Mutate(x => x.Resize(80, 80));
+                image.Mutate(x => x
+                    .DrawImage(backgroundImage, new Point(0, 0), 1f)
+                    .DrawImage(levelIcon, new Point(10, 10), 1f)
+                    .DrawText(centerOptions, name, nameFont, Color.FromHex("#00FFFF"), new PointF(200, 25))
+                );
+
+                image.SaveAsPng(outputStream);
+                outputStream.Position = 0;
+                return outputStream;
+            }
+        }
+
         public async Task<MemoryStream> DrawProfileAsync(UserProfileDto profileInfo, bool isAnimated = false)
         {
             MemoryStream outputStream = new MemoryStream();
