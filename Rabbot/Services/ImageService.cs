@@ -66,11 +66,16 @@ namespace Rabbot.Services
 
             using (var image = new Image<Rgba32>(300, 175))
             {
-                //Short name if it's too long
+                int fontSize = (int)nameFont.Size;
+
+                //Reduce font size if name is too long
                 while (true)
                 {
                     if (TextMeasurer.Measure(profileInfo.Name, new RendererOptions(nameFont)).Width > 200)
-                        profileInfo.Name = profileInfo.Name.Substring(0, profileInfo.Name.Length - 1);
+                    {
+                        fontSize--;
+                        nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
+                    }
                     else
                         break;
                 }
