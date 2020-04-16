@@ -92,9 +92,28 @@ namespace Rabbot.Services
             var goatFont = new Font(geometos, 18, FontStyle.Bold);
 
             //Gif
+            int frameDelay = 0;
+            int frameCount = 1;
+            List<Image> frames = new List<Image>();
             if (isAnimated)
             {
-                //userAvatar..Metadata.GetFormatMetadata(GifFormat.Instance).
+                frameDelay = userAvatar.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay;
+                frameCount = userAvatar.Frames.Count - 1;
+                for (int i = 0; i < frameCount; i++)
+                {
+                    try
+                    {
+                        frames.Add(userAvatar.Frames.CloneFrame(i));
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Frame {i} can't be cloned.");
+                    }
+                }
+            }
+            else
+            {
+                frames.Add(userAvatar);
             }
 
             // Filter special chars
@@ -104,45 +123,58 @@ namespace Rabbot.Services
             var bytes = encoding.GetBytes(profileInfo.Name);
             profileInfo.Name = encoding.GetString(bytes);
 
-            using (var image = new Image<Rgba32>(300, 175))
+            using (var output = new Image<Rgba32>(300, 175))
             {
-                int fontSize = (int)nameFont.Size;
-
-                //Reduce font size if name is too long
-                while (true)
+                for (int i = 0; i < frames.Count; i++)
                 {
-                    if (TextMeasurer.Measure(profileInfo.Name, new RendererOptions(nameFont)).Width > 200)
+                    using (var image = new Image<Rgba32>(300, 175))
                     {
-                        fontSize--;
-                        nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
+                        int fontSize = (int)nameFont.Size;
+
+                        //Reduce font size if name is too long
+                        while (true)
+                        {
+                            if (TextMeasurer.Measure(profileInfo.Name, new RendererOptions(nameFont)).Width > 200)
+                            {
+                                fontSize--;
+                                nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
+                            }
+                            else
+                                break;
+                        }
+
+                        float opacity = 1f;
+                        var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
+                        if (expBarWidth == 0)
+                            opacity = 0;
+
+                        frames[i].Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay = frameDelay;
+
+                        levelIcon.Mutate(x => x.Resize(27, 27));
+                        frames[i].Mutate(x => x.Resize(83, 83));
+                        expBar.Mutate(x => x.Resize(expBarWidth, 17));
+                        image.Mutate(x => x
+                            .DrawImage(backgroundImage, new Point(0, 0), 1f)
+                            .DrawImage(frames[i], new Point(10, 10), 1f)
+                            .DrawImage(expBar, new Point(119, 130), opacity)
+                            .DrawImage(mainImage, new Point(0, 0), 1f)
+                            .DrawImage(levelIcon, new Point(80, 80), 1f)
+                            .DrawText(centerOptions, profileInfo.Name, nameFont, Color.FromHex("#00FFFF"), new PointF(195, 28))
+                            .DrawText(centerOptions, profileInfo.Rank, levelRankFont, Color.FromHex("#00FFFF"), new PointF(155, 63))
+                            .DrawText(centerOptions, profileInfo.Level, levelRankFont, Color.FromHex("#00FFFF"), new PointF(239, 63))
+                            .DrawText(rightOptions, profileInfo.Exp, expFont, Color.FromHex("#00FFFF"), new PointF(110, 122))
+                            .DrawText(rightOptions, profileInfo.Goats, goatFont, Color.FromHex("#00FFFF"), new PointF(110, 155))
+                            .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, Color.FromHex("#00FFFF"), new PointF(204, 155))
+                        );
+                        output.Frames.InsertFrame(i, image.Frames.RootFrame);
                     }
-                    else
-                        break;
                 }
-
-                float opacity = 1f;
-                var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
-                if (expBarWidth == 0)
-                    opacity = 0;
-
-                levelIcon.Mutate(x => x.Resize(27, 27));
-                userAvatar.Mutate(x => x.Resize(83, 83));
-                expBar.Mutate(x => x.Resize(expBarWidth, 17));
-                image.Mutate(x => x
-                    .DrawImage(backgroundImage, new Point(0, 0), 1f)
-                    .DrawImage(userAvatar, new Point(10, 10), 1f)
-                    .DrawImage(expBar, new Point(119, 130), opacity)
-                    .DrawImage(mainImage, new Point(0, 0), 1f)
-                    .DrawImage(levelIcon, new Point(80, 80), 1f)
-                    .DrawText(centerOptions, profileInfo.Name, nameFont, Color.FromHex("#00FFFF"), new PointF(195, 28))
-                    .DrawText(centerOptions, profileInfo.Rank, levelRankFont, Color.FromHex("#00FFFF"), new PointF(155, 63))
-                    .DrawText(centerOptions, profileInfo.Level, levelRankFont, Color.FromHex("#00FFFF"), new PointF(239, 63))
-                    .DrawText(rightOptions, profileInfo.Exp, expFont, Color.FromHex("#00FFFF"), new PointF(110, 122))
-                    .DrawText(rightOptions, profileInfo.Goats, goatFont, Color.FromHex("#00FFFF"), new PointF(110, 155))
-                    .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, Color.FromHex("#00FFFF"), new PointF(204, 155))
-                );
-
-                image.SaveAsPng(outputStream);
+                if (!isAnimated)
+                {
+                    output.SaveAsPng(outputStream);
+                }
+                else
+                    output.SaveAsGif(outputStream);
             }
             outputStream.Position = 0;
             return outputStream;

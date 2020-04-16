@@ -146,7 +146,7 @@ namespace Rabbot.Commands
             string msg = $"```Seite {levels.PageNumber}/{levels.PageCount}\n";
             foreach (var level in levels)
             {
-                    msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
+                msg += $"Lvl: {level.Key} - {level.Value.Reward} Ziegen\n";
             }
             msg += "```";
             await Context.Channel.SendMessageAsync(msg);
@@ -186,16 +186,16 @@ namespace Rabbot.Commands
                         switch (i)
                         {
                             case 1:
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
+                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+50% EXP)");
                                 break;
                             case 2:
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (30% EXP)");
+                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (30% EXP)");
                                 break;
                             case 3:
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+10% EXP)");
+                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s (+10% EXP)");
                                 break;
                             default:
-                                    embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s");
+                                embed.AddField($"{i}. {user.Name}", $"{time.Hours}h {time.Minutes}m {time.Seconds}s");
                                 break;
                         }
                         i++;
@@ -452,9 +452,9 @@ namespace Rabbot.Commands
                 using (Context.Channel.EnterTypingState())
                 {
                     string name = (user as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? user.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
-                    if(!db.Users.Any(p => p.Id == user.Id))
+                    if (!db.Users.Any(p => p.Id == user.Id))
                     {
-                        await db.Users.AddAsync(new UserEntity {Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
+                        await db.Users.AddAsync(new UserEntity { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
                     }
 
                     var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id) ?? db.Features.AddAsync(new FeatureEntity { GuildId = Context.Guild.Id, UserId = user.Id, Exp = 0, Goats = 0 }).Result.Entity;
@@ -487,9 +487,10 @@ namespace Rabbot.Commands
                     if (profilePicture == null)
                         profilePicture = user.GetDefaultAvatarUrl();
 
-                    using (var image = await _imageService.DrawProfileAsync(new UserProfileDto { Exp = exp.ToFormattedString(), AvatarUrl = profilePicture, Name = name, Goats = goat.ToFormattedString(), Level = level.ToString(), LevelInfo = progress, Percent = percent, Rank = rank.ToString() }))
+                    bool isAnimated = profilePicture.Contains(".gif");
+                    using (var image = await _imageService.DrawProfileAsync(new UserProfileDto { Exp = exp.ToFormattedString(), AvatarUrl = profilePicture, Name = name, Goats = goat.ToFormattedString(), Level = level.ToString(), LevelInfo = progress, Percent = percent, Rank = rank.ToString() }, isAnimated))
                     {
-                        await Context.Channel.SendFileAsync(image, $"{name}.png", $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
+                        await Context.Channel.SendFileAsync(image, $"{name}.{(isAnimated ? ".gif" : ".png")}", $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
                     }
                     await db.SaveChangesAsync();
                 }
