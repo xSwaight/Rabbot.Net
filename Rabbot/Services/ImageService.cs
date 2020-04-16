@@ -86,7 +86,7 @@ namespace Rabbot.Services
 
             //Fonts
             var nameFont = new Font(frutiger, 24, FontStyle.Regular);
-            var levelRankFont = new Font(geometos, 28, FontStyle.Bold);
+            var levelRankFont = new Font(geometos, 26, FontStyle.Bold);
             var expFont = new Font(geometos, 12, FontStyle.Bold);
             var expInfoFont = new Font(geometos, 11, FontStyle.Bold);
             var goatFont = new Font(geometos, 18, FontStyle.Bold);
@@ -135,8 +135,8 @@ namespace Rabbot.Services
                     .DrawImage(mainImage, new Point(0, 0), 1f)
                     .DrawImage(levelIcon, new Point(80, 80), 1f)
                     .DrawText(centerOptions, profileInfo.Name, nameFont, Color.FromHex("#00FFFF"), new PointF(195, 28))
-                    .DrawText(centerOptions, profileInfo.Rank, levelRankFont, Color.FromHex("#00FFFF"), new PointF(153, 61))
-                    .DrawText(centerOptions, profileInfo.Level, levelRankFont, Color.FromHex("#00FFFF"), new PointF(238, 61))
+                    .DrawText(centerOptions, profileInfo.Rank, levelRankFont, Color.FromHex("#00FFFF"), new PointF(155, 63))
+                    .DrawText(centerOptions, profileInfo.Level, levelRankFont, Color.FromHex("#00FFFF"), new PointF(239, 63))
                     .DrawText(rightOptions, profileInfo.Exp, expFont, Color.FromHex("#00FFFF"), new PointF(110, 122))
                     .DrawText(rightOptions, profileInfo.Goats, goatFont, Color.FromHex("#00FFFF"), new PointF(110, 155))
                     .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, Color.FromHex("#00FFFF"), new PointF(204, 155))
