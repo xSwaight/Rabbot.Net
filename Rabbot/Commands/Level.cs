@@ -490,7 +490,7 @@ namespace Rabbot.Commands
                     bool isAnimated = profilePicture.Contains(".gif");
                     using (var image = await _imageService.DrawProfileAsync(new UserProfileDto { Exp = exp.ToFormattedString(), AvatarUrl = profilePicture, Name = name, Goats = goat.ToFormattedString(), Level = level.ToString(), LevelInfo = progress, Percent = percent, Rank = rank.ToString() }, isAnimated))
                     {
-                        await Context.Channel.SendFileAsync(image, $"{name}.{(isAnimated ? ".gif" : ".png")}", $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
+                        await Context.Channel.SendFileAsync(image, $"{name}.{(isAnimated ? "gif" : "png")}", $"{Constants.Fire} {_streakService.GetStreakLevel(dbUser)}");
                     }
                     await db.SaveChangesAsync();
                 }
