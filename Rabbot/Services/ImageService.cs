@@ -174,7 +174,10 @@ namespace Rabbot.Services
                     output.SaveAsPng(outputStream);
                 }
                 else
+                {
+                    output.Frames.RemoveFrame(output.Frames.Count - 1);
                     output.SaveAsGif(outputStream);
+                }
             }
             outputStream.Position = 0;
             return outputStream;
