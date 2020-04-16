@@ -605,18 +605,18 @@ namespace Rabbot.Services
                     var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
                     await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
                 }
-                new Task(async () =>
-                {
-                    if (!_eventRegistered)
-                    {
-                        await Task.Delay(20000);
-                        _logger.Information("Loading easter event..");
-                        _easterEventService.RegisterServers(432908323042623508);
-                        _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
-                        new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
-                        _eventRegistered = true;
-                    }
-                }).Start();
+                //new Task(async () =>
+                //{
+                //    if (!_eventRegistered)
+                //    {
+                //        await Task.Delay(20000);
+                //        _logger.Information("Loading easter event..");
+                //        _easterEventService.RegisterServers(432908323042623508);
+                //        _easterEventService.RegisterAnnouncementChannel(432908323042623508, 432909025047347200);
+                //        new Task(async () => await _easterEventService.StartEventAsync(), TaskCreationOptions.LongRunning).Start();
+                //        _eventRegistered = true;
+                //    }
+                //}).Start();
             }
         }
 

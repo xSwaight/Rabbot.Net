@@ -95,6 +95,9 @@ namespace Rabbot.Services
 
             while (true)
             {
+                if (DateTime.Now > Constants.EndTime)
+                    break;
+
                 foreach (var @event in _events)
                 {
                     await @event.SendEasterEgg();
@@ -102,8 +105,6 @@ namespace Rabbot.Services
 
                 var rndNumber = new Random().Next(Constants.EasterMinRespawnTime * 60000, (Constants.EasterMaxRespawnTime + 1) * 60000);
                 await Task.Delay(rndNumber);
-                if (DateTime.Now > Constants.EndTime)
-                    break;
             }
         }
 
