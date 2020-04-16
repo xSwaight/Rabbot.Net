@@ -149,6 +149,7 @@ namespace Rabbot.Services
                             opacity = 0;
 
                         frames[i].Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay = frameDelay;
+                        Color color = Color.FromHex("#00FFFF");
 
                         levelIcon.Mutate(x => x.Resize(27, 27));
                         frames[i].Mutate(x => x.Resize(83, 83));
@@ -159,12 +160,12 @@ namespace Rabbot.Services
                             .DrawImage(expBar, new Point(119, 130), opacity)
                             .DrawImage(mainImage, new Point(0, 0), 1f)
                             .DrawImage(levelIcon, new Point(80, 80), 1f)
-                            .DrawText(centerOptions, profileInfo.Name, nameFont, Color.FromHex("#00FFFF"), new PointF(195, 28))
-                            .DrawText(centerOptions, profileInfo.Rank, levelRankFont, Color.FromHex("#00FFFF"), new PointF(155, 63))
-                            .DrawText(centerOptions, profileInfo.Level, levelRankFont, Color.FromHex("#00FFFF"), new PointF(239, 63))
-                            .DrawText(rightOptions, profileInfo.Exp, expFont, Color.FromHex("#00FFFF"), new PointF(110, 122))
-                            .DrawText(rightOptions, profileInfo.Goats, goatFont, Color.FromHex("#00FFFF"), new PointF(110, 155))
-                            .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, Color.FromHex("#00FFFF"), new PointF(204, 155))
+                            .DrawText(centerOptions, profileInfo.Name, nameFont, color, new PointF(195, 28))
+                            .DrawText(centerOptions, profileInfo.Rank, levelRankFont, color, new PointF(155, 63))
+                            .DrawText(centerOptions, profileInfo.Level, levelRankFont, color, new PointF(239, 63))
+                            .DrawText(rightOptions, profileInfo.Exp, expFont, color, new PointF(110, 122))
+                            .DrawText(rightOptions, profileInfo.Goats, goatFont, color, new PointF(110, 155))
+                            .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, color, new PointF(204, 155))
                         );
                         output.Frames.InsertFrame(i, image.Frames.RootFrame);
                     }
