@@ -45,12 +45,12 @@ namespace Rabbot.Commands
 
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (db.Combis.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
+                if (db.Combis.ToList().Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Count() >= 5)
                 {
                     await ReplyAsync($"{Context.User.Mention} du hast bereits 5 bestehende Combis.");
                     return;
                 }
-                if (db.Combis.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id).Count() >= 5)
+                if (db.Combis.ToList().Where(p => p.GuildId == Context.Guild.Id && (p.UserId == user.Id || p.CombiUserId == user.Id)).Count() >= 5)
                 {
                     await ReplyAsync($"{user.Mention} hat bereits 5 bestehende Combis.");
                     return;
@@ -78,14 +78,16 @@ namespace Rabbot.Commands
         [BotCommand]
         [Summary("Listet deine alle Combis mit dem aktuellen Status auf.")]
         [Cooldown(30)]
-        public async Task CombiList()
+        public async Task CombiList(SocketGuildUser user = null)
         {
+            if (user == null)
+                user = Context.User as SocketGuildUser;
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                var combis = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id));
+                var combis = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == user.Id || p.CombiUserId == user.Id));
 
                 EmbedBuilder embed = new EmbedBuilder();
-                embed.WithTitle("Combis");
+                embed.WithTitle($"Combis von {user.Nickname ?? user.Username}");
                 int count = 1;
                 foreach (var combi in combis)
                 {
