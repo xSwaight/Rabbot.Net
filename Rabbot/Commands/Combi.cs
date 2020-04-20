@@ -76,7 +76,7 @@ namespace Rabbot.Commands
 
         [Command("combis", RunMode = RunMode.Async)]
         [BotCommand]
-        [Summary("Listet deine alle Combis mit dem aktuellen Status auf.")]
+        [Summary("Listet alle deine Combis mit dem aktuellen Status auf.")]
         [Cooldown(30)]
         public async Task CombiList(SocketGuildUser user = null)
         {

@@ -53,7 +53,7 @@ namespace Rabbot.Commands
             if (seite > Math.Ceiling((commands.Count() / (double)pagesize)) || seite < 1)
                 return;
 
-            string help = $"**Seite {seite}/{Math.Ceiling((commands.Count() / (double)pagesize))}**\n\n`(Parameter) -> Optionaler Parameter`\n`[Parameter] -> Pflich Parameter`\n\n";
+            string help = $"**Seite {seite}/{Math.Ceiling((commands.Count() / (double)pagesize))}**\n\n`(Parameter) -> Optionaler Parameter`\n`[Parameter] -> Pflicht Parameter`\n\n";
 
             seite--;
 
@@ -151,9 +151,6 @@ namespace Rabbot.Commands
                     case true:
                         embed.AddField("Notification", "Enabled", true);
                         break;
-                    default:
-                        embed.AddField("Notification", "Unknown", true);
-                        break;
                 }
 
                 if (notificationChannel != null)
@@ -174,9 +171,6 @@ namespace Rabbot.Commands
                     case true:
                         embed.AddField("Log", "Enabled", true);
                         break;
-                    default:
-                        embed.AddField("Log", "Unknown", true);
-                        break;
                 }
 
                 if (botcChannel != null)
@@ -193,8 +187,6 @@ namespace Rabbot.Commands
                         embed.AddField("Level", "Enabled", true);
                         break;
                     default:
-                        embed.AddField("Level", "Unknown", true);
-                        break;
                 }
 
                 embed.ThumbnailUrl = "https://cdn.pixabay.com/photo/2018/03/27/23/58/silhouette-3267855_960_720.png";

@@ -844,13 +844,8 @@ namespace Rabbot.Commands
         [BotCommand]
         [Cooldown(20)]
         [Summary("Spin das Rad für 20 Ziegen und gewinne mit Glück bis zu 500 Ziegen!")]
-        public async Task Spin(int einsatz = 0)
+        public async Task Spin(int einsatz)
         {
-            if (einsatz == 0)
-            {
-                await ReplyAsync("Du musst einen Einsatz angeben und mindestens **5 Ziegen** bis **200 Ziegen** setzen.");
-                return;
-            }
 
             if (einsatz < 5 || einsatz > 200)
             {

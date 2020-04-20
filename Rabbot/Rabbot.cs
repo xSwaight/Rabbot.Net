@@ -74,6 +74,7 @@ namespace Rabbot
                     .AddSingleton<DatabaseService>()
                     .AddSingleton<ImageService>()
                     .AddSingleton<CacheService>()
+                    .AddSingleton<Helper>()
                     .AddDbContext<RabbotContext>(x => x.UseMySql(Config.Bot.ConnectionString));
 
 
@@ -125,6 +126,7 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<EasterEventService>();
                 serviceProvider.GetRequiredService<ImageService>();
                 serviceProvider.GetRequiredService<CacheService>();
+                serviceProvider.GetRequiredService<Helper>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();
 
