@@ -45,16 +45,9 @@ namespace Rabbot.Services
                 int fontSize = (int)nameFont.Size;
 
                 //Reduce font size if name is too long
-                while (true)
-                {
-                    if (TextMeasurer.Measure(name, new RendererOptions(nameFont)).Width > 180)
-                    {
-                        fontSize--;
-                        nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
-                    }
-                    else
-                        break;
-                }
+                nameFont = ResizeFont(nameFont, name, 180);
+
+
                 levelIcon.Mutate(x => x.Resize(80, 80));
                 image.Mutate(x => x
                     .DrawImage(backgroundImage, new Point(0, 0), 1f)
@@ -133,28 +126,10 @@ namespace Rabbot.Services
                         int expFontSize = (int)expFont.Size;
 
                         //Reduce font size if name is too long
-                        while (true)
-                        {
-                            if (TextMeasurer.Measure(profileInfo.Name, new RendererOptions(nameFont)).Width > 200)
-                            {
-                                nameFontSize--;
-                                nameFont = new Font(frutiger, nameFontSize, FontStyle.Regular);
-                            }
-                            else
-                                break;
-                        }
+                        nameFont = ResizeFont(nameFont, profileInfo.Name, 200);
 
                         //Reduce font size if current exp is too long
-                        while (true)
-                        {
-                            if (TextMeasurer.Measure(profileInfo.Exp, new RendererOptions(expFont)).Width > 62)
-                            {
-                                expFontSize--;
-                                expFont = new Font(geometos, expFontSize, FontStyle.Bold);
-                            }
-                            else
-                                break;
-                        }
+                        expFont = ResizeFont(expFont, profileInfo.Exp, 62);
 
                         float opacity = 1f;
                         var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
@@ -195,6 +170,22 @@ namespace Rabbot.Services
             }
             outputStream.Position = 0;
             return outputStream;
+        }
+
+        private Font ResizeFont(Font font, string text, int maxWidth)
+        {
+            int initialFonzSize = (int)font.Size;
+            while (true)
+            {
+                if (TextMeasurer.Measure(text, new RendererOptions(font)).Width > maxWidth)
+                {
+                    initialFonzSize--;
+                    font = new Font(font.Family, initialFonzSize, FontStyle.Regular);
+                }
+                else
+                    break;
+            }
+            return font;
         }
 
         private async Task<Image> GetAvatarAsync(string url)
