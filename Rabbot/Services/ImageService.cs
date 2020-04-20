@@ -87,7 +87,7 @@ namespace Rabbot.Services
             //Fonts
             var nameFont = new Font(frutiger, 24, FontStyle.Regular);
             var levelRankFont = new Font(geometos, 26, FontStyle.Bold);
-            var expFont = new Font(geometos, 12, FontStyle.Bold);
+            var expFont = new Font(geometos, 18, FontStyle.Bold);
             var expInfoFont = new Font(geometos, 11, FontStyle.Bold);
             var goatFont = new Font(geometos, 18, FontStyle.Bold);
 
@@ -129,15 +129,28 @@ namespace Rabbot.Services
                 {
                     using (var image = new Image<Rgba32>(300, 175))
                     {
-                        int fontSize = (int)nameFont.Size;
+                        int nameFontSize = (int)nameFont.Size;
+                        int expFontSize = (int)expFont.Size;
 
                         //Reduce font size if name is too long
                         while (true)
                         {
                             if (TextMeasurer.Measure(profileInfo.Name, new RendererOptions(nameFont)).Width > 200)
                             {
-                                fontSize--;
-                                nameFont = new Font(frutiger, fontSize, FontStyle.Regular);
+                                nameFontSize--;
+                                nameFont = new Font(frutiger, nameFontSize, FontStyle.Regular);
+                            }
+                            else
+                                break;
+                        }
+
+                        //Reduce font size if current exp is too long
+                        while (true)
+                        {
+                            if (TextMeasurer.Measure(profileInfo.Exp, new RendererOptions(expFont)).Width > 62)
+                            {
+                                expFontSize--;
+                                expFont = new Font(geometos, expFontSize, FontStyle.Bold);
                             }
                             else
                                 break;
