@@ -220,15 +220,15 @@ namespace Rabbot.Commands
             //await Context.Message.DeleteAsync();
             //await Context.Guild.ModifyAsync(p => p.RegionId = "frankfurt");
             //Console.WriteLine(Context.Guild.VoiceRegionId);
-            var result = Context.Guild.GetAuditLogsAsync(100).ToList().Result;
-            string list = "";
-            foreach (var logs in result)
-            {
-                foreach (var log in logs)
-                {
-                    list += $"{log.Action}\n";
-                }
-            }
+            //var result = Context.Guild.GetAuditLogsAsync(100).ToList().Result;
+            //string list = "";
+            //foreach (var logs in result)
+            //{
+            //    foreach (var log in logs)
+            //    {
+            //        list += $"{log.Action}\n";
+            //    }
+            //}
         }
 
         [Command("active", RunMode = RunMode.Async)]

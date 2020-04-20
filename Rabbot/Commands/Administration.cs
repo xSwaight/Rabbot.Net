@@ -604,7 +604,7 @@ namespace Rabbot.Commands
             if (!Context.Guild.Roles.Where(p => p.Name == "Muted").Any())
             {
                 var mutedPermission = new GuildPermissions(false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
-                await Context.Guild.CreateRoleAsync("Muted", mutedPermission, Color.Red);
+                await Context.Guild.CreateRoleAsync("Muted", mutedPermission, Color.Red, false, false);
             }
             var permission = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Inherit, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
             foreach (var textChannel in Context.Guild.TextChannels)
