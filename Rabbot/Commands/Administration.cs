@@ -82,6 +82,29 @@ namespace Rabbot.Commands
             }
         }
 
+        [RequireOwner]
+        [Command("updateGuilds", RunMode = RunMode.Async)]
+        public async Task UpdateGuilds()
+        {
+            await Context.Message.DeleteAsync();
+            using (var db = _databaseService.Open<RabbotContext>())
+            {
+                foreach (var guild in Context.Client.Guilds)
+                {
+                    var dbGuild = db.Guilds.FirstOrDefault(p => p.GuildId == guild.Id);
+                    if(dbGuild == null)
+                    {
+                        await db.Guilds.AddAsync(new GuildEntity { GuildId = guild.Id, GuildName = guild.Name });
+                    }
+                    else
+                    {
+                        dbGuild.GuildName = guild.Name;
+                    }
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Muted den User für angegebene Zeit (Zeitindikatoren: s = Sekunden, m = Minuten, h = Stunden, d = Tage).")]

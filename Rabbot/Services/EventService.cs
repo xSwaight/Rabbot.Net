@@ -69,6 +69,20 @@ namespace Rabbot.Services
             _client.ReactionRemoved += ReactionRemoved;
             _client.UserUpdated += UserUpdated;
             _client.ChannelCreated += ChannelCreated;
+            _client.GuildUpdated += GuildUpdated;
+        }
+
+        private async Task GuildUpdated(SocketGuild oldGuild, SocketGuild newGuild)
+        {
+            using (var db = _databaseService.Open<RabbotContext>())
+            {
+                var dbGuild = db.Guilds.FirstOrDefault(p => p.GuildId == newGuild.Id);
+                if (dbGuild != null)
+                {
+                    dbGuild.GuildName = newGuild.Name;
+                    await db.SaveChangesAsync();
+                }
+            }
         }
 
         private async Task UserUpdated(SocketUser oldUser, SocketUser newUser)
@@ -660,7 +674,7 @@ namespace Rabbot.Services
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == guild.Id);
                 if (Guild == null)
                 {
-                    await db.Guilds.AddAsync(new GuildEntity { GuildId = guild.Id });
+                    await db.Guilds.AddAsync(new GuildEntity { GuildId = guild.Id, GuildName = guild.Name });
                     await db.SaveChangesAsync();
                 }
             }
