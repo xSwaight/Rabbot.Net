@@ -47,7 +47,7 @@ namespace Rabbot.Services
                 bonusInfo += $"**+50% EXP** (EXP +50% Item)\n";
             }
 
-            var ranks = db.Musicranks.AsQueryable().Where(p => p.GuildId == user.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds);
+            var ranks = db.Musicranks.AsQueryable().Where(p => p.GuildId == user.Guild.Id && p.Date.DayOfYear == DateTime.Now.DayOfYear && p.Date.Year == DateTime.Now.Year).OrderByDescending(p => p.Seconds);
             int rank = 0;
             foreach (var Rank in ranks)
             {
