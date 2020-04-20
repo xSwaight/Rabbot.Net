@@ -97,9 +97,9 @@ namespace Rabbot.Commands
                     else
                         status = "Ausstehend";
 
-                    if (combi.CombiUserId == Context.User.Id)
+                    if (combi.CombiUserId == user.Id)
                         embed.AddField($"[{count}] {combi.User.Name}", $"Status: {status}\nBesteht seit: {combi.Date.ToString("dd.MM.yyyy")}");
-                    if (combi.UserId == Context.User.Id)
+                    if (combi.UserId == user.Id)
                         embed.AddField($"[{count}] {combi.CombiUser.Name}", $"Status: {status}\nBesteht seit: {combi.Date.ToString("dd.MM.yyyy")}");
 
                     count++;
