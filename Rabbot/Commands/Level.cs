@@ -43,7 +43,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
+                var ranking = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();
@@ -79,7 +79,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var top10 = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
+                var top10 = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.UserId != Context.Client.CurrentUser.Id).OrderByDescending(p => p.Goats).Take(10);
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.Description = "Ziegen Ranking";
                 embed.WithColor(new Color(239, 220, 7));
@@ -91,7 +91,7 @@ namespace Rabbot.Commands
                     try
                     {
                         var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
-                        var inventory = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == top.Id);
+                        var inventory = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == top.Id);
                         var stall = Helper.GetStall(top.Wins);
                         var atk = stall.Attack;
                         var def = stall.Defense;
@@ -161,8 +161,8 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var top10 = db.Musicranks.Where(p => p.GuildId == Context.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds).Take(10);
-                var song = db.Songs.Where(p => p.Active == false);
+                var top10 = db.Musicranks.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds).Take(10);
+                var song = db.Songs.AsQueryable().Where(p => p.Active == false);
                 if (!song.Any())
                 {
                     await Context.Channel.SendMessageAsync("Something went wrong! :(");
@@ -220,7 +220,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var roles = db.Roles.Where(p => p.GuildId == Context.Guild.Id);
+                var roles = db.Roles.AsQueryable().Where(p => p.GuildId == Context.Guild.Id);
                 if (roles.FirstOrDefault(p => p.Description == "S4") == null)
                 {
                     Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true, false);
@@ -312,7 +312,7 @@ namespace Rabbot.Commands
                     return;
                 if (user != null)
                 {
-                    if (!db.Users.Where(p => p.Id == user.Id).Any())
+                    if (!db.Users.AsQueryable().Where(p => p.Id == user.Id).Any())
                     {
                         db.Users.Add(new UserEntity { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
                         await db.SaveChangesAsync();
@@ -352,7 +352,7 @@ namespace Rabbot.Commands
 
                 if (user != null)
                 {
-                    if (!db.Users.Where(p => p.Id == user.Id).Any())
+                    if (!db.Users.AsQueryable().Where(p => p.Id == user.Id).Any())
                     {
                         db.Users.Add(new UserEntity { Id = user.Id, Name = $"{user.Username}#{user.Discriminator}" });
                         await db.SaveChangesAsync();
@@ -475,7 +475,7 @@ namespace Rabbot.Commands
                         percent = 100;
                         progress = $"{currentLevelExp.ToFormattedString()}";
                     }
-                    var ranks = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
+                    var ranks = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
                     int rank = 1;
                     foreach (var Rank in ranks)
                     {

@@ -570,7 +570,7 @@ namespace Rabbot.Commands
                 var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
                 if (dbUser == null)
                     return;
-                var inventory = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
+                var inventory = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
                 var stall = Helper.GetStall(dbUser.Wins);
                 var atk = stall.Attack;
                 var def = stall.Defense;
@@ -822,8 +822,8 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var sum = db.Pots.Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
-                var pot = db.Pots.Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
+                var sum = db.Pots.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
+                var pot = db.Pots.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Take(25);
                 EmbedBuilder embed = new EmbedBuilder();
                 int counter = 1;
                 foreach (var item in pot)

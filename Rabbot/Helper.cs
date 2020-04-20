@@ -469,7 +469,7 @@ namespace Rabbot
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == context.Guild.Id).Any())
                 {
                     return (ulong?)db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId;
                 }

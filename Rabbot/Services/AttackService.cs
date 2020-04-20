@@ -53,8 +53,8 @@ namespace Rabbot.Services
             var dbUser = db.Features.FirstOrDefault(p => p.GuildId == attack.GuildId && p.UserId == attack.UserId) ?? db.Features.AddAsync(new FeatureEntity { GuildId = attack.GuildId, UserId = attack.UserId, Exp = 0, Goats = 0 }).Result.Entity;
             var targetStallBefore = Helper.GetStall(dbTarget.Wins);
             var userStallBefore = Helper.GetStall(dbUser.Wins);
-            var inventoryUser = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
-            var inventoryTarget = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbTarget.Id);
+            var inventoryUser = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbUser.Id);
+            var inventoryTarget = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == dbTarget.Id);
             var atkUser = userStallBefore.Attack;
             var defTarget = targetStallBefore.Defense;
             bool hirtenstab = false;

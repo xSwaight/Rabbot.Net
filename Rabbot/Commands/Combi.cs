@@ -45,12 +45,12 @@ namespace Rabbot.Commands
 
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (db.Combis.Where(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
+                if (db.Combis.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id).Count() >= 5)
                 {
                     await ReplyAsync($"{Context.User.Mention} du hast bereits 5 bestehende Combis.");
                     return;
                 }
-                if (db.Combis.Where(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id).Count() >= 5)
+                if (db.Combis.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.UserId == user.Id).Count() >= 5)
                 {
                     await ReplyAsync($"{user.Mention} hat bereits 5 bestehende Combis.");
                     return;
@@ -173,7 +173,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
+                var ranking = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();

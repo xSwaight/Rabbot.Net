@@ -7,13 +7,14 @@ using System;
 using Serilog;
 using Rabbot.Services;
 using Serilog.Events;
+using System.Collections;
+using System.Collections.Generic;
 using Sentry;
 using Serilog.Core;
 using System.Linq;
 using Rabbot.Database;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace Rabbot
 {

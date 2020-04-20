@@ -47,7 +47,7 @@ namespace Rabbot.Services
                 bonusInfo += $"**+50% EXP** (EXP +50% Item)\n";
             }
 
-            var ranks = db.Musicranks.Where(p => p.GuildId == user.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds);
+            var ranks = db.Musicranks.AsQueryable().Where(p => p.GuildId == user.Guild.Id && p.Date.ToShortDateString() == DateTime.Now.ToShortDateString()).OrderByDescending(p => p.Seconds);
             int rank = 0;
             foreach (var Rank in ranks)
             {
@@ -72,7 +72,7 @@ namespace Rabbot.Services
                 bonusInfo += $"**+10% EXP** (Musicrank 3. Platz)\n";
             }
 
-            if (db.Events.Where(p => p.Status == true).Any())
+            if (db.Events.AsQueryable().Where(p => p.Status == true).Any())
             {
                 var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
                 bonusPercent += myEvent.BonusPercent;
@@ -208,7 +208,7 @@ namespace Rabbot.Services
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                var roles = db.Roles.Where(p => p.GuildId == dcGuild.Id);
+                var roles = db.Roles.AsQueryable().Where(p => p.GuildId == dcGuild.Id);
 
                 var S4Id = roles.FirstOrDefault(x => x.Description == "S4") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S4" };
                 var S3Id = roles.FirstOrDefault(x => x.Description == "S3") ?? new RoleEntity { GuildId = dcGuild.Id, RoleId = 0, Description = "S3" };

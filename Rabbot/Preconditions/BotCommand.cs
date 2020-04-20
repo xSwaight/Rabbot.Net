@@ -26,7 +26,7 @@ namespace Rabbot.Preconditions
 
             using (RabbotContext db = services.GetRequiredService<RabbotContext>())
             {
-                if (db.Guilds.Where(p => p.GuildId == context.Guild.Id).Any())
+                if (db.Guilds.AsQueryable().Where(p => p.GuildId == context.Guild.Id).Any())
                 {
                     if (db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id).BotChannelId == null)
                         return Task.FromResult(PreconditionResult.FromSuccess());

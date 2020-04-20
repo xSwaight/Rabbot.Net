@@ -559,7 +559,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
 
-                var ranking = db.Features.Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);
+                var ranking = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false && p.Eggs > 0).OrderByDescending(p => p.Eggs).ToPagedList(page, 10);
                 if (page > ranking.PageCount)
                     return;
                 EmbedBuilder embed = new EmbedBuilder();

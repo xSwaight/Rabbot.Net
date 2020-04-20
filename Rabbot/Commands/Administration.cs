@@ -219,7 +219,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, LogChannelId = Context.Channel.Id });
                 }
@@ -248,7 +248,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, BotChannelId = Context.Channel.Id });
                 }
@@ -276,7 +276,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, TrashChannelId = Context.Channel.Id });
                 }
@@ -304,7 +304,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, StreamChannelId = Context.Channel.Id });
                 }
@@ -332,7 +332,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, NotificationChannelId = Context.Channel.Id });
                 }
@@ -361,7 +361,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = Context.Guild.Id, NotificationChannelId = Context.Channel.Id });
                 }
@@ -389,7 +389,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
@@ -417,7 +417,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
@@ -446,7 +446,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
@@ -474,7 +474,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
@@ -503,7 +503,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == Context.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).Any())
                 {
                     return;
                 }
@@ -661,7 +661,7 @@ namespace Rabbot.Commands
             await Context.Message.DeleteAsync();
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Events.Where(x => x.Id == eventId).Any() && eventId != 0)
+                if (!db.Events.AsQueryable().Where(x => x.Id == eventId).Any() && eventId != 0)
                     return;
 
                 var events = db.Events.ToList();
@@ -692,7 +692,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
-                if (db.BadWords.Where(p => p.BadWord == word && p.GuildId == Context.Guild.Id).Any())
+                if (db.BadWords.AsQueryable().Where(p => p.BadWord == word && p.GuildId == Context.Guild.Id).Any())
                 {
                     await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
                     return;
@@ -719,7 +719,7 @@ namespace Rabbot.Commands
             using (var db = _databaseService.Open<RabbotContext>())
             {
                 word = word.ToLower();
-                if (db.GoodWords.Where(p => p.GoodWord == word && p.GuildId == Context.Guild.Id).Any())
+                if (db.GoodWords.AsQueryable().Where(p => p.GoodWord == word && p.GuildId == Context.Guild.Id).Any())
                 {
                     await ReplyAsync($"**Das Wort ist bereits in der Liste!**");
                     return;
@@ -796,7 +796,7 @@ namespace Rabbot.Commands
                 return;
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                var badwords = db.BadWords.Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
+                var badwords = db.BadWords.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.BadWord).ToPagedList(page, 25);
                 if (page > badwords.PageCount)
                     return;
                 var eb = new EmbedBuilder();
@@ -820,7 +820,7 @@ namespace Rabbot.Commands
                 return;
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                var goodwords = db.GoodWords.Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.GoodWord).ToPagedList(page, 25);
+                var goodwords = db.GoodWords.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.GoodWord).ToPagedList(page, 25);
                 if (page > goodwords.PageCount)
                     return;
                 var eb = new EmbedBuilder();
@@ -913,7 +913,7 @@ namespace Rabbot.Commands
                 return;
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                var namechanges = db.Namechanges.Where(p => p.UserId == user.Id).OrderByDescending(p => p.Date).ToList().ToPagedList(page, 25);
+                var namechanges = db.Namechanges.AsQueryable().Where(p => p.UserId == user.Id).OrderByDescending(p => p.Date).ToList().ToPagedList(page, 25);
                 if (!namechanges.Any())
                 {
                     await Context.Channel.SendMessageAsync($"Der User {user.Username} hat bislang noch keine Namechanges.");

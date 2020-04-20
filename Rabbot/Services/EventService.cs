@@ -93,7 +93,7 @@ namespace Rabbot.Services
                 {
                     if (db.Users.FirstOrDefault(p => p.Id == newUser.Id) == null)
                         await db.Users.AddAsync(new UserEntity { Id = newUser.Id, Name = $"{newUser.Username}#{newUser.Discriminator}" });
-                    if (db.Namechanges.Where(p => p.UserId == newUser.Id).OrderByDescending(p => p.Date).FirstOrDefault()?.NewName == oldUser.Username)
+                    if (db.Namechanges.AsQueryable().Where(p => p.UserId == newUser.Id).OrderByDescending(p => p.Date).FirstOrDefault()?.NewName == oldUser.Username)
                     {
                         await db.Namechanges.AddAsync(new NamechangeEntity { UserId = newUser.Id, NewName = newUser.Username, Date = DateTime.Now });
                     }
@@ -311,8 +311,8 @@ namespace Rabbot.Services
                 var atkUserfeature = db.Features.FirstOrDefault(p => p.UserId == dbAtk.UserId && p.GuildId == dbAtk.GuildId);
                 var defUserfeature = db.Features.FirstOrDefault(p => p.UserId == dbAtk.TargetId && p.GuildId == dbAtk.GuildId);
 
-                var inventoryUser = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
-                var inventoryTarget = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
+                var inventoryUser = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
+                var inventoryTarget = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
                 var zaun = inventoryTarget.FirstOrDefault(p => p.Item.Id == 2);
                 var stab = inventoryUser.FirstOrDefault(p => p.Item.Id == 1);
 
@@ -412,8 +412,8 @@ namespace Rabbot.Services
                 var atkUserfeature = db.Features.FirstOrDefault(p => p.UserId == dbAtk.UserId && p.GuildId == dbAtk.GuildId);
                 var defUserfeature = db.Features.FirstOrDefault(p => p.UserId == dbAtk.TargetId && p.GuildId == dbAtk.GuildId);
 
-                var inventoryUser = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
-                var inventoryTarget = db.Inventorys.Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
+                var inventoryUser = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == atkUserfeature.Id);
+                var inventoryTarget = db.Inventorys.AsQueryable().Join(db.Items, id => id.ItemId, item => item.Id, (Inventory, Item) => new { Inventory, Item }).Where(p => p.Inventory.FeatureId == defUserfeature.Id);
                 var zaun = inventoryTarget.FirstOrDefault(p => p.Item.Id == 2);
                 var stab = inventoryUser.FirstOrDefault(p => p.Item.Id == 1);
 
@@ -515,15 +515,15 @@ namespace Rabbot.Services
                 if (!(newMessage.Channel is SocketGuildChannel guildChannel))
                     return;
                 SocketGuild dcServer = guildChannel.Guild;
-                if (db.BadWords.Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages && !db.GoodWords.Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
+                if (db.BadWords.AsQueryable().Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase)) && !(newMessage.Author as SocketGuildUser).GuildPermissions.ManageMessages && !db.GoodWords.AsQueryable().Where(p => p.GuildId == dcServer.Id).Any(p => Helper.ReplaceCharacter(newMessage.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
                 {
                     await newMessage.DeleteAsync();
                     var myUser = newMessage.Author as SocketGuildUser;
-                    if (db.MutedUsers.Where(p => p.UserId == newMessage.Author.Id && p.GuildId == myUser.Guild.Id).Any())
+                    if (db.MutedUsers.AsQueryable().Where(p => p.UserId == newMessage.Author.Id && p.GuildId == myUser.Guild.Id).Any())
                         return;
                     if (myUser.Roles.Where(p => p.Name == "Muted").Any())
                         return;
-                    if (!db.Warnings.Where(p => p.UserId == newMessage.Author.Id && p.GuildId == dcServer.Id).Any())
+                    if (!db.Warnings.AsQueryable().Where(p => p.UserId == newMessage.Author.Id && p.GuildId == dcServer.Id).Any())
                     {
                         await db.Warnings.AddAsync(new WarningEntity { GuildId = dcServer.Id, UserId = newMessage.Author.Id, Until = DateTime.Now.AddHours(1), Counter = 1 });
                         await newMessage.Channel.SendMessageAsync($"**{newMessage.Author.Mention} du wurdest für schlechtes Benehmen verwarnt. Warnung 1/3**");
@@ -610,7 +610,7 @@ namespace Rabbot.Services
                     await db.SaveChangesAsync();
                 }
 
-                if (!db.Events.Where(p => p.Status == true).Any())
+                if (!db.Events.AsQueryable().AsQueryable().Where(p => p.Status == true).Any())
                 {
                     await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
                 }
@@ -754,14 +754,14 @@ namespace Rabbot.Services
                         counter++;
                     }
                 }
-                var streaks = db.Features.Where(p => p.TodaysWords > 0 || p.StreakLevel > 0);
+                var streaks = db.Features.AsQueryable().Where(p => p.TodaysWords > 0 || p.StreakLevel > 0);
                 foreach (var streak in streaks)
                 {
                     _streakService.CheckTodaysWordcount(streak);
                 }
                 await db.SaveChangesAsync();
 
-                var trades = db.Features.Where(p => p.Trades > 0);
+                var trades = db.Features.AsQueryable().AsQueryable().Where(p => p.Trades > 0);
                 foreach (var trade in trades)
                 {
                     trade.Trades = 0;
@@ -776,10 +776,10 @@ namespace Rabbot.Services
                 {
                     if (db.Pots.Any())
                     {
-                        var servers = db.Pots.GroupBy(p => p.GuildId).Select(p => p.Key).ToList();
+                        var servers = db.Pots.AsQueryable().GroupBy(p => p.GuildId).Select(p => p.Key).ToList();
                         foreach (var serverId in servers)
                         {
-                            var pot = db.Pots.Where(p => p.GuildId == serverId);
+                            var pot = db.Pots.AsQueryable().Where(p => p.GuildId == serverId);
                             var sum = pot.Sum(p => p.Goats);
                             double min = 0;
                             List<PotUserDto> myList = new List<PotUserDto>();
@@ -869,7 +869,7 @@ namespace Rabbot.Services
                             {
                                 using (var db = _databaseService.Open<RabbotContext>())
                                 {
-                                    if (!db.Songs.Where(p => p.Active == true).Any())
+                                    if (!db.Songs.AsQueryable().Where(p => p.Active == true).Any())
                                         continue;
 
                                     if (song.TrackUrl == db.Songs.FirstOrDefault(p => p.Active == true).Link)
@@ -1001,7 +1001,7 @@ namespace Rabbot.Services
             using (var db = _databaseService.Open<RabbotContext>())
             {
                 SocketGuild dcGuild = dcUser.Guild;
-                if (db.BadWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages) && !db.GoodWords.Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
+                if (db.BadWords.AsQueryable().Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages) && !db.GoodWords.AsQueryable().Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
                 {
                     await msg.DeleteAsync();
                     await _warnService.AutoWarn(db, msg);
@@ -1030,7 +1030,7 @@ namespace Rabbot.Services
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == user.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().AsQueryable().Where(p => p.GuildId == user.Guild.Id).Any())
                     return;
                 if (db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id).Log == false)
                     return;
@@ -1046,7 +1046,7 @@ namespace Rabbot.Services
                 embed.AddField("Joined Server at", user.JoinedAt.Value.DateTime.ToCET().ToFormattedString(), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
 
-                var dbUser = db.Features.Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
+                var dbUser = db.Features.AsQueryable().Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
                 foreach (var leftUser in dbUser)
                 {
                     leftUser.HasLeft = true;
@@ -1059,7 +1059,7 @@ namespace Rabbot.Services
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
-                if (!db.Guilds.Where(p => p.GuildId == user.Guild.Id).Any())
+                if (!db.Guilds.AsQueryable().Where(p => p.GuildId == user.Guild.Id).Any())
                     return;
                 if (db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id).Log == false)
                     return;
@@ -1078,7 +1078,7 @@ namespace Rabbot.Services
                 embed.AddField("Joined Discord at", user.CreatedAt.DateTime.ToCET().ToFormattedString(), false);
                 await _client.GetGuild(user.Guild.Id).GetTextChannel(channelId.Value).SendMessageAsync("", false, embed.Build());
 
-                var dbUser = db.Features.Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
+                var dbUser = db.Features.AsQueryable().Where(p => p.UserId == user.Id && p.GuildId == user.Guild.Id);
                 foreach (var joinedUser in dbUser)
                 {
                     joinedUser.HasLeft = false;

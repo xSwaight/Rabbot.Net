@@ -73,7 +73,7 @@ namespace Rabbot.Services
         public async Task AutoWarn(RabbotContext db, SocketMessage msg)
         {
             var myUser = msg.Author as SocketGuildUser;
-            if (db.MutedUsers.Where(p => p.UserId == msg.Author.Id && p.GuildId == myUser.Guild.Id).Any())
+            if (db.MutedUsers.AsQueryable().Where(p => p.UserId == msg.Author.Id && p.GuildId == myUser.Guild.Id).Any())
                 return;
             if (myUser.Roles.Where(p => p.Name == "Muted").Any())
                 return;

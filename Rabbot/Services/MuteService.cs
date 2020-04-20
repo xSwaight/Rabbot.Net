@@ -147,7 +147,7 @@ namespace Rabbot.Services
             else
                 return;
 
-            if (!db.MutedUsers.Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id).Any())
+            if (!db.MutedUsers.AsQueryable().Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id).Any())
             {
                 string userRoles = "";
                 foreach (var role in dcTargetUser.Roles)
@@ -185,7 +185,7 @@ namespace Rabbot.Services
             DateTime date = DateTime.Now;
             DateTime banUntil = date.AddHours(1);
 
-            if (!db.MutedUsers.Where(p => p.GuildId == guild.Id && p.UserId == user.Id).Any())
+            if (!db.MutedUsers.AsQueryable().Where(p => p.GuildId == guild.Id && p.UserId == user.Id).Any())
             {
                 string userRoles = "";
                 foreach (var role in user.Roles)
@@ -208,7 +208,7 @@ namespace Rabbot.Services
 
         public async Task UnmuteTargetUser(RabbotContext db, IUser user, SocketCommandContext context)
         {
-            var mute = db.MutedUsers.Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id);
+            var mute = db.MutedUsers.AsQueryable().Where(p => p.GuildId == context.Guild.Id && p.UserId == user.Id);
             if (!mute.Any())
             {
                 await SendError($"{user.Mention} ist nicht gemuted.", context);
