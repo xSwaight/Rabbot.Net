@@ -208,7 +208,7 @@ namespace Rabbot
             { 96, new LevelInfoDto{NeededEXP = 11400000, Reward = 790 } },
             { 97, new LevelInfoDto{NeededEXP = 11800000, Reward = 800 } },
             { 98, new LevelInfoDto{NeededEXP = 12200000, Reward = 810 } },
-            { 99, new LevelInfoDto{NeededEXP = 12700000, Reward = 820 } },
+            { 99, new LevelInfoDto{NeededEXP = 12600000, Reward = 820 } },
             { 100, new LevelInfoDto{NeededEXP = 13100000, Reward = 830 } },
             { 101, new LevelInfoDto{NeededEXP = 13600000, Reward = 840 } },
             { 102, new LevelInfoDto{NeededEXP = 14100000, Reward = 850 } },
