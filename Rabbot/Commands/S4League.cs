@@ -41,7 +41,7 @@ namespace Rabbot.Commands
                         //Remnants 
                         var embedRemnants = new EmbedBuilder();
 
-                        var remnantsDailyPlayer = db.RemnantsPlayers.AsQueryable().Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
+                        var remnantsDailyPlayer = db.RemnantsPlayers.ToList().Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
                         var remnantsPlayerPeak = db.RemnantsPlayers.AsQueryable().OrderByDescending(p => p.Playercount).FirstOrDefault();
                         var remnantsFirstDate = db.RemnantsPlayers.AsQueryable().OrderBy(p => p.Date).FirstOrDefault();
                         var remnantsLastDate = db.RemnantsPlayers.AsQueryable().OrderByDescending(p => p.Date).FirstOrDefault();
@@ -94,7 +94,7 @@ namespace Rabbot.Commands
                         //Official 
                         var embedOfficial = new EmbedBuilder();
 
-                        var officialDailyPlayer = db.OfficialPlayers.AsQueryable().Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
+                        var officialDailyPlayer = db.OfficialPlayers.ToList().Where(p => p.Date > DateTime.Now.AddDays(-10)).GroupBy(p => p.Date.ToShortDateString());
                         var officialPlayerPeak = db.OfficialPlayers.AsQueryable().OrderByDescending(p => p.Playercount).FirstOrDefault();
                         var officialFirstDate = db.OfficialPlayers.AsQueryable().OrderBy(p => p.Date).FirstOrDefault();
                         var officialLastDate = db.OfficialPlayers.AsQueryable().OrderByDescending(p => p.Date).FirstOrDefault();
