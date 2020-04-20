@@ -106,6 +106,26 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("activeClients", RunMode = RunMode.Async)]
+        public async Task ActiveClients(SocketGuildUser user = null)
+        {
+            if (user == null)
+                user = Context.User as SocketGuildUser;
+
+            if (user.ActiveClients.Any())
+            {
+                string output = $"{user.Nickname ?? user.Username} ist auf {(user.ActiveClients.Count > 1 ? "folgenden Plattformen" : "folgender Plattform")} online: ";
+                foreach (var activeClient in user.ActiveClients)
+                {
+                    output += activeClient.ToString() + ", ";
+                }
+                await Context.Channel.SendMessageAsync($"{output.TrimEnd(' ', ',')}");
+                return;
+            }
+            await Context.Channel.SendMessageAsync($"{user.Nickname ?? user.Username} ist Unsichtbar oder auf keiner Plattform online.");
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Muted den User für angegebene Zeit (Zeitindikatoren: s = Sekunden, m = Minuten, h = Stunden, d = Tage).")]
         public async Task Mute(IUser user, string duration)
