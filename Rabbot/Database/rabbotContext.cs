@@ -30,6 +30,7 @@ namespace Rabbot.Database
         public DbSet<AttackEntity> Attacks { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
         public DbSet<EasterEventEntity> EasterEvents { get; set; }
+        public DbSet<TwitchChannelEntity> TwitchChannels { get; set; }
 
         public RabbotContext(DbContextOptions<RabbotContext> options)
             : base(options)
@@ -269,6 +270,13 @@ namespace Rabbot.Database
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.EasterEvents)
                     .HasForeignKey(x => x.UserId);
+            });
+
+            //TwitchChannel
+            modelBuilder.Entity<TwitchChannelEntity>(entity => {
+                entity.HasOne(d => d.Guild)
+                    .WithMany(p => p.TwitchChannels)
+                    .HasForeignKey(x => x.GuildId);
             });
         }
     }

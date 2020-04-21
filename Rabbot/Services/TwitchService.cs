@@ -36,9 +36,8 @@ namespace Rabbot.Services
                 twitchClient.Settings.AccessToken = Config.Bot.TwitchAccessToken;
 
                 List<string> usernames = new List<string> { "swaight", "cranbeere" };
-
                 this.OnStreamOnline += Twitch_OnStreamOnline;
-                new Task(async () => await CheckStreamStatus(twitchClient, usernames, 60), TaskCreationOptions.LongRunning).Start();
+                new Task(async () => await CheckStreamStatus(twitchClient, 60), TaskCreationOptions.LongRunning).Start();
                 _logger.Information($"{nameof(TwitchService)}: Loaded successfully");
             }
             catch (Exception e)
@@ -48,9 +47,12 @@ namespace Rabbot.Services
         }
 
 
-        private async Task CheckStreamStatus(V5 twitchClient, List<string> usernames, int intervallTime)
+        private async Task CheckStreamStatus(V5 twitchClient, int intervallTime)
         {
-            if (!usernames.Any())
+            using var db = _databaseService.Open<RabbotContext>();
+
+            var twitchChannels = db.TwitchChannels.ToList();
+            if (!twitchChannels.Any())
                 return;
 
             List<TwitchLib.Api.V5.Models.Streams.Stream> onlineStreams = new List<TwitchLib.Api.V5.Models.Streams.Stream>();
@@ -59,9 +61,9 @@ namespace Rabbot.Services
                 try
                 {
                     await Task.Delay(intervallTime * 1000);
-                    foreach (var username in usernames)
+                    foreach (var twitchChannel in twitchChannels)
                     {
-                        var userId = twitchClient.Users.GetUserByNameAsync(username).Result.Matches?.FirstOrDefault()?.Id;
+                        var userId = twitchClient.Users.GetUserByNameAsync(twitchChannel.ChannelName).Result.Matches?.FirstOrDefault()?.Id;
                         if (userId == null)
                             continue;
                         var stream = twitchClient.Streams?.GetStreamByUserAsync(userId).Result?.Stream;
@@ -70,7 +72,7 @@ namespace Rabbot.Services
                             if (!onlineStreams.Contains(stream))
                             {
                                 onlineStreams.Add(stream);
-                                OnStreamOnline?.Invoke(this, stream);
+                                OnStreamOnline?.Invoke(this, new StreamEventArgs { Stream = stream, GuildId = twitchChannel.GuildId });
                             }
                         }
                         else
@@ -90,7 +92,7 @@ namespace Rabbot.Services
             }
         }
 
-        private void Twitch_OnStreamOnline(object sender, TwitchLib.Api.V5.Models.Streams.Stream e)
+        private void Twitch_OnStreamOnline(object sender, StreamEventArgs e)
         {
             try
             {
@@ -106,53 +108,52 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task StreamOnline(TwitchLib.Api.V5.Models.Streams.Stream e)
+        private async Task StreamOnline(StreamEventArgs e)
         {
             try
             {
-                using (var db = _databaseService.Open<RabbotContext>())
+                using var db = _databaseService.Open<RabbotContext>();
+                var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == Convert.ToUInt64(e.Stream.Id));
+                if (dbStream != null)
+                    return;
+
+                await db.Streams.AddAsync(new StreamEntity { StreamId = Convert.ToUInt64(e.Stream.Id), StartTime = e.Stream.CreatedAt, Title = e.Stream.Channel.Status, TwitchUserId = Convert.ToUInt64(e.Stream.Channel.Id) });
+                await db.SaveChangesAsync();
+
+                var dbGuild = db.Guilds.AsQueryable().FirstOrDefault(p => p.GuildId == e.GuildId);
+                if (dbGuild == null)
+                    return;
+
+                if (dbGuild.StreamChannelId != null)
                 {
-                    var dbStream = db.Streams.FirstOrDefault(p => p.StreamId == Convert.ToUInt64(e.Id));
-                    if (dbStream != null)
+                    var guild = _client.Guilds.FirstOrDefault(p => p.Id == dbGuild.GuildId);
+                    if (guild == null)
+                        return;
+                    if (!(guild.Channels.FirstOrDefault(p => p.Id == dbGuild.StreamChannelId) is SocketTextChannel channel))
                         return;
 
-                    await db.Streams.AddAsync(new StreamEntity { StreamId = Convert.ToUInt64(e.Id), StartTime = e.CreatedAt, Title = e.Channel.Status, TwitchUserId = Convert.ToUInt64(e.Channel.Id) });
-                    await db.SaveChangesAsync();
-
-                    foreach (var item in db.Guilds)
+                    var embed = new EmbedBuilder();
+                    var author = new EmbedAuthorBuilder
                     {
-                        if (item.StreamChannelId != null)
-                        {
-                            var guild = _client.Guilds.FirstOrDefault(p => p.Id == item.GuildId);
-                            if (guild == null)
-                                continue;
-                            if (!(guild.Channels.FirstOrDefault(p => p.Id == item.StreamChannelId) is SocketTextChannel channel))
-                                continue;
+                        Name = e.Stream.Channel.DisplayName,
+                        IconUrl = e.Stream.Channel.Logo
+                    };
+                    embed.WithAuthor(author);
+                    embed.WithTitle(e.Stream.Channel.Status);
+                    embed.WithUrl($"https://www.twitch.tv/{e.Stream.Channel.Name}");
+                    if (!string.IsNullOrWhiteSpace(e.Stream.Channel.Logo))
+                        embed.WithThumbnailUrl(e.Stream.Channel.Logo);
+                    if (!string.IsNullOrWhiteSpace(e.Stream.Game))
+                        embed.AddField("Game", e.Stream.Game, true);
+                    embed.AddField("Viewers", e.Stream.Viewers.ToString(), true);
+                    var ThumbnailUrl = e.Stream.Preview.Large.Replace("{width}", "1280").Replace("{height}", "720");
+                    if (!string.IsNullOrWhiteSpace(ThumbnailUrl))
+                        embed.WithImageUrl(ThumbnailUrl);
+                    if (e.Stream.Channel.Name == "swaight")
+                        await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! Ich bin live auf https://www.twitch.tv/{e.Stream.Channel.Name} Schaut mal vorbei :)", false, embed.Build());
+                    else
+                        await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! {e.Stream.Channel.DisplayName} ist live auf https://www.twitch.tv/{e.Stream.Channel.Name} Schaut mal vorbei :)", false, embed.Build());
 
-                            var embed = new EmbedBuilder();
-                            var author = new EmbedAuthorBuilder
-                            {
-                                Name = e.Channel.DisplayName,
-                                IconUrl = e.Channel.Logo
-                            };
-                            embed.WithAuthor(author);
-                            embed.WithTitle(e.Channel.Status);
-                            embed.WithUrl($"https://www.twitch.tv/{e.Channel.Name}");
-                            if (!string.IsNullOrWhiteSpace(e.Channel.Logo))
-                                embed.WithThumbnailUrl(e.Channel.Logo);
-                            if (!string.IsNullOrWhiteSpace(e.Game))
-                                embed.AddField("Game", e.Game, true);
-                            embed.AddField("Viewers", e.Viewers.ToString(), true);
-                            var ThumbnailUrl = e.Preview.Large.Replace("{width}", "1280").Replace("{height}", "720");
-                            if (!string.IsNullOrWhiteSpace(ThumbnailUrl))
-                                embed.WithImageUrl(ThumbnailUrl);
-                            if (e.Channel.Name == "swaight")
-                                await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! Ich bin live auf https://www.twitch.tv/{e.Channel.Name} Schaut mal vorbei :)", false, embed.Build());
-                            else
-                                await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! {e.Channel.DisplayName} ist live auf https://www.twitch.tv/{e.Channel.Name} Schaut mal vorbei :)", false, embed.Build());
-
-                        }
-                    }
                 }
             }
             catch (Exception ex)
@@ -161,6 +162,11 @@ namespace Rabbot.Services
             }
         }
 
-        public event EventHandler<TwitchLib.Api.V5.Models.Streams.Stream> OnStreamOnline;
+        public event EventHandler<StreamEventArgs> OnStreamOnline;
+    }
+    public class StreamEventArgs
+    {
+        public TwitchLib.Api.V5.Models.Streams.Stream Stream { get; set; }
+        public ulong GuildId { get; set; }
     }
 }
