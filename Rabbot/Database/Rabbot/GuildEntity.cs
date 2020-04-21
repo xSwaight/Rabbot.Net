@@ -45,5 +45,6 @@ namespace Rabbot.Database.Rabbot
         public List<RoleEntity> Roles { get; set; } = new List<RoleEntity>();
         public List<AttackEntity> Attacks { get; set; } = new List<AttackEntity>();
         public List<TwitchChannelEntity> TwitchChannels { get; set; } = new List<TwitchChannelEntity>();
+        public List<StreamEntity> Streams { get; set; } = new List<StreamEntity>();
     }
 }

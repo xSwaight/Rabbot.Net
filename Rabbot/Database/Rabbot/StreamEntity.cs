@@ -18,5 +18,8 @@ namespace Rabbot.Database.Rabbot
         public DateTime StartTime { get; set; }
         [Column]
         public string Title { get; set; }
+        [Column]
+        public ulong AnnouncedGuildId { get; set; }
+        public GuildEntity Guild { get; set; }
     }
 }

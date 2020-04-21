@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rabbot.Database;
 
 namespace Rabbot.Database.Migrations
 {
     [DbContext(typeof(RabbotContext))]
-    partial class RabbotContextModelSnapshot : ModelSnapshot
+    [Migration("20200421190937_add_AnnouncedGuildId_column")]
+    partial class add_AnnouncedGuildId_column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

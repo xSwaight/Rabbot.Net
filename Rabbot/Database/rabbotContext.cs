@@ -278,6 +278,13 @@ namespace Rabbot.Database
                     .WithMany(p => p.TwitchChannels)
                     .HasForeignKey(x => x.GuildId);
             });
+
+            //Streams
+            modelBuilder.Entity<StreamEntity>(entity => {
+                entity.HasOne(d => d.Guild)
+                    .WithMany(p => p.Streams)
+                    .HasForeignKey(x => x.AnnouncedGuildId);
+            });
         }
     }
 }
