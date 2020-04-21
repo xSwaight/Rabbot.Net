@@ -34,8 +34,6 @@ namespace Rabbot.Services
                 var twitchClient = new V5();
                 twitchClient.Settings.ClientId = Config.Bot.TwitchToken;
                 twitchClient.Settings.AccessToken = Config.Bot.TwitchAccessToken;
-
-                List<string> usernames = new List<string> { "swaight", "cranbeere" };
                 this.OnStreamOnline += Twitch_OnStreamOnline;
                 new Task(async () => await CheckStreamStatus(twitchClient, 60), TaskCreationOptions.LongRunning).Start();
                 _logger.Information($"{nameof(TwitchService)}: Loaded successfully");
@@ -49,18 +47,17 @@ namespace Rabbot.Services
 
         private async Task CheckStreamStatus(V5 twitchClient, int intervallTime)
         {
-            using var db = _databaseService.Open<RabbotContext>();
-
-            var twitchChannels = db.TwitchChannels.ToList();
-            if (!twitchChannels.Any())
-                return;
-
             List<TwitchLib.Api.V5.Models.Streams.Stream> onlineStreams = new List<TwitchLib.Api.V5.Models.Streams.Stream>();
             while (true)
             {
                 try
                 {
                     await Task.Delay(intervallTime * 1000);
+                    using var db = _databaseService.Open<RabbotContext>();
+                    var twitchChannels = db.TwitchChannels.ToList();
+                    if (!twitchChannels.Any())
+                        continue;
+
                     foreach (var twitchChannel in twitchChannels)
                     {
                         var userId = twitchClient.Users.GetUserByNameAsync(twitchChannel.ChannelName).Result.Matches?.FirstOrDefault()?.Id;

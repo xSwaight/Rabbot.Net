@@ -92,7 +92,7 @@ namespace Rabbot.Commands
                 foreach (var guild in Context.Client.Guilds)
                 {
                     var dbGuild = db.Guilds.FirstOrDefault(p => p.GuildId == guild.Id);
-                    if(dbGuild == null)
+                    if (dbGuild == null)
                     {
                         await db.Guilds.AddAsync(new GuildEntity { GuildId = guild.Id, GuildName = guild.Name });
                     }
@@ -854,6 +854,83 @@ namespace Rabbot.Commands
                 eb.WithTitle($"Seite {page} von {goodwords.PageCount}");
                 await Context.Channel.SendMessageAsync(null, false, eb.Build());
             }
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("streamers", RunMode = RunMode.Async)]
+        public async Task Streamers(int page = 1)
+        {
+            if (page < 1)
+                return;
+
+            using var db = _databaseService.Open<RabbotContext>();
+            var streamers = db.TwitchChannels.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).ToList().OrderBy(p => p.ChannelName).ToPagedList(page, 25);
+            if (page > streamers.PageCount && streamers.PageCount != 0)
+                return;
+
+            var streamChannelId = db.Guilds.AsQueryable().FirstOrDefault(p => p.GuildId == Context.Guild.Id)?.StreamChannelId;
+            bool hasStreamChannel = streamChannelId != null;
+            string mentionStreamChannel = string.Empty;
+            if (hasStreamChannel)
+            {
+                var streamChannel = Context.Guild.TextChannels.FirstOrDefault(p => p.Id == streamChannelId);
+                if (streamChannel != null)
+                    mentionStreamChannel = streamChannel.Mention;
+                else
+                    hasStreamChannel = false;
+            }
+
+            var eb = new EmbedBuilder();
+            eb.Color = new Color(90, 92, 96);
+            string output = $"Aktueller Stream Announcement Channel: {(hasStreamChannel ? $"{mentionStreamChannel}" : $"Kein Channel gesetzt ({Config.Bot.CmdPrefix}setstream im gewünschten Channel zum setzen)")}\n**Alle eingetragenen Streamer:**\n\n";
+            foreach (var streamer in streamers)
+            {
+                output += $"**{streamer.ChannelName}**\n";
+            }
+            eb.WithDescription(output);
+            if (streamers.PageCount != 0)
+                eb.WithTitle($"Seite {page} von {streamers.PageCount}");
+            await Context.Channel.SendMessageAsync(null, false, eb.Build());
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("addStreamer", RunMode = RunMode.Async)]
+        public async Task AddStreamer(string username)
+        {
+            username = username.ToLower();
+            using var db = _databaseService.Open<RabbotContext>();
+            if (db.TwitchChannels.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.ChannelName == username).Any())
+            {
+                await ReplyAsync($"**Der Streamer ist bereits in der Liste!**");
+                return;
+            }
+
+            await db.TwitchChannels.AddAsync(new TwitchChannelEntity { ChannelName = username, GuildId = Context.Guild.Id });
+            await db.SaveChangesAsync();
+
+            var embed = new EmbedBuilder();
+            embed.WithDescription($"{username} wurde erfolgreich zur Streamer Liste hinzugefügt.");
+            embed.WithColor(new Color(90, 92, 96));
+            await ReplyAsync("", false, embed.Build());
+        }
+
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [Command("delStreamer", RunMode = RunMode.Async)]
+        public async Task DelStreamer(string username)
+        {
+            using var db = _databaseService.Open<RabbotContext>();
+            username = username.ToLower();
+            var twitchChannel = db.TwitchChannels.FirstOrDefault(p => p.ChannelName == username && p.GuildId == Context.Guild.Id);
+            if (twitchChannel == null)
+                return;
+
+            db.TwitchChannels.Remove(twitchChannel);
+            await db.SaveChangesAsync();
+
+            var embed = new EmbedBuilder();
+            embed.WithDescription($"{username} wurde erfolgreich von der Streamer Liste gelöscht.");
+            embed.WithColor(new Color(90, 92, 96));
+            await ReplyAsync("", false, embed.Build());
         }
 
         [RequireOwner]
