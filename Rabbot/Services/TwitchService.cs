@@ -138,11 +138,14 @@ namespace Rabbot.Services
                             embed.WithAuthor(author);
                             embed.WithTitle(e.Channel.Status);
                             embed.WithUrl($"https://www.twitch.tv/{e.Channel.Name}");
-                            embed.WithThumbnailUrl(e.Channel.Logo);
-                            embed.AddField("Game", e.Game, true);
-                            embed.AddField("Viewers", e.Viewers.ToString() ?? "0", true);
+                            if (!string.IsNullOrWhiteSpace(e.Channel.Logo))
+                                embed.WithThumbnailUrl(e.Channel.Logo);
+                            if (!string.IsNullOrWhiteSpace(e.Game))
+                                embed.AddField("Game", e.Game, true);
+                            embed.AddField("Viewers", e.Viewers.ToString(), true);
                             var ThumbnailUrl = e.Preview.Large.Replace("{width}", "1280").Replace("{height}", "720");
-                            embed.WithImageUrl(ThumbnailUrl);
+                            if (!string.IsNullOrWhiteSpace(ThumbnailUrl))
+                                embed.WithImageUrl(ThumbnailUrl);
                             if (e.Channel.Name == "swaight")
                                 await channel.SendMessageAsync($"Hi {guild.EveryoneRole.Mention}! Ich bin live auf https://www.twitch.tv/{e.Channel.Name} Schaut mal vorbei :)", false, embed.Build());
                             else
