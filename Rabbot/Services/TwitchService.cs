@@ -140,7 +140,7 @@ namespace Rabbot.Services
                             embed.WithUrl($"https://www.twitch.tv/{e.Channel.Name}");
                             embed.WithThumbnailUrl(e.Channel.Logo);
                             embed.AddField("Game", e.Game, true);
-                            embed.AddField("Viewers", e.Viewers, true);
+                            embed.AddField("Viewers", e.Viewers.ToString() ?? "0", true);
                             var ThumbnailUrl = e.Preview.Large.Replace("{width}", "1280").Replace("{height}", "720");
                             embed.WithImageUrl(ThumbnailUrl);
                             if (e.Channel.Name == "swaight")
