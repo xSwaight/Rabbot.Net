@@ -857,7 +857,7 @@ namespace Rabbot.Commands
         }
 
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        [Command("streamers", RunMode = RunMode.Async)]
+        [Command("streamer", RunMode = RunMode.Async)]
         public async Task Streamers(int page = 1)
         {
             if (page < 1)

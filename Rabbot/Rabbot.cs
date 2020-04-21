@@ -139,6 +139,7 @@ namespace Rabbot
             }
             catch (Exception e)
             {
+                _logger.Error(e, $"Error in {nameof(StartAsync)}");
                 Console.WriteLine($"Startup failed. Please check the config file.");
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey();

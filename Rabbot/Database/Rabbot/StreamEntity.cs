@@ -19,7 +19,7 @@ namespace Rabbot.Database.Rabbot
         [Column]
         public string Title { get; set; }
         [Column]
-        public ulong AnnouncedGuildId { get; set; }
+        public ulong? AnnouncedGuildId { get; set; }
         public GuildEntity Guild { get; set; }
     }
 }

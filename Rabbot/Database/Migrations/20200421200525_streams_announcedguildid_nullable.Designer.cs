@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rabbot.Database;
 
 namespace Rabbot.Database.Migrations
 {
     [DbContext(typeof(RabbotContext))]
-    partial class RabbotContextModelSnapshot : ModelSnapshot
+    [Migration("20200421200525_streams_announcedguildid_nullable")]
+    partial class streams_announcedguildid_nullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
