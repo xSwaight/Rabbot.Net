@@ -35,11 +35,11 @@ namespace Rabbot.Services
             var levelIcon = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "img", "NeonLevelIcons", $"{level}.png"));
 
             FontCollection fonts = new FontCollection();
-            FontFamily frutiger = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "Frutiger.ttf"));
+            FontFamily notoSansRegular = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "NotoSans-Regular.ttf"));
 
             var centerOptions = new TextGraphicsOptions { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
 
-            var nameFont = new Font(frutiger, 26, FontStyle.Regular);
+            var nameFont = new Font(notoSansRegular, 26, FontStyle.Regular);
             using (var image = new Image<Rgba32>(300, 100))
             {
                 int fontSize = (int)nameFont.Size;
@@ -70,7 +70,7 @@ namespace Rabbot.Services
             var expBar = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "img", "NeonProfile", "ExpBar.png"));
 
             FontCollection fonts = new FontCollection();
-            FontFamily frutiger = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "Frutiger.ttf"));
+            FontFamily notoSansRegular = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "NotoSans-Regular.ttf"));
             FontFamily geometos = fonts.Install(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "fonts", "Geometos.ttf"));
 
             var userAvatar = await GetAvatarAsync(profileInfo.AvatarUrl);
@@ -78,7 +78,7 @@ namespace Rabbot.Services
             var rightOptions = new TextGraphicsOptions { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
 
             //Fonts
-            var nameFont = new Font(frutiger, 24, FontStyle.Regular);
+            var nameFont = new Font(notoSansRegular, 24, FontStyle.Regular);
             var levelRankFont = new Font(geometos, 26, FontStyle.Bold);
             var expFont = new Font(geometos, 18, FontStyle.Bold);
             var expInfoFont = new Font(geometos, 11, FontStyle.Bold);
@@ -110,11 +110,11 @@ namespace Rabbot.Services
             }
 
             // Filter special chars
-            var encoding = Encoding.GetEncoding("ISO-8859-1",
-                                                new EncoderReplacementFallback(string.Empty),
-                                                new DecoderReplacementFallback());
-            var bytes = encoding.GetBytes(profileInfo.Name);
-            profileInfo.Name = encoding.GetString(bytes);
+            //var encoding = Encoding.GetEncoding("ISO-8859-1",
+            //                                    new EncoderReplacementFallback(string.Empty),
+            //                                    new DecoderReplacementFallback());
+            //var bytes = encoding.GetBytes(profileInfo.Name);
+            //profileInfo.Name = encoding.GetString(bytes);
 
             using (var output = new Image<Rgba32>(300, 175))
             {
@@ -148,7 +148,7 @@ namespace Rabbot.Services
                             .DrawImage(expBar, new Point(119, 130), opacity)
                             .DrawImage(mainImage, new Point(0, 0), 1f)
                             .DrawImage(levelIcon, new Point(80, 80), 1f)
-                            .DrawText(centerOptions, profileInfo.Name, nameFont, color, new PointF(195, 28))
+                            .DrawText(centerOptions, profileInfo.Name, nameFont, color, new PointF(195, 25))
                             .DrawText(centerOptions, profileInfo.Rank, levelRankFont, color, new PointF(155, 63))
                             .DrawText(centerOptions, profileInfo.Level, levelRankFont, color, new PointF(239, 63))
                             .DrawText(rightOptions, profileInfo.Exp, expFont, color, new PointF(110, 122))
@@ -172,7 +172,7 @@ namespace Rabbot.Services
             return outputStream;
         }
 
-        private Font ResizeFont(Font font, string text, int maxWidth)
+        private Font ResizeFont(Font font, string text, int maxWidth, FontStyle fontStyle = FontStyle.Regular)
         {
             int initialFonzSize = (int)font.Size;
             while (true)
@@ -180,7 +180,7 @@ namespace Rabbot.Services
                 if (TextMeasurer.Measure(text, new RendererOptions(font)).Width > maxWidth)
                 {
                     initialFonzSize--;
-                    font = new Font(font.Family, initialFonzSize, FontStyle.Regular);
+                    font = new Font(font.Family, initialFonzSize, fontStyle);
                 }
                 else
                     break;
