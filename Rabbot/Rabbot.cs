@@ -20,7 +20,7 @@ namespace Rabbot
 {
     public class Rabbot
     {
-        DiscordSocketClient _client;
+        DiscordShardedClient _client;
         CommandService _commandService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Rabbot));
         public async Task StartAsync()
@@ -42,13 +42,17 @@ namespace Rabbot
                     .WriteTo.File("logs/rabbot.log", rollingInterval: RollingInterval.Day)
                     .WriteTo.Console()
                     .CreateLogger();
+
+                var config = new DiscordSocketConfig
+                {
+                    TotalShards = 1,
+                    LogLevel = LogSeverity.Verbose,
+                    MessageCacheSize = 1000,
+                    ExclusiveBulkDelete = true
+                };
+
                 var services = new ServiceCollection()
-                    .AddSingleton(_client = new DiscordSocketClient(new DiscordSocketConfig
-                    {
-                        LogLevel = LogSeverity.Verbose,
-                        MessageCacheSize = 1000,
-                        ExclusiveBulkDelete = true
-                    }))
+                    .AddSingleton(_client = new DiscordShardedClient(config))
                     .AddSingleton(_commandService = new CommandService(new CommandServiceConfig
                     {
                         DefaultRunMode = RunMode.Async,

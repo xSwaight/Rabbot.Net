@@ -15,11 +15,11 @@ namespace Rabbot.Services
     public class AttackService
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AttackService));
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
 
         public AttackService(IServiceProvider services)
         {
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
         }
 
         public async Task CheckAttacks(RabbotContext db)

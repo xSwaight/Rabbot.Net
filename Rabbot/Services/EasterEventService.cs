@@ -16,14 +16,14 @@ namespace Rabbot.Services
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEventService));
 
         private List<EasterEvent> _events;
-        private DiscordSocketClient _client;
+        private DiscordShardedClient _client;
         private IServiceProvider _services;
         private Dictionary<ulong, ulong> _guildAnnouncementChannels;
 
         public EasterEventService(IServiceProvider services)
         {
             _services = services;
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
             _events = new List<EasterEvent>();
             _guildAnnouncementChannels = new Dictionary<ulong, ulong>();
             _client.ReactionAdded += ReactionAdded;

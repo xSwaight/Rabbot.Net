@@ -17,12 +17,12 @@ namespace Rabbot.Services
     public class YouTubeVideoService
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(YouTubeVideoService));
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private readonly DatabaseService _databaseService;
 
         public YouTubeVideoService(IServiceProvider services)
         {
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
             _databaseService = services.GetRequiredService<DatabaseService>();
 
             Task.Run(() =>

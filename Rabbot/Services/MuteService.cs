@@ -15,11 +15,11 @@ namespace Rabbot.Services
     public class MuteService
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(MuteService));
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
 
         public MuteService(IServiceProvider services)
         {
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
         }
         public async Task CheckMutes(RabbotContext db)
         {

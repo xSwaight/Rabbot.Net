@@ -14,7 +14,7 @@ namespace Rabbot.Services
 {
     public class WarnService
     {
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private readonly MuteService _muteService;
 
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(WarnService));
@@ -22,7 +22,7 @@ namespace Rabbot.Services
         public WarnService(IServiceProvider services)
         {
             _muteService = services.GetRequiredService<MuteService>();
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
         }
 
         public async Task CheckWarnings(RabbotContext db)

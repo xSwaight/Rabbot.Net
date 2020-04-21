@@ -15,7 +15,7 @@ namespace Rabbot
 {
     class CommandHandler
     {
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private readonly CommandService _commands;
         private readonly DatabaseService _databaseService;
         private readonly IServiceProvider _provider;
@@ -24,7 +24,7 @@ namespace Rabbot
         public CommandHandler(IServiceProvider provider)
         {
             _provider = provider;
-            _client = _provider.GetService<DiscordSocketClient>();
+            _client = _provider.GetService<DiscordShardedClient>();
             _commands = _provider.GetService<CommandService>();
             _databaseService = _provider.GetService<DatabaseService>();
             _client.MessageReceived += HandleCommandAsync;
@@ -34,7 +34,7 @@ namespace Rabbot
         {
             if (!(s is SocketUserMessage msg)) 
                 return;
-            var context = new SocketCommandContext(_client, msg);
+            var context = new ShardedCommandContext(_client, msg);
             if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.Bot.CmdPrefix + "hdf")))
                 return;
             int argPos = 0;

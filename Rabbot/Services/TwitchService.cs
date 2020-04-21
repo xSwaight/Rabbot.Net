@@ -15,12 +15,12 @@ namespace Rabbot.Services
 {
     class TwitchService
     {
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private readonly DatabaseService _databaseService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(TwitchService));
         public TwitchService(IServiceProvider services)
         {
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
             _databaseService = services.GetRequiredService<DatabaseService>();
             Task.Run(() =>
             {

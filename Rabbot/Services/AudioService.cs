@@ -16,12 +16,12 @@ namespace Rabbot.Services
     public class AudioService
     {
         private readonly ConcurrentDictionary<ulong, AudioClient> ConnectedChannels = new ConcurrentDictionary<ulong, AudioClient>();
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(AudioService));
 
         public AudioService(IServiceProvider services)
         {
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
             _client.UserVoiceStateUpdated += UserVoiceStateUpdated;
         }
 

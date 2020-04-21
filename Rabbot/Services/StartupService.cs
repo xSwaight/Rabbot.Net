@@ -10,14 +10,14 @@ namespace Rabbot.Services
 {
     public class StartupService
     {
-        private readonly DiscordSocketClient _discord;
+        private readonly DiscordShardedClient _discord;
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
 
         public StartupService(IServiceProvider services)
         {
             _services = services;
-            _discord = services.GetRequiredService<DiscordSocketClient>();
+            _discord = services.GetRequiredService<DiscordShardedClient>();
             _commands = services.GetRequiredService<CommandService>();
         }
 

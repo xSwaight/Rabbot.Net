@@ -20,7 +20,7 @@ namespace Rabbot.Services
 {
     class EventService
     {
-        private readonly DiscordSocketClient _client;
+        private readonly DiscordShardedClient _client;
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
         private readonly AttackService _attackService;
@@ -44,7 +44,7 @@ namespace Rabbot.Services
             _apiService = services.GetRequiredService<ApiService>();
             _easterEventService = services.GetRequiredService<EasterEventService>();
             _databaseService = services.GetRequiredService<DatabaseService>();
-            _client = services.GetRequiredService<DiscordSocketClient>();
+            _client = services.GetRequiredService<DiscordShardedClient>();
             InitializeAsync();
         }
 
@@ -64,7 +64,7 @@ namespace Rabbot.Services
             _client.MessageDeleted += MessageDeleted;
             _client.MessageUpdated += MessageUpdated;
             _client.JoinedGuild += JoinedGuild;
-            _client.Connected += ClientConnected;
+            _client.ShardConnected += ClientConnected;
             _client.ReactionAdded += ReactionAdded;
             _client.ReactionRemoved += ReactionRemoved;
             _client.UserUpdated += UserUpdated;
@@ -151,7 +151,7 @@ namespace Rabbot.Services
             {
                 if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                 {
-                    await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
+                    await Helper.UpdateSpin(channel, user, msg, _client.GetShardFor(guild), 0, false);
                     if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime endsAt))
                     {
                         var difference = endsAt.Subtract(DateTime.UtcNow);
@@ -271,7 +271,7 @@ namespace Rabbot.Services
                     {
                         if (reaction.Message.Value.Embeds.FirstOrDefault().Description.ToLower().Contains(username.ToLower()))
                         {
-                            await Helper.UpdateSpin(channel, user, msg, _client, 0, false);
+                            await Helper.UpdateSpin(channel, user, msg, _client.GetShardFor(guild), 0, false);
                             if (Helper.cooldown.TryGetValue(reaction.UserId, out DateTime endsAt))
                             {
                                 var difference = endsAt.Subtract(DateTime.UtcNow);
@@ -599,7 +599,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task ClientConnected()
+        private async Task ClientConnected(DiscordSocketClient client)
         {
 
             using (var db = _databaseService.Open<RabbotContext>())
