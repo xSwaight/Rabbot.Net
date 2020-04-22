@@ -494,16 +494,16 @@ namespace Rabbot
             return false;
         }
 
-        public static uint GetLevel(int? myExp)
+        public static int GetLevel(int myExp)
         {
             var level = exp.Where(y => y.Value.NeededEXP <= myExp).Max(x => x.Key);
-            return (uint)level;
+            return level;
         }
 
-        public static uint GetEXP(int? level)
+        public static int GetEXP(int? level)
         {
             var myExp = exp.Where(y => y.Key <= level).Max(x => x.Value.NeededEXP);
-            return (uint)myExp;
+            return myExp;
         }
 
         public static int GetReward(int? level)

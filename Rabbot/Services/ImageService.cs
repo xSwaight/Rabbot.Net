@@ -40,25 +40,23 @@ namespace Rabbot.Services
             var centerOptions = new TextGraphicsOptions { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
 
             var nameFont = new Font(notoSansRegular, 26, FontStyle.Regular);
-            using (var image = new Image<Rgba32>(300, 100))
-            {
-                int fontSize = (int)nameFont.Size;
+            using var image = new Image<Rgba32>(300, 100);
+            int fontSize = (int)nameFont.Size;
 
-                //Reduce font size if name is too long
-                nameFont = ResizeFont(nameFont, name, 180);
+            //Reduce font size if name is too long
+            nameFont = ResizeFont(nameFont, name, 180);
 
 
-                levelIcon.Mutate(x => x.Resize(80, 80));
-                image.Mutate(x => x
-                    .DrawImage(backgroundImage, new Point(0, 0), 1f)
-                    .DrawImage(levelIcon, new Point(10, 10), 1f)
-                    .DrawText(centerOptions, name, nameFont, Color.FromHex("#00FFFF"), new PointF(200, 25))
-                );
+            levelIcon.Mutate(x => x.Resize(80, 80));
+            image.Mutate(x => x
+                .DrawImage(backgroundImage, new Point(0, 0), 1f)
+                .DrawImage(levelIcon, new Point(10, 10), 1f)
+                .DrawText(centerOptions, name, nameFont, Color.FromHex("#00FFFF"), new PointF(200, 25))
+            );
 
-                image.SaveAsPng(outputStream);
-                outputStream.Position = 0;
-                return outputStream;
-            }
+            image.SaveAsPng(outputStream);
+            outputStream.Position = 0;
+            return outputStream;
         }
 
         public async Task<MemoryStream> DrawProfileAsync(UserProfileDto profileInfo, bool isAnimated = false)
@@ -109,54 +107,45 @@ namespace Rabbot.Services
                 frames.Add(userAvatar);
             }
 
-            // Filter special chars
-            //var encoding = Encoding.GetEncoding("ISO-8859-1",
-            //                                    new EncoderReplacementFallback(string.Empty),
-            //                                    new DecoderReplacementFallback());
-            //var bytes = encoding.GetBytes(profileInfo.Name);
-            //profileInfo.Name = encoding.GetString(bytes);
-
             using (var output = new Image<Rgba32>(300, 175))
             {
                 for (int i = 0; i < frames.Count; i++)
                 {
-                    using (var image = new Image<Rgba32>(300, 175))
-                    {
-                        int nameFontSize = (int)nameFont.Size;
-                        int expFontSize = (int)expFont.Size;
+                    using var image = new Image<Rgba32>(300, 175);
+                    int nameFontSize = (int)nameFont.Size;
+                    int expFontSize = (int)expFont.Size;
 
-                        //Reduce font size if name is too long
-                        nameFont = ResizeFont(nameFont, profileInfo.Name, 200);
+                    //Reduce font size if name is too long
+                    nameFont = ResizeFont(nameFont, profileInfo.Name, 200);
 
-                        //Reduce font size if current exp is too long
-                        expFont = ResizeFont(expFont, profileInfo.Exp, 62);
+                    //Reduce font size if current exp is too long
+                    expFont = ResizeFont(expFont, profileInfo.Exp, 62);
 
-                        float opacity = 1f;
-                        var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
-                        if (expBarWidth == 0)
-                            opacity = 0;
+                    float opacity = 1f;
+                    var expBarWidth = (int)(161 * (profileInfo.Percent / 100));
+                    if (expBarWidth == 0)
+                        opacity = 0;
 
-                        frames[i].Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay = frameDelay;
-                        Color color = Color.FromHex("#00FFFF");
+                    image.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay = frameDelay;
+                    Color color = Color.FromHex("#00FFFF");
 
-                        levelIcon.Mutate(x => x.Resize(27, 27));
-                        frames[i].Mutate(x => x.Resize(83, 83));
-                        expBar.Mutate(x => x.Resize(expBarWidth, 17));
-                        image.Mutate(x => x
-                            .DrawImage(backgroundImage, new Point(0, 0), 1f)
-                            .DrawImage(frames[i], new Point(10, 10), 1f)
-                            .DrawImage(expBar, new Point(119, 130), opacity)
-                            .DrawImage(mainImage, new Point(0, 0), 1f)
-                            .DrawImage(levelIcon, new Point(80, 80), 1f)
-                            .DrawText(centerOptions, profileInfo.Name, nameFont, color, new PointF(195, 25))
-                            .DrawText(centerOptions, profileInfo.Rank, levelRankFont, color, new PointF(155, 63))
-                            .DrawText(centerOptions, profileInfo.Level, levelRankFont, color, new PointF(239, 63))
-                            .DrawText(rightOptions, profileInfo.Exp, expFont, color, new PointF(110, 122))
-                            .DrawText(rightOptions, profileInfo.Goats, goatFont, color, new PointF(110, 155))
-                            .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, color, new PointF(204, 155))
-                        );
-                        output.Frames.InsertFrame(i, image.Frames.RootFrame);
-                    }
+                    levelIcon.Mutate(x => x.Resize(27, 27));
+                    frames[i].Mutate(x => x.Resize(83, 83));
+                    expBar.Mutate(x => x.Resize(expBarWidth, 17));
+                    image.Mutate(x => x
+                        .DrawImage(backgroundImage, new Point(0, 0), 1f)
+                        .DrawImage(frames[i], new Point(10, 10), 1f)
+                        .DrawImage(expBar, new Point(119, 130), opacity)
+                        .DrawImage(mainImage, new Point(0, 0), 1f)
+                        .DrawImage(levelIcon, new Point(80, 80), 1f)
+                        .DrawText(centerOptions, profileInfo.Name, nameFont, color, new PointF(195, 25))
+                        .DrawText(centerOptions, profileInfo.Rank, levelRankFont, color, new PointF(155, 63))
+                        .DrawText(centerOptions, profileInfo.Level, levelRankFont, color, new PointF(239, 63))
+                        .DrawText(rightOptions, profileInfo.Exp, expFont, color, new PointF(110, 122))
+                        .DrawText(rightOptions, profileInfo.Goats, goatFont, color, new PointF(110, 155))
+                        .DrawText(centerOptions, profileInfo.LevelInfo, expInfoFont, color, new PointF(204, 155))
+                    );
+                    output.Frames.InsertFrame(i, image.Frames.RootFrame);
                 }
                 if (!isAnimated)
                 {
@@ -190,13 +179,9 @@ namespace Rabbot.Services
 
         private async Task<Image> GetAvatarAsync(string url)
         {
-            using (var webClient = new WebClient())
-            {
-                using (var stream = await webClient.OpenReadTaskAsync(new Uri(url)))
-                {
-                    return Image.Load(stream);
-                }
-            }
+            using var webClient = new WebClient();
+            using var stream = await webClient.OpenReadTaskAsync(new Uri(url));
+            return Image.Load(stream);
         }
     }
 }

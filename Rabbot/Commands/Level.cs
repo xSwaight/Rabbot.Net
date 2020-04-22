@@ -54,7 +54,7 @@ namespace Rabbot.Commands
                 {
                     try
                     {
-                        uint level = Helper.GetLevel(top.Exp);
+                        int level = Helper.GetLevel(top.Exp);
                         var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
                         int exp = (int)top.Exp;
                         embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
@@ -461,12 +461,12 @@ namespace Rabbot.Commands
                     int exp = dbUser.Exp;
                     int goat = dbUser.Goats;
                     var level = Helper.GetLevel(exp);
-                    var neededExp1 = Helper.GetEXP((int)level);
-                    var neededExp2 = Helper.GetEXP((int)level + 1);
-                    var currentExp = exp - Helper.GetEXP((int)level);
-                    int totalExp = (int)exp;
-                    int currentLevelExp = (int)currentExp;
-                    int neededLevelExp = (int)neededExp2 - (int)neededExp1;
+                    var neededExp1 = Helper.GetEXP(level);
+                    var neededExp2 = Helper.GetEXP(level + 1);
+                    var currentExp = exp - Helper.GetEXP(level);
+                    int totalExp = exp;
+                    int currentLevelExp = currentExp;
+                    int neededLevelExp = neededExp2 - neededExp1;
                     double dblPercent = ((double)currentLevelExp / (double)neededLevelExp) * 100;
                     int percent = (int)dblPercent;
                     string progress = $"{currentLevelExp.ToFormattedString()} | {neededLevelExp.ToFormattedString()}";
