@@ -317,7 +317,7 @@ namespace Rabbot.Commands
             }
         }
 
-        [RequireOwner]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("setStream", RunMode = RunMode.Async)]
         public async Task SetStream()
         {
