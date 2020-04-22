@@ -28,7 +28,7 @@ namespace Rabbot.Services
             _cacheService = services.GetRequiredService<CacheService>();
         }
 
-        public MemoryStream DrawLevelUp(string name, uint level)
+        public MemoryStream DrawLevelUp(string name, int level)
         {
             MemoryStream outputStream = new MemoryStream();
             var backgroundImage = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "RabbotThemeNeon", "assets", "img", "NeonLevelUp", "LevelUp.png"));

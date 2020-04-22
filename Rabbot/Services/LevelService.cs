@@ -150,7 +150,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task SendLevelUp(SocketGuild dcGuild, GuildEntity guild, SocketUserMessage dcMessage, uint OldLevel, uint NewLevel)
+        private async Task SendLevelUp(SocketGuild dcGuild, GuildEntity guild, SocketUserMessage dcMessage, int OldLevel, int NewLevel)
         {
             var reward = Helper.GetReward((int)NewLevel);
             if (NewLevel > OldLevel && guild.Level == true)
@@ -205,7 +205,7 @@ namespace Rabbot.Services
             }
         }
 
-        private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, uint NewLevel)
+        private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, int NewLevel)
         {
             using (var db = _databaseService.Open<RabbotContext>())
             {
