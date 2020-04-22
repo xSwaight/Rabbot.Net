@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rabbot.Database;
 
 namespace Rabbot.Database.Migrations
 {
     [DbContext(typeof(RabbotContext))]
-    partial class RabbotContextModelSnapshot : ModelSnapshot
+    [Migration("20200422180319_add_id_column_to_streams_table")]
+    partial class add_id_column_to_streams_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

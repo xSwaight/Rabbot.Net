@@ -11,6 +11,8 @@ namespace Rabbot.Database.Rabbot
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        [Column]
         public ulong StreamId { get; set; }
         [Column]
         public ulong TwitchUserId { get; set; }
