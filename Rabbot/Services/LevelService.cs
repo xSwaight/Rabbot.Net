@@ -81,8 +81,9 @@ namespace Rabbot.Services
 
             if (_streakService.GetStreakLevel(feature) > 0)
             {
-                bonusPercent += _streakService.GetStreakLevel(feature) * Constants.ExpBoostPerLevel;
-                bonusInfo += $"**+{ (Constants.ExpBoostPerLevel * _streakService.GetStreakLevel(feature))}% EXP** ({ Constants.ExpBoostPerLevel}%  × { Constants.Fire} { _streakService.GetStreakLevel(feature).ToFormattedString()})\n";
+                double streakBonus = Math.Round(_streakService.GetStreakLevel(feature) * Constants.ExpBoostPerLevel, 2);
+                bonusPercent += streakBonus;
+                bonusInfo += $"**+{streakBonus}% EXP** ({ Constants.ExpBoostPerLevel}%  × { Constants.Fire} { _streakService.GetStreakLevel(feature).ToFormattedString()})\n";
             }
             if(bonusPercent > 0)
             {
