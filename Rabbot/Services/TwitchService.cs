@@ -35,7 +35,7 @@ namespace Rabbot.Services
                 twitchClient.Settings.ClientId = Config.Bot.TwitchToken;
                 twitchClient.Settings.AccessToken = Config.Bot.TwitchAccessToken;
                 this.OnStreamOnline += Twitch_OnStreamOnline;
-                new Task(async () => await CheckStreamStatus(twitchClient, 60), TaskCreationOptions.LongRunning).Start();
+                new Task(async () => await CheckStreamStatus(twitchClient, 300), TaskCreationOptions.LongRunning).Start();
                 _logger.Information($"{nameof(TwitchService)}: Loaded successfully");
             }
             catch (Exception e)
@@ -79,6 +79,7 @@ namespace Rabbot.Services
                                 onlineStreams.Remove(stream);
                             }
                         }
+                        await Task.Delay(1000);
                     }
                 }
                 catch (Exception e)
