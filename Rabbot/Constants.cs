@@ -41,7 +41,7 @@ namespace Rabbot
         public const string ShibeApi = "http://shibe.online/api/shibes";
         public const string CatApi = "http://aws.random.cat/meow";
         public const string FoxApi = "https://randomfox.ca/floof/";
-        public const string CoronaApi = "https://corona.lmao.ninja/countries";
+        public const string CoronaApi = "https://corona.lmao.ninja/v2/countries";
         public const string RemnantsPlayerApi = "https://api.remdb.net/playercount";
         #endregion
 

@@ -6,6 +6,7 @@ namespace Rabbot.Models.API
 {
     public class CoronaStatsDto
     {
+        public long Updated { get; set; }
         public string Country { get; set; }
         public CountryInfoDto CountryInfo { get; set; }
         public int? Cases { get; set; }
@@ -17,6 +18,9 @@ namespace Rabbot.Models.API
         public int? Critical { get; set; }
         public double? CasesPerOneMillion { get; set; }
         public double? DeathsPerOneMillion { get; set; }
+        public int? Tests { get; set; }
+        public double? TestsPerOneMillion { get; set; }
+        public string Continent { get; set; }
 
         public override string ToString()
         {

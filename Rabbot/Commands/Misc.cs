@@ -390,7 +390,8 @@ namespace Rabbot.Commands
                 int counter = 1;
                 foreach (var countryStats in coronaStats)
                 {
-                    builder.Append($"**{counter}. {countryStats.Country}**\nFälle: **{countryStats.Cases.Value.ToFormattedString()}** | Heutige Fälle: **{countryStats.TodayCases.Value.ToFormattedString()}** | Heutige Tode: **{countryStats.TodayDeaths.Value.ToFormattedString()}**\n\n");
+                    DateTimeOffset lastUpdate = DateTimeOffset.FromUnixTimeMilliseconds(countryStats.Updated);
+                    builder.Append($"**{counter}. {countryStats.Country}** ({lastUpdate.DateTime.ToFormattedString()})\nFälle: **{countryStats.Cases.Value.ToFormattedString()}** | Tests: **{countryStats.Tests.Value.ToFormattedString()}** | Heutige Fälle: **{countryStats.TodayCases.Value.ToFormattedString()}** | Heutige Tode: **{countryStats.TodayDeaths.Value.ToFormattedString()}**\n\n");
                     counter++;
                 }
                 embed.Color = new Color(4, 255, 0);
@@ -413,18 +414,21 @@ namespace Rabbot.Commands
                     Name = countryStats.Country,
                     IconUrl = countryStats.CountryInfo.Flag
                 };
+                DateTimeOffset lastUpdate = DateTimeOffset.FromUnixTimeMilliseconds(countryStats.Updated);
                 embed.WithAuthor(author);
                 embed.WithDescription($"Corona Statistiken von {countryStats.Country}:");
                 embed.AddField("Fälle gesamt", $"**{countryStats.Cases.Value.ToFormattedString()}**", true);
                 embed.AddField("Tode gesamt", $"**{countryStats.Deaths.Value.ToFormattedString()}**", true);
                 embed.AddField("Geheilte gesamt", $"**{countryStats.Recovered.Value.ToFormattedString()}**", true);
+                embed.AddField("Tests gesamt", $"**{countryStats.Tests.Value.ToFormattedString()}**", true);
                 embed.AddField("Aktive Fälle", $"**{countryStats.Active.Value.ToFormattedString()}**", true);
                 embed.AddField("Kritische Fälle", $"**{countryStats.Critical.Value.ToFormattedString()}**", true);
                 embed.AddField("Fälle heute", $"**{countryStats.TodayCases.Value.ToFormattedString()}**", true);
-                embed.AddField("Tode heute", $"**{countryStats.TodayDeaths.Value.ToFormattedString()}**");
+                embed.AddField("Tode heute", $"**{countryStats.TodayDeaths.Value.ToFormattedString()}**", true);
                 embed.AddField("Fälle pro 1 mio. Einwohner", $"**{(countryStats.CasesPerOneMillion.HasValue ? countryStats.CasesPerOneMillion.Value.ToString() : "0") }**", true);
                 embed.AddField("Tode pro 1 mio. Einwohner", $"**{(countryStats.DeathsPerOneMillion.HasValue ? countryStats.DeathsPerOneMillion.Value.ToString() : "0") }**", true);
-                embed.WithFooter($"Daten vom {DateTime.Now.ToFormattedString()} Uhr");
+                embed.AddField("Tests pro 1 mio. Einwohner", $"**{(countryStats.TestsPerOneMillion.HasValue ? countryStats.TestsPerOneMillion.Value.ToString() : "0") }**", true);
+                embed.WithFooter($"Daten vom {lastUpdate.DateTime.ToFormattedString()} Uhr");
                 embed.Color = new Color(4, 255, 0);
                 await Context.Channel.SendMessageAsync("", false, embed.Build());
             }
