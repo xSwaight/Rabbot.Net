@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using System;
 using System.Collections.Generic;
@@ -9,17 +8,19 @@ namespace Rabbot.Services
 {
     public class DatabaseService
     {
-        private readonly IServiceProvider _serviceProvider;
+        public static DatabaseService Instance { get; set; } = new DatabaseService();
+        private DbContextOptions<RabbotContext> options;
 
-        public DatabaseService(IServiceProvider serviceProvider)
+        public DatabaseService()
         {
-            _serviceProvider = serviceProvider;
+            var builder = new DbContextOptionsBuilder<RabbotContext>();
+            builder.UseMySql(Config.Bot.ConnectionString);
+            options = builder.Options;
         }
 
-        public TContext Open<TContext>()
-            where TContext : DbContext
+        public RabbotContext Open()
         {
-            return _serviceProvider.GetRequiredService<TContext>();
+            return new RabbotContext(options);
         }
     }
 }

@@ -19,11 +19,7 @@ namespace Rabbot
 {
     public class Helper
     {
-        private static DatabaseService _databaseService;
-        public Helper(DatabaseService databaseService)
-        {
-            _databaseService = databaseService;
-        }
+        private static DatabaseService Database => DatabaseService.Instance;
 
         public readonly static Dictionary<int, StallDto> stall = new Dictionary<int, StallDto> {
             { 0, new StallDto{Level = 1, Name = "Wiese Lv. 1", Capacity = 2000, Attack = 1, Defense = 1, Jackpot = 500, MaxOutput = 40, MaxPot = 1000 } },
@@ -254,7 +250,7 @@ namespace Rabbot
                 if (msg.Author.Id != client.CurrentUser.Id)
                     return;
 
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var dbUser = db.Features.FirstOrDefault(p => p.GuildId == user.Guild.Id && p.UserId == user.Id);
@@ -467,7 +463,7 @@ namespace Rabbot
 
         public static ulong? GetBotChannel(ICommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 if (!db.Guilds.AsQueryable().Where(p => p.GuildId == context.Guild.Id).Any())
                 {

@@ -19,12 +19,7 @@ namespace Rabbot.Commands
     public class CombiCmd : ModuleBase<SocketCommandContext>
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CombiCmd));
-        private readonly DatabaseService _databaseService;
-
-        public CombiCmd(IServiceProvider services)
-        {
-            _databaseService = services.GetRequiredService<DatabaseService>();
-        }
+        private DatabaseService Database => DatabaseService.Instance;
 
         [Command("addCombi", RunMode = RunMode.Async)]
         [BotCommand]
@@ -43,7 +38,7 @@ namespace Rabbot.Commands
                 return;
             }
 
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 if (db.Combis.ToList().Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Count() >= 5)
                 {
@@ -82,7 +77,7 @@ namespace Rabbot.Commands
         {
             if (user == null)
                 user = Context.User as SocketGuildUser;
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var combis = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == user.Id || p.CombiUserId == user.Id));
 
@@ -114,7 +109,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task DelCombi(int id)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
@@ -140,7 +135,7 @@ namespace Rabbot.Commands
         [Cooldown(30)]
         public async Task AcceptCombi(int id)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var combi = db.Combis.Include(p => p.User).Include(p => p.CombiUser).Where(p => p.GuildId == Context.Guild.Id && (p.UserId == Context.User.Id || p.CombiUserId == Context.User.Id)).Skip(id - 1)?.FirstOrDefault();
 
@@ -172,7 +167,7 @@ namespace Rabbot.Commands
         {
             if (page < 1)
                 return;
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var ranking = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.CombiExp).ToPagedList(page, 10);

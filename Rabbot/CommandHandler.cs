@@ -17,7 +17,7 @@ namespace Rabbot
     {
         private readonly DiscordShardedClient _client;
         private readonly CommandService _commands;
-        private readonly DatabaseService _databaseService;
+        private DatabaseService Database => DatabaseService.Instance;
         private readonly IServiceProvider _provider;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(CommandHandler));
 
@@ -26,7 +26,6 @@ namespace Rabbot
             _provider = provider;
             _client = _provider.GetService<DiscordShardedClient>();
             _commands = _provider.GetService<CommandService>();
-            _databaseService = _provider.GetService<DatabaseService>();
             _client.MessageReceived += HandleCommandAsync;
         }
 
@@ -65,7 +64,7 @@ namespace Rabbot
             if (!matches.Any(p => p.Value.Contains(context.Client.CurrentUser.Id.ToString())))
                 return;
 
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 if (!db.RandomAnswers.Any())
                     return;

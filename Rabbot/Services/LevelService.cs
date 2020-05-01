@@ -18,13 +18,12 @@ namespace Rabbot.Services
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(LevelService));
         private readonly StreakService _streakService;
-        private readonly DatabaseService _databaseService;
+        private DatabaseService Database => DatabaseService.Instance;
         private readonly ImageService _imageService;
 
         public LevelService(IServiceProvider services)
         {
             _streakService = services.GetRequiredService<StreakService>();
-            _databaseService = services.GetRequiredService<DatabaseService>();
             _imageService = services.GetRequiredService<ImageService>();
         }
 
@@ -99,7 +98,7 @@ namespace Rabbot.Services
         {
             var dcMessage = msg as SocketUserMessage;
             var dcGuild = ((SocketGuildChannel)msg.Channel).Guild;
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var guild = db.Guilds.FirstOrDefault(p => p.GuildId == dcGuild.Id) ?? db.Guilds.AddAsync(new GuildEntity { GuildId = dcGuild.Id }).Result.Entity;
                 var EXP = db.Features.Include(p => p.User).Where(p => p.UserId == msg.Author.Id && p.GuildId == dcGuild.Id).Include(p => p.Inventory).FirstOrDefault() ?? db.Features.AddAsync(new FeatureEntity { Exp = 0, UserId = msg.Author.Id, GuildId = dcGuild.Id }).Result.Entity;
@@ -158,7 +157,7 @@ namespace Rabbot.Services
                 string path = "";
                 using (dcMessage.Channel.EnterTypingState())
                 {
-                    using (var db = _databaseService.Open<RabbotContext>())
+                    using (var db = Database.Open())
                     {
                         var dcUser = dcGuild.Users.FirstOrDefault(p => p.Id == dcMessage.Author.Id);
                         string name = (dcUser as IGuildUser).Nickname?.Replace("<", "&lt;").Replace(">", "&gt;") ?? dcMessage.Author.Username?.Replace("<", "&lt;").Replace(">", "&gt;");
@@ -174,7 +173,7 @@ namespace Rabbot.Services
 
             if (NewLevel > OldLevel)
             {
-                using (var db = _databaseService.Open<RabbotContext>())
+                using (var db = Database.Open())
                 {
                     var feature = db.Features.FirstOrDefault(p => p.UserId == dcMessage.Author.Id && p.GuildId == dcGuild.Id);
 
@@ -207,7 +206,7 @@ namespace Rabbot.Services
 
         private async Task SetRoles(SocketGuild dcGuild, SocketUserMessage dcMessage, int NewLevel)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var roles = db.Roles.AsQueryable().Where(p => p.GuildId == dcGuild.Id);
 

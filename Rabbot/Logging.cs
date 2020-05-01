@@ -13,15 +13,11 @@ namespace Rabbot
 {
     public class Logging
     {
-        private static DatabaseService _databaseService;
-        public Logging(DatabaseService databaseService)
-        {
-            _databaseService = databaseService;
-        }
+        private static DatabaseService Database => DatabaseService.Instance;
 
         public static async Task Unmuted(SocketCommandContext context, IUser user)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -37,7 +33,7 @@ namespace Rabbot
 
         public static async Task Unmuted(SocketGuildUser user)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -53,7 +49,7 @@ namespace Rabbot
 
         public static async Task Mute(SocketCommandContext context, IUser user, string duration)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -70,7 +66,7 @@ namespace Rabbot
 
         public static async Task Delete(SocketCommandContext context, int amount)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -86,7 +82,7 @@ namespace Rabbot
 
         public static async Task Delete(IUser user, SocketCommandContext context, int amount)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -102,7 +98,7 @@ namespace Rabbot
 
         public static async Task Warn(IUser user, SocketCommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -118,7 +114,7 @@ namespace Rabbot
 
         public static async Task S4Role(SocketCommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -134,7 +130,7 @@ namespace Rabbot
 
         public static async Task PsbatRole(SocketCommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -150,7 +146,7 @@ namespace Rabbot
 
         public static async Task WarningMute(SocketGuildUser user)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -166,7 +162,7 @@ namespace Rabbot
 
         public static async Task Warning(SocketGuildUser user, SocketMessage msg, string badword)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -184,7 +180,7 @@ namespace Rabbot
 
         public static async Task CooldownMute(ICommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)
@@ -200,7 +196,7 @@ namespace Rabbot
 
         public static async Task BotCommandMute(ICommandContext context)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var Guild = db.Guilds.FirstOrDefault(p => p.GuildId == context.Guild.Id);
                 if (Guild.LogChannelId != null && Guild.Log == true)

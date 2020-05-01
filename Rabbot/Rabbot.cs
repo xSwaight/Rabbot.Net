@@ -75,11 +75,9 @@ namespace Rabbot
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
                     .AddSingleton<EasterEventService>()
-                    .AddSingleton<DatabaseService>()
                     .AddSingleton<ImageService>()
                     .AddSingleton<CacheService>()
-                    .AddSingleton<Helper>()
-                    .AddDbContext<RabbotContext>(x => x.UseMySql(Config.Bot.ConnectionString));
+                    .AddSingleton<Helper>();
 
 
                 //Add logging
@@ -124,7 +122,6 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<Logging>();
                 serviceProvider.GetRequiredService<MuteService>();
                 serviceProvider.GetRequiredService<WarnService>();
-                serviceProvider.GetRequiredService<DatabaseService>();
                 serviceProvider.GetRequiredService<EventService>();
                 serviceProvider.GetRequiredService<ApiService>();
                 serviceProvider.GetRequiredService<EasterEventService>();

@@ -22,13 +22,12 @@ namespace Rabbot.Commands
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Goats));
         private readonly StreakService _streakService;
         private readonly LevelService _levelService;
-        private readonly DatabaseService _databaseService;
+        private DatabaseService Database => DatabaseService.Instance;
 
         public Goats(IServiceProvider services)
         {
             _streakService = services.GetRequiredService<StreakService>();
             _levelService = services.GetRequiredService<LevelService>();
-            _databaseService = services.GetRequiredService<DatabaseService>();
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -36,7 +35,7 @@ namespace Rabbot.Commands
         [Summary("Du kannst 1x täglich eine Belohnung bekommen.")]
         public async Task Daily()
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var user = db.Users.FirstOrDefault(p => p.Id == Context.User.Id) ?? db.Users.AddAsync(new UserEntity { Id = Context.User.Id, Name = $"{Context.User.Username}#{Context.User.Discriminator}" }).Result.Entity;
                 var dbUser = db.Features.FirstOrDefault(p => p.UserId == Context.User.Id && p.GuildId == Context.Guild.Id);
@@ -73,7 +72,7 @@ namespace Rabbot.Commands
             int chance = rnd.Next(1, 18);
             int jackpot = rnd.Next(1, 101);
             EmbedBuilder embed = new EmbedBuilder();
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 if (chance > 1)
@@ -177,7 +176,7 @@ namespace Rabbot.Commands
         {
             if (amount > 0 && (!user.IsBot || user.Id == Context.Client.CurrentUser.Id))
             {
-                using (var db = _databaseService.Open<RabbotContext>())
+                using (var db = Database.Open())
                 {
 
                     var embed = new EmbedBuilder();
@@ -273,7 +272,7 @@ namespace Rabbot.Commands
                 await Context.Channel.SendMessageAsync(null, false, embed.Build());
                 return;
             }
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 if (!db.Users.Any(p => p.Id == target.Id))
                     await db.Users.AddAsync(new UserEntity { Id = target.Id, Name = $"{target.Username}#{target.Discriminator}" });
@@ -366,7 +365,7 @@ namespace Rabbot.Commands
         [BotCommand]
         public async Task Hirtenstab()
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 EmbedBuilder embed = new EmbedBuilder();
@@ -421,7 +420,7 @@ namespace Rabbot.Commands
         public async Task Zaun()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var features = db.Features
@@ -474,7 +473,7 @@ namespace Rabbot.Commands
         public async Task Expboost()
         {
             EmbedBuilder embed = new EmbedBuilder();
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var features = db.Features
@@ -534,7 +533,7 @@ namespace Rabbot.Commands
             if (user.IsBot)
                 return;
 
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var embed = new EmbedBuilder();
                 var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
@@ -565,7 +564,7 @@ namespace Rabbot.Commands
                 return;
 
             var embed = new EmbedBuilder();
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = DatabaseService.Instance.Open())
             {
                 var dbUser = db.Features.FirstOrDefault(p => p.UserId == user.Id && p.GuildId == Context.Guild.Id);
                 if (dbUser == null)
@@ -673,7 +672,7 @@ namespace Rabbot.Commands
         [Summary("Die Bestenliste sortiert nach Siegen")]
         public async Task Wins()
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var top25 = db.Features.Include(p => p.User).Where(p => p.Wins != 0 && p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Wins).Take(25);
@@ -699,7 +698,7 @@ namespace Rabbot.Commands
         [RequireBotPermission(GuildPermission.ManageNicknames)]
         public async Task Namechange([Remainder]string Name)
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var dbUser = db.Features.FirstOrDefault(p => p.GuildId == Context.Guild.Id && p.UserId == Context.User.Id);
 
@@ -750,7 +749,7 @@ namespace Rabbot.Commands
             {
                 if (amount < 1)
                     return;
-                using (var db = _databaseService.Open<RabbotContext>())
+                using (var db = Database.Open())
                 {
 
                     EmbedBuilder embed = new EmbedBuilder();
@@ -819,7 +818,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt die Chancen im aktuellen Pot an.")]
         public async Task Chance()
         {
-            using (var db = _databaseService.Open<RabbotContext>())
+            using (var db = Database.Open())
             {
 
                 var sum = db.Pots.AsQueryable().Where(p => p.GuildId == Context.Guild.Id).OrderByDescending(p => p.Goats).Sum(p => p.Goats);
