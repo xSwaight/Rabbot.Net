@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
+using Rabbot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace Rabbot.Preconditions
     public class BotCommand : PreconditionAttribute
     {
         bool AdminsAreLimited { get; set; }
+        private DatabaseService Database { get; set; } = new DatabaseService();
         public BotCommand(bool adminsAreLimited = false)
         {
             AdminsAreLimited = adminsAreLimited;
@@ -24,7 +26,7 @@ namespace Rabbot.Preconditions
             if (!AdminsAreLimited && context.User is IGuildUser user && user.GuildPermissions.ManageRoles)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            using (RabbotContext db = services.GetRequiredService<RabbotContext>())
+            using (var db = Database.Open())
             {
                 if (db.Guilds.AsQueryable().Where(p => p.GuildId == context.Guild.Id).Any())
                 {

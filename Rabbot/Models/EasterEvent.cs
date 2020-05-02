@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Database;
 using Rabbot.Database.Rabbot;
+using Rabbot.Services;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace Rabbot.Models
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EasterEvent));
         private readonly List<SocketTextChannel> _textChannels;
         private readonly IServiceProvider _services;
+        private DatabaseService Database { get; set; } = new DatabaseService();
 
         public EasterEvent(SocketGuild guild, IServiceProvider services)
         {
@@ -55,7 +57,7 @@ namespace Rabbot.Models
                         {
                             CurrentMessages.Remove(message);
                             await message.DeleteAsync();
-                            using (var db = _services.GetRequiredService<RabbotContext>())
+                            using (var db = Database.Open())
                             {
                                 var easterevent = db.EasterEvents.FirstOrDefault(p => p.MessageId == message.Id);
                                 if(easterevent != null)
@@ -80,7 +82,7 @@ namespace Rabbot.Models
             var message = await textChannel.SendMessageAsync($"{Constants.EggGoatR}");
             await message.AddReactionAsync(Constants.EggGoatL);
             CurrentMessages.Add(message);
-            using (var db = _services.GetRequiredService<RabbotContext>())
+            using (var db = Database.Open())
             {
                 await db.EasterEvents.AddAsync(new EasterEventEntity { MessageId = message.Id, SpawnTime = DateTime.Now });
                 await db.SaveChangesAsync();
@@ -97,7 +99,7 @@ namespace Rabbot.Models
             var author = Guild.Users.FirstOrDefault(p => p.Id == userId);
 
             int eggs = 0;
-            using (RabbotContext db = _services.GetRequiredService<RabbotContext>())
+            using (var db = Database.Open())
             {
                 var user = db.Users.FirstOrDefault(p => p.Id == userId) ?? db.Users.AddAsync(new UserEntity { Id = userId, Name = $"{author.Username}#{author.Discriminator}" }).Result.Entity;
                 var feature = db.Features.FirstOrDefault(p => p.GuildId == Guild.Id && p.UserId == userId) ?? db.Features.AddAsync(new FeatureEntity { UserId = userId, GuildId = Guild.Id }).Result.Entity;
