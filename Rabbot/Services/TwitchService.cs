@@ -63,7 +63,7 @@ namespace Rabbot.Services
                         if (userId == null)
                             continue;
                         var stream = twitchClient.Streams?.GetStreamByUserAsync(userId).Result?.Stream;
-                        if (stream != null)
+                        if (stream != null && stream.StreamType != "playlist")
                         {
                             if (!onlineStreams.Contains(stream))
                             {
