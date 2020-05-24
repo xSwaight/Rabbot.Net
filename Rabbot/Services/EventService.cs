@@ -572,6 +572,12 @@ namespace Rabbot.Services
 
                 if (message.Value.Author is SocketGuildUser dcUser)
                 {
+                    if (db.Rule.Any(p => p.GuildId == dcUser.Guild.Id))
+                    {
+                        if (message.Value.Channel.Id == db.Rule.First(p => p.GuildId == dcUser.Guild.Id).ChannelId)
+                            return;
+                    }
+
                     if (dcUser.IsBot)
                         return;
                     if (message.Value.Content.StartsWith(Config.Bot.CmdPrefix))
@@ -999,6 +1005,12 @@ namespace Rabbot.Services
 
             using (var db = Database.Open())
             {
+                if (db.Rule.Any(p => p.GuildId == dcUser.Guild.Id))
+                {
+                    if (msg.Channel.Id == db.Rule.First(p => p.GuildId == dcUser.Guild.Id).ChannelId)
+                        return;
+                }
+
                 SocketGuild dcGuild = dcUser.Guild;
                 if (db.BadWords.AsQueryable().Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.BadWord, StringComparison.OrdinalIgnoreCase) && !dcUser.GuildPermissions.ManageMessages) && !db.GoodWords.AsQueryable().Where(p => p.GuildId == dcGuild.Id).Any(p => Helper.ReplaceCharacter(msg.Content).Contains(p.GoodWord, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -1064,8 +1076,9 @@ namespace Rabbot.Services
                     return;
 
                 var memberRole = _client.Guilds.FirstOrDefault(p => p.Id == user.Guild.Id).Roles.FirstOrDefault(p => p.Name == "Mitglied");
-                if (memberRole != null)
+                if (memberRole != null && !db.Rule.Any(p => p.GuildId == user.Guild.Id))
                     await user.AddRoleAsync(memberRole);
+
                 var channelId = db.Guilds.FirstOrDefault(p => p.GuildId == user.Guild.Id).LogChannelId;
                 var embed = new EmbedBuilder();
                 embed.WithTitle($"{user.Username + "#" + user.Discriminator} joined the server!");

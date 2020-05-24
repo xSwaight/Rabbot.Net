@@ -31,6 +31,7 @@ namespace Rabbot.Database
         public DbSet<RoleEntity> Roles { get; set; }
         public DbSet<EasterEventEntity> EasterEvents { get; set; }
         public DbSet<TwitchChannelEntity> TwitchChannels { get; set; }
+        public DbSet<RulesAcceptEntity> Rule { get; set; }
 
         public RabbotContext(DbContextOptions<RabbotContext> options)
             : base(options)
@@ -284,6 +285,13 @@ namespace Rabbot.Database
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.Streams)
                     .HasForeignKey(x => x.AnnouncedGuildId);
+            });
+
+            //Rules
+            modelBuilder.Entity<RulesAcceptEntity>(entity => {
+                entity.HasOne(d => d.Guild)
+                    .WithMany(p => p.Rules)
+                    .HasForeignKey(x => x.GuildId);
             });
         }
     }

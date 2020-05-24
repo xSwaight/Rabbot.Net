@@ -1,5 +1,4 @@
-﻿using AnimatedGif;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
 using Rabbot.Models.API;
@@ -73,47 +72,6 @@ namespace Rabbot
                 return null;
 
             return new YouTubeVideoDto { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
-        }
-
-        public static IServiceCollection AddDbContext<TContext>(this IServiceCollection This,
-            Action<DbContextOptionsBuilder> optionsBuilder)
-            where TContext : DbContext
-        {
-            return This
-                .AddSingleton(x =>
-                {
-                    var builder = new DbContextOptionsBuilder<TContext>();
-                    optionsBuilder(builder);
-                    return builder.Options;
-                })
-                .AddTransient<TContext>()
-                .AddTransient<DbContext>(x => x.GetRequiredService<TContext>());
-        }
-
-        public static MemoryStream ToStream(this Image image)
-        {
-            var stream = new MemoryStream();
-            image.Save(stream, ImageFormat.Png);
-            image.Dispose();
-            stream.Position = 0;
-
-            return stream;
-        }
-
-        public static async Task<MemoryStream> ToStream(this Bitmap[] frames, int delay = 33)
-        {
-            var ms = new MemoryStream();
-            using (var gif = new AnimatedGifCreator(ms, delay))
-            {
-                foreach (var image in frames)
-                {
-                    await gif.AddFrameAsync(image, quality: GifQuality.Bit8);
-                }
-            }
-
-            ms.Position = 0;
-
-            return ms;
         }
     }
 }

@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rabbot.Database;
 
 namespace Rabbot.Database.Migrations
 {
     [DbContext(typeof(RabbotContext))]
-    partial class RabbotContextModelSnapshot : ModelSnapshot
+    [Migration("20200524185729_add_rulesettings_table")]
+    partial class add_rulesettings_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -578,9 +580,6 @@ namespace Rabbot.Database.Migrations
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<ulong>("ChannelId")
-                        .HasColumnType("bigint unsigned");
-
-                    b.Property<ulong>("RoleId")
                         .HasColumnType("bigint unsigned");
 
                     b.HasKey("GuildId");

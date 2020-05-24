@@ -77,6 +77,7 @@ namespace Rabbot
                     .AddSingleton<EasterEventService>()
                     .AddSingleton<ImageService>()
                     .AddSingleton<CacheService>()
+                    .AddSingleton<RuleAcceptService>()
                     .AddSingleton<Helper>();
 
 
@@ -90,22 +91,19 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<LoggingService>();
 
                 // Run Migrations
-                var contexts = serviceProvider.GetRequiredService<IEnumerable<DbContext>>();
-                foreach (var db in contexts)
-                {
-                    _logger.Information($"Checking database={db.GetType().Name}...");
+                var db = DatabaseService.Instance.Open();
+                _logger.Information($"Checking database={db.GetType().Name}...");
 
-                    using (db)
+                using (db)
+                {
+                    if (db.Database.GetPendingMigrations().Any())
                     {
-                        if (db.Database.GetPendingMigrations().Any())
-                        {
-                            _logger.Information($"Applying database={db.GetType().Name} migrations...");
-                            db.Database.Migrate();
-                        }
-                        else
-                        {
-                            _logger.Information($"{db.GetType().Name} is up2date!");
-                        }
+                        _logger.Information($"Applying database={db.GetType().Name} migrations...");
+                        db.Database.Migrate();
+                    }
+                    else
+                    {
+                        _logger.Information($"{db.GetType().Name} is up2date!");
                     }
                 }
 
@@ -127,6 +125,7 @@ namespace Rabbot
                 serviceProvider.GetRequiredService<EasterEventService>();
                 serviceProvider.GetRequiredService<ImageService>();
                 serviceProvider.GetRequiredService<CacheService>();
+                serviceProvider.GetRequiredService<RuleAcceptService>();
                 serviceProvider.GetRequiredService<Helper>();
 
                 new Task(() => RunConsoleCommand(), TaskCreationOptions.LongRunning).Start();

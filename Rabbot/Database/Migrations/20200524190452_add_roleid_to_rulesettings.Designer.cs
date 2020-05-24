@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rabbot.Database;
 
 namespace Rabbot.Database.Migrations
 {
     [DbContext(typeof(RabbotContext))]
-    partial class RabbotContextModelSnapshot : ModelSnapshot
+    [Migration("20200524190452_add_roleid_to_rulesettings")]
+    partial class add_roleid_to_rulesettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -7,9 +7,11 @@ using Rabbot.Services;
 using Serilog;
 using Serilog.Core;
 using System;
+using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TwitchLib.Api.Core.Models.Undocumented.ChannelPanels;
 
 namespace Rabbot
 {
@@ -31,7 +33,7 @@ namespace Rabbot
 
         private async Task HandleCommandAsync(SocketMessage s)
         {
-            if (!(s is SocketUserMessage msg)) 
+            if (!(s is SocketUserMessage msg))
                 return;
             var context = new ShardedCommandContext(_client, msg);
             if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.Bot.CmdPrefix + "hdf")))
@@ -40,6 +42,13 @@ namespace Rabbot
             IResult result = null;
             if (msg.HasStringPrefix(Config.Bot.CmdPrefix, ref argPos))
             {
+                using RabbotContext db = Database.Open();
+                if (db.Rule.Any(p => p.GuildId == context.Guild.Id))
+                {
+                    if (context.Channel.Id == db.Rule.First(p => p.GuildId == context.Guild.Id).ChannelId)
+                        return;
+                }
+
                 result = await _commands.ExecuteAsync(context, argPos, _provider);
                 LogCommandUsage(context, result);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
