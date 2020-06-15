@@ -42,51 +42,57 @@ namespace Rabbot.Commands
             _imageService = service.GetRequiredService<ImageService>();
         }
 
-        [Command("help", RunMode = RunMode.Async)]
+        [Command("help", RunMode = RunMode.Async), Alias("hilfe")]
         [BotCommand]
         [Cooldown(10)]
         [Summary("Zeigt diese Liste an.")]
-        public async Task Help(int seite = 1)
+        public async Task Help()
         {
             int pagesize = 15;
 
             List<CommandInfo> commands = _commandService.Commands.Where(p => p.Summary != null && p.Module.Name != "Administration" && !p.Module.IsSubmodule).ToList();
+            List<string> pages = new List<string>();
 
-            if (seite > Math.Ceiling((commands.Count() / (double)pagesize)) || seite < 1)
-                return;
-
-            string help = $"**Seite {seite}/{Math.Ceiling((commands.Count() / (double)pagesize))}**\n\n`(Parameter) -> Optionaler Parameter`\n`[Parameter] -> Pflicht Parameter`\n\n";
-
-            seite--;
-
-            foreach (var command in commands.OrderBy(p => p.Name).Skip((pagesize * seite)).Take(pagesize))
+            for (int i = 1; i <= Math.Ceiling((commands.Count() / (double)pagesize)); i++)
             {
-                string param = "";
-                string aliases = "";
+                string help = $"**Alle Commands:**\n\n`(Parameter) -> Optionaler Parameter`\n`[Parameter] -> Pflicht Parameter`\n\n";
 
-                foreach (var parameter in command.Parameters)
+                foreach (var command in commands.OrderBy(p => p.Name).Skip((pagesize * (i - 1))).Take(pagesize))
                 {
-                    if (parameter.IsOptional)
-                        param += $"({parameter}) ";
+                    string param = "";
+                    string aliases = "";
+
+                    foreach (var parameter in command.Parameters)
+                    {
+                        if (parameter.IsOptional)
+                            param += $"({parameter}) ";
+                        else
+                            param += $"[{parameter}] ";
+
+                    }
+
+                    foreach (var alias in command.Aliases)
+                    {
+                        if (alias != command.Name)
+                            aliases += $"{Config.Bot.CmdPrefix}{alias} ";
+                    }
+                    aliases = aliases.TrimEnd();
+                    if (!string.IsNullOrWhiteSpace(aliases))
+                        help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
                     else
-                        param += $"[{parameter}] ";
+                        help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
 
                 }
-
-                foreach (var alias in command.Aliases)
-                {
-                    if (alias != command.Name)
-                        aliases += $"{Config.Bot.CmdPrefix}{alias} ";
-                }
-                aliases = aliases.TrimEnd();
-                if (!string.IsNullOrWhiteSpace(aliases))
-                    help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n*Alternativen: {aliases}*\n`{command.Summary}`\n";
-                else
-                    help += $"**{Config.Bot.CmdPrefix}{command.Name} {param}**\n`{command.Summary}`\n";
-
+                pages.Add(help);
             }
 
-            await Context.Channel.SendMessageAsync(help);
+            var paginatedMessage = new PaginatedMessage()
+            {
+                Pages = pages.ToArray(),
+                Options = Globals.PaginatorOptions,
+                Color = new Color(255, 242, 212)
+            };
+            await PagedReplyAsync(paginatedMessage);
         }
 
         [Command("about", RunMode = RunMode.Async)]
@@ -441,7 +447,7 @@ namespace Rabbot.Commands
         [Summary("Zeigt eine Rangliste aller User nach Zeit an.")]
         public async Task Ranking()
         {
-            
+
             List<string> pages = new List<string>();
             var userRanks = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime);
             double pageSize = 10;
@@ -451,7 +457,7 @@ namespace Rabbot.Commands
             {
                 var users = userRanks.ToPagedList(i, 10);
                 string pageContent = "";
-                pageContent+= $"**Time Ranking**\n\n\n";
+                pageContent += $"**Time Ranking**\n\n\n";
                 int count = users.PageSize * users.PageNumber - (users.PageSize - 1);
                 foreach (var user in users)
                 {
