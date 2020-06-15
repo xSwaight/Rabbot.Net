@@ -95,6 +95,29 @@ namespace Rabbot.Commands
             await PagedReplyAsync(paginatedMessage);
         }
 
+        [Command("reaction")]
+        [RequireOwner]
+        public async Task Test_ReactionReply()
+        {
+            IUserMessage message = null;
+            message = await InlineReactionReplyAsync(new ReactionCallbackData("Upvote for EXP!\nLog:", null, true, true)
+                .WithCallback(new Emoji("👍"), c => AddEXP(c, message))
+                .WithCallback(new Emoji("👎"), c => c.Channel.SendMessageAsync("You've replied with 👎"))
+                );
+        }
+
+        private async Task AddEXP(SocketCommandContext context, IUserMessage message)
+        {
+            using (var db = Database.Open())
+            {
+                var user = db.Features.FirstOrDefault(p => p.UserId == context.User.Id && p.GuildId == context.Guild.Id);
+                user.Exp += 100;
+                await db.SaveChangesAsync();
+                var content = message.Content;
+                await message.ModifyAsync(p => p.Content = (content += "\nSuccessfully added 100 EXP!"));
+            }
+        }
+
         [Command("about", RunMode = RunMode.Async)]
         [Summary("Gibt Statistiken über den Bot aus.")]
         [BotCommand]

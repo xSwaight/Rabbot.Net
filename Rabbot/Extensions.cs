@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
 using Rabbot.Models.API;
@@ -72,6 +73,14 @@ namespace Rabbot
                 return null;
 
             return new YouTubeVideoDto { Title = firstItem.Title.Text, UploadDate = firstItem.PublishDate, Id = firstItem.Id.Substring(9), ChannelName = firstItem.Authors.First().Name };
+        }
+
+        public static SocketGuildUser GetGuildUser(this SocketUser user)
+        {
+            if (user is SocketGuildUser guildUser)
+                return guildUser;
+
+            return null;
         }
     }
 }
