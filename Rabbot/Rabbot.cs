@@ -7,14 +7,11 @@ using System;
 using Serilog;
 using Rabbot.Services;
 using Serilog.Events;
-using System.Collections;
-using System.Collections.Generic;
 using Sentry;
-using Serilog.Core;
 using System.Linq;
-using Rabbot.Database;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Discord.Addons.Interactive;
+using System.Reflection;
 
 namespace Rabbot
 {
@@ -74,11 +71,13 @@ namespace Rabbot
                     .AddSingleton<WarnService>()
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
+                    .AddSingleton<InteractiveService>()
                     .AddSingleton<EasterEventService>()
                     .AddSingleton<ImageService>()
                     .AddSingleton<CacheService>()
                     .AddSingleton<RuleAcceptService>()
                     .AddSingleton<Helper>();
+
 
 
                 //Add logging

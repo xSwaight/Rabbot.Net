@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
@@ -17,12 +18,14 @@ using Rabbot.ImageGenerator;
 using Rabbot.Models;
 using Rabbot.Preconditions;
 using Rabbot.Services;
+using Sentry.Protocol;
 using Serilog;
 using Serilog.Core;
+using TagLib.Ogg;
 
 namespace Rabbot.Commands
 {
-    public class Misc : ModuleBase<SocketCommandContext>
+    public class Misc : InteractiveBase
     {
         private readonly CommandService _commandService;
         private readonly StreakService _streakService;
@@ -366,14 +369,14 @@ namespace Rabbot.Commands
                 path = HtmlToImage.Generate(Helper.RemoveSpecialCharacters(user.Username) + "_Corona", html, 616, 616, ImageGenerator.ImageFormat.Png);
                 await Context.Channel.SendFileAsync(path);
             }
-            File.Delete(path);
+            System.IO.File.Delete(path);
         }
 
         [Command("corona", RunMode = RunMode.Async)]
         [BotCommand]
         [Summary("Zeigt Statistiken über den Corona Virus an. Ohne Parameter: Top 10 Länder nach Fallzahl. Mit Parameter: Statistiken zum Land")]
         [Cooldown(10)]
-        public async Task Corona([Remainder]string country = null)
+        public async Task Corona([Remainder] string country = null)
         {
             if (country == null)
             {
@@ -402,7 +405,7 @@ namespace Rabbot.Commands
             else
             {
                 var countryStats = _apiService.GetCoronaCountry(country);
-                if(countryStats == null)
+                if (countryStats == null)
                 {
                     await Context.Channel.SendMessageAsync($"**{country}** konnte nicht gefunden werden!");
                     return;
@@ -436,32 +439,44 @@ namespace Rabbot.Commands
         [Command("timerank", RunMode = RunMode.Async)]
         [BotCommand]
         [Summary("Zeigt eine Rangliste aller User nach Zeit an.")]
-        public async Task Ranking(int page = 1)
+        public async Task Ranking()
         {
-            if (page < 1)
-                return;
-            var users = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime).ToPagedList(page, 10);
-            if (page > users.PageCount)
-                return;
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.Description = $"Time Ranking Seite {users.PageNumber}/{users.PageCount}";
-            embed.WithColor(new Color(239, 220, 7));
-            int i = users.PageSize * users.PageNumber - (users.PageSize - 1);
-            foreach (var user in users)
-            {
-                try
-                {
-                    var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
-                    embed.AddField($"{i}. {user.Nickname ?? user.Username}", $"Seit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToFormattedString()})");
-                    i++;
+            
+            List<string> pages = new List<string>();
+            var userRanks = Context.Guild.Users.OrderBy(p => p.JoinedAt.Value.DateTime);
+            double pageSize = 10;
+            var pageCount = (int)Math.Ceiling((userRanks.Count() / pageSize));
 
-                }
-                catch (Exception e)
+            for (int i = 1; i <= pageCount; i++)
+            {
+                var users = userRanks.ToPagedList(i, 10);
+                string pageContent = "";
+                pageContent+= $"**Time Ranking**\n\n\n";
+                int count = users.PageSize * users.PageNumber - (users.PageSize - 1);
+                foreach (var user in users)
                 {
-                    _logger.Error(e, $"Error while adding fields to embed");
+                    try
+                    {
+                        var timespan = DateTime.Now - user.JoinedAt.Value.DateTime;
+                        pageContent += $"{count}. **{user.Nickname ?? user.Username}** \nSeit: **{Math.Floor(timespan.TotalDays)} Tagen** ({user.JoinedAt.Value.DateTime.ToFormattedString()})\n\n";
+                        count++;
+
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Error while adding fields to embed");
+                    }
                 }
+                pages.Add(pageContent);
             }
-            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+
+            var paginatedMessage = new PaginatedMessage()
+            {
+                Pages = pages.ToArray(),
+                Options = Globals.PaginatorOptions,
+                Color = new Color(239, 220, 7)
+            };
+            await PagedReplyAsync(paginatedMessage);
         }
 
         [Command("sensitivity", RunMode = RunMode.Async)]
@@ -483,7 +498,7 @@ namespace Rabbot.Commands
 
         [Command("say", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageMessages)]
-        public async Task Say([Remainder]string message)
+        public async Task Say([Remainder] string message)
         {
             ISocketMessageChannel channel = Context.Channel;
             if (TryGetChannel(message, Context, out ISocketMessageChannel newChannel, out string messageTag))
