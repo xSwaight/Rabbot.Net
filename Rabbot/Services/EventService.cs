@@ -179,6 +179,9 @@ namespace Rabbot.Services
                     using (var db = Database.Open())
                     {
                         var combi = db.Combis.FirstOrDefault(p => p.MessageId == reaction.MessageId);
+                        if (combi == null)
+                            return;
+
                         if (combi.CombiUserId != reaction.UserId && !reaction.User.Value.IsBot)
                         {
                             await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
