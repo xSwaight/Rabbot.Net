@@ -16,10 +16,12 @@ using Rabbot.Services;
 using Rabbot.Database.Rabbot;
 using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
+using Discord.Addons.Interactive;
+using System.Collections.Generic;
 
 namespace Rabbot.Commands
 {
-    public class Level : ModuleBase<SocketCommandContext>
+    public class Level : InteractiveBase
     {
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(Level));
         private readonly StreakService _streakService;
@@ -35,37 +37,38 @@ namespace Rabbot.Commands
         [Command("ranking", RunMode = RunMode.Async), Alias("top")]
         [BotCommand]
         [Summary("Zeigt die Top User sortiert nach EXP an.")]
-        public async Task Ranking(int page = 1)
+        public async Task Ranking()
         {
-            if (page < 1)
-                return;
             using (var db = Database.Open())
             {
+                var ranking = db.Features.AsQueryable().Include(p => p.User).Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp);
 
-                var ranking = db.Features.AsQueryable().Where(p => p.GuildId == Context.Guild.Id && p.HasLeft == false).OrderByDescending(p => p.Exp).ToPagedList(page, 10);
-                if (page > ranking.PageCount)
-                    return;
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.Description = $"Level Ranking Seite {ranking.PageNumber}/{ranking.PageCount}";
-                embed.WithColor(new Color(239, 220, 7));
-                int i = ranking.PageSize * ranking.PageNumber - (ranking.PageSize - 1);
-                foreach (var top in ranking)
+                List<string> pages = new List<string>();
+                int pageSize = 10;
+                var pageCount = (int)Math.Ceiling((ranking.Count() / (double)pageSize));
+                for (int i = 1; i <= pageCount; i++)
                 {
-                    try
-                    {
-                        int level = Helper.GetLevel(top.Exp);
-                        var user = db.Users.FirstOrDefault(p => p.Id == top.UserId);
-                        int exp = (int)top.Exp;
-                        embed.AddField($"{i}. {user.Name}", $"Level {level} ({exp.ToFormattedString()} EXP)");
-                        i++;
+                    var users = ranking.ToPagedList(i, pageSize);
+                    string pageContent = "";
 
-                    }
-                    catch (Exception e)
+                    pageContent += $"**Level Ranking**\n\n\n";
+                    int count = users.PageSize * users.PageNumber - (users.PageSize - 1);
+                    foreach (var user in users)
                     {
-                        _logger.Error(e, $"Error while adding fields to embed");
+                        int level = Helper.GetLevel(user.Exp);
+                        pageContent += $"{count}. **{user.User.Name}**\nLevel {level} ({user.Exp.ToFormattedString()} EXP)\n\n";
+                        count++;
                     }
+                    pages.Add(pageContent);
                 }
-                await Context.Channel.SendMessageAsync(null, false, embed.Build());
+
+                var paginatedMessage = new PaginatedMessage()
+                {
+                    Pages = pages.ToArray(),
+                    Options = Globals.PaginatorOptions,
+                    Color = new Color(239, 220, 7)
+                };
+                await PagedReplyAsync(paginatedMessage);
             }
         }
 
