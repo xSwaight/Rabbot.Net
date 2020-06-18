@@ -27,6 +27,9 @@ namespace Rabbot
         public static readonly Emote EggGoatR = Emote.Parse("<:egggoatr:695322635550064681>");
         public static readonly Emote EggGoatL = Emote.Parse("<:egggoatl:695336945760469013>");
 
+        public static readonly Emote Remnants = Emote.Parse("<:remnants:723134309694701580>");
+        public static readonly Emote Official = Emote.Parse("<:official:723134580231634986>");
+
         public static readonly Emoji Yes = new Emoji("✅");
         public static readonly Emoji No = new Emoji("❌");
 
