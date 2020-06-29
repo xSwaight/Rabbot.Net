@@ -541,15 +541,28 @@ namespace Rabbot.Commands
             await channel.SendMessageAsync(message);
         }
 
-        [Command("pett", RunMode = RunMode.Async)]
+        [Command("pet", RunMode = RunMode.Async)]
         [Cooldown(20)]
-        public async Task Pett(SocketGuildUser user = null)
+        public async Task Pet(SocketGuildUser user = null)
         {
             user ??= Context.User as SocketGuildUser;
 
-            using (var image = await _imageService.DrawPettGif(user.GetAvatarUrl(Discord.ImageFormat.Png, 1024) ?? user.GetDefaultAvatarUrl()))
+            using (var image = await _imageService.DrawPetGif(user.GetAvatarUrl(Discord.ImageFormat.Png, 1024) ?? user.GetDefaultAvatarUrl()))
             {
-                await Context.Channel.SendFileAsync(image, $"{user.Nickname ?? user.Username}_pett.gif");
+                await Context.Channel.SendFileAsync(image, $"{user.Nickname ?? user.Username}_pet.gif");
+            }
+        }
+
+        [Command("petemote", RunMode = RunMode.Async)]
+        [Cooldown(20)]
+        public async Task PetEmote(string emotetext)
+        {
+            if (!Emote.TryParse(emotetext, out Emote emote))
+                return;
+
+            using (var image = await _imageService.DrawPetGif(emote.Url, true))
+            {
+                await Context.Channel.SendFileAsync(image, $"{emote.Name}_pet.gif");
             }
         }
 

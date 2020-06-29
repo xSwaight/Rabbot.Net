@@ -178,20 +178,29 @@ namespace Rabbot.Services
             return font;
         }
 
-        public async Task<MemoryStream> DrawPettGif(string avatarUrl)
+        public async Task<MemoryStream> DrawPetGif(string avatarUrl, bool isEmote = false)
         {
             MemoryStream outputStream = new MemoryStream();
-            var pettGif = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "Templates", "assets", "pett.gif"));
-            var userAvatar = (await GetAvatarAsync(avatarUrl)).Clone(x => x.ConvertToAvatar(new Size(350, 350), 180));
+            var petGif = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "Templates", "assets", "pet.gif"));
+            Image petImage;
 
-            int frameDelay = pettGif.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay;
-            int frameCount = pettGif.Frames.Count - 1;
+            if (!isEmote)
+            {
+                petImage = (await GetAvatarAsync(avatarUrl)).Clone(x => x.ConvertToAvatar(new Size(350, 350), 180));
+            }
+            else
+            {
+                petImage = await GetAvatarAsync(avatarUrl);
+            }
+
+            int frameDelay = petGif.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay;
+            int frameCount = petGif.Frames.Count - 1;
             List<Image> frames = new List<Image>();
             for (int i = 0; i < frameCount; i++)
             {
                 try
                 {
-                    frames.Add(pettGif.Frames.CloneFrame(i));
+                    frames.Add(petGif.Frames.CloneFrame(i));
                 }
                 catch (Exception e)
                 {
@@ -208,11 +217,11 @@ namespace Rabbot.Services
                     image.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).DisposalMethod = GifDisposalMethod.RestoreToBackground;
 
                     // Animate Avatar
-                    userAvatar.Mutate(x => x.Resize(CalculateWidth(i, 230), CalculateHeight(i, 230)));
+                    petImage.Mutate(x => x.Resize(CalculateWidth(i, 230), CalculateHeight(i, 230)));
 
                     frames[i].Mutate(x => x.Resize(300, 300));
                     image.Mutate(x => x
-                        .DrawImage(userAvatar, new Point(50, 70), 1f)
+                        .DrawImage(petImage, new Point(50, 70), 1f)
                         .DrawImage(frames[i], new Point(0, 0), 1f));
 
                     output.Frames.InsertFrame(i, image.Frames.RootFrame);
