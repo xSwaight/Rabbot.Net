@@ -540,6 +540,16 @@ namespace Rabbot.Commands
             await channel.SendMessageAsync(message);
         }
 
+        [Command("pett", RunMode = RunMode.Async)]
+        [BotCommand]
+        public async Task Pett()
+        {
+            using (var image = await _imageService.DrawPettGif(Context.User.GetAvatarUrl(Discord.ImageFormat.Png, 1024)))
+            {
+                await Context.Channel.SendFileAsync(image, $"pett.gif");
+            }
+        }
+
         [Command("streaks", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(15)]

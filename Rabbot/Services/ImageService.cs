@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Rabbot.Models;
+using Sentry.Protocol;
 using Serilog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -175,6 +176,52 @@ namespace Rabbot.Services
                     break;
             }
             return font;
+        }
+
+        public async Task<MemoryStream> DrawPettGif(string avatarUrl)
+        {
+            MemoryStream outputStream = new MemoryStream();
+            var pettGif = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "Templates", "assets", "pett.gif"));
+            var userAvatar = (await GetAvatarAsync(avatarUrl)).Clone(x => x.ConvertToAvatar(new Size(350, 350), 180));
+
+            int frameDelay = pettGif.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay;
+            int frameCount = pettGif.Frames.Count - 1;
+            List<Image> frames = new List<Image>();
+            for (int i = 0; i < frameCount; i++)
+            {
+                try
+                {
+                    frames.Add(pettGif.Frames.CloneFrame(i));
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, $"Frame {i} can't be cloned.");
+                }
+            }
+
+            using (var output = new Image<Rgba32>(350, 350))
+            {
+                for (int i = 0; i < frames.Count; i++)
+                {
+                    using var image = new Image<Rgba32>(350, 350);
+                    image.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).FrameDelay = frameDelay;
+                    image.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).DisposalMethod = GifDisposalMethod.RestoreToBackground;
+
+                    // Animate Avatar
+                    userAvatar.Mutate(x => x.Resize(230, 230));
+
+                    frames[i].Mutate(x => x.Resize(300, 300));
+                    image.Mutate(x => x
+                        .DrawImage(userAvatar, new Point(50, 70), 1f)
+                        .DrawImage(frames[i], new Point(0, 0), 1f));
+
+                    output.Frames.InsertFrame(i, image.Frames.RootFrame);
+                }
+                output.Frames.RemoveFrame(output.Frames.Count - 1);
+                output.SaveAsGif(outputStream);
+            }
+            outputStream.Position = 0;
+            return outputStream;
         }
 
         private async Task<Image> GetAvatarAsync(string url)
