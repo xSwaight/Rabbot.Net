@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -541,12 +542,14 @@ namespace Rabbot.Commands
         }
 
         [Command("pett", RunMode = RunMode.Async)]
-        [BotCommand]
-        public async Task Pett()
+        [Cooldown(20)]
+        public async Task Pett(SocketGuildUser user = null)
         {
-            using (var image = await _imageService.DrawPettGif(Context.User.GetAvatarUrl(Discord.ImageFormat.Png, 1024)))
+            user ??= Context.User as SocketGuildUser;
+
+            using (var image = await _imageService.DrawPettGif(user.GetAvatarUrl(Discord.ImageFormat.Png, 1024) ?? user.GetDefaultAvatarUrl()))
             {
-                await Context.Channel.SendFileAsync(image, $"pett.gif");
+                await Context.Channel.SendFileAsync(image, $"{user.Nickname ?? user.Username}_pett.gif");
             }
         }
 

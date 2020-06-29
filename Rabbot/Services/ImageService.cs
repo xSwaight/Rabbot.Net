@@ -208,7 +208,7 @@ namespace Rabbot.Services
                     image.Frames.RootFrame.Metadata.GetFormatMetadata(GifFormat.Instance).DisposalMethod = GifDisposalMethod.RestoreToBackground;
 
                     // Animate Avatar
-                    userAvatar.Mutate(x => x.Resize(230, 230));
+                    userAvatar.Mutate(x => x.Resize(CalculateWidth(i, 230), CalculateHeight(i, 230)));
 
                     frames[i].Mutate(x => x.Resize(300, 300));
                     image.Mutate(x => x
@@ -222,6 +222,36 @@ namespace Rabbot.Services
             }
             outputStream.Position = 0;
             return outputStream;
+        }
+
+        private int CalculateWidth(int frameCount, int width)
+        {
+            int stepSize = 2;
+            if(frameCount < 4)
+            {
+                width -= stepSize * (frameCount + 1);
+            }
+            else
+            {
+                width += stepSize * ((frameCount + 1) - 5);
+            }
+
+            return width;
+        }
+
+        private int CalculateHeight(int frameCount, int height)
+        {
+            int stepSize = 2;
+            if (frameCount < 4)
+            {
+                height += stepSize * (frameCount + 1);
+            }
+            else
+            {
+                height -= stepSize * ((frameCount + 1) - 5);
+            }
+
+            return height;
         }
 
         private async Task<Image> GetAvatarAsync(string url)
