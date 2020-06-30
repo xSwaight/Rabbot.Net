@@ -56,6 +56,7 @@ namespace Rabbot.Services
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await UpdateStatus(), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(EventService)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
@@ -69,6 +70,26 @@ namespace Rabbot.Services
             _client.UserUpdated += UserUpdated;
             _client.ChannelCreated += ChannelCreated;
             _client.GuildUpdated += GuildUpdated;
+        }
+
+        private async Task UpdateStatus()
+        {
+            while (true)
+            {
+                try
+                {
+                    var releaseDate = new DateTime(2020, 7, 3, 20, 0, 0, 0);
+                    if (DateTime.Now > releaseDate)
+                        return;
+
+                    var timeSpan = releaseDate - DateTime.Now;
+
+                    await _client.SetGameAsync($"Xero Beta in {(timeSpan.Days > 0 ? $"{timeSpan.Days}d" : "")} {timeSpan.Hours}h {timeSpan.Minutes}m", "https://xero.gg", ActivityType.Streaming);
+                }
+                catch { }
+
+                await Task.Delay(60000);
+            }
         }
 
         private async Task GuildUpdated(SocketGuild oldGuild, SocketGuild newGuild)
@@ -618,15 +639,17 @@ namespace Rabbot.Services
                     await db.SaveChangesAsync();
                 }
 
-                if (!db.Events.AsQueryable().AsQueryable().Where(p => p.Status == true).Any())
-                {
-                    await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
-                }
-                else
-                {
-                    var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
-                    await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
-                }
+                //if (!db.Events.AsQueryable().AsQueryable().Where(p => p.Status == true).Any())
+                //{
+                //    await _client.SetGameAsync($"{Config.Bot.CmdPrefix}rank", null, ActivityType.Watching);
+                //}
+                //else
+                //{
+                //    var myEvent = db.Events.FirstOrDefault(p => p.Status == true);
+                //    await _client.SetGameAsync($"{myEvent.Name} Event aktiv!", null, ActivityType.Watching);
+                //}
+
+
                 //new Task(async () =>
                 //{
                 //    if (!_eventRegistered)
