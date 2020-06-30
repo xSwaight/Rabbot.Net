@@ -11,6 +11,7 @@ using System.Linq;
 using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace Rabbot.Services
 {
@@ -49,7 +50,26 @@ namespace Rabbot.Services
                         YouTubeVideoDto video = null;
                         using (XmlReader reader = XmlReader.Create($"https://www.youtube.com/feeds/videos.xml?channel_id={channelId}"))
                         {
+                            bool skip = false;
+                            using (XmlReader descriptionReader = XmlReader.Create($"https://www.youtube.com/feeds/videos.xml?channel_id={channelId}"))
+                            {
+                                while (descriptionReader.Read())
+                                if (descriptionReader.NodeType == XmlNodeType.Element)
+                                    if (descriptionReader.Name == "media:description")
+                                    {
+                                        XElement el = XNode.ReadFrom(descriptionReader) as XElement;
+                                        var description = el.FirstNode.ToString();
+
+                                        if (description.Contains(Constants.AnnouncementIgnoreTag))
+                                            skip = true;
+                                    }
+                            }
+
                             video = SyndicationFeed.Load(reader).GetFirstVideo();
+
+                            if (skip)
+                                continue;
+
                         }
                         if (video != null)
                         {
@@ -58,8 +78,6 @@ namespace Rabbot.Services
                                 var dbVideo = db.YouTubeVideos.FirstOrDefault(p => p.VideoId == video.Id);
                                 if (dbVideo == null)
                                 {
-                                    if (video.Title.Contains(Constants.AnnouncementIgnoreTag))
-                                        continue;
                                     await db.YouTubeVideos.AddAsync(new YouTubeVideoEntity { VideoId = video.Id, VideoTitle = video.Title });
                                     await db.SaveChangesAsync();
                                     await NewVideo(db, video);
