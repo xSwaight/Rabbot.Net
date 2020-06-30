@@ -510,7 +510,7 @@ namespace Rabbot.Commands
             await PagedReplyAsync(paginatedMessage);
         }
 
-        [Command("sensitivity", RunMode = RunMode.Async)]
+        [Command("sensitivity", RunMode = RunMode.Async), Alias("sens")]
         [BotCommand]
         [Summary("Berechnet die Maus Sensitivity für S4 Xero.")]
         public async Task CalculateXeroSensitivity(string sensitivity)
