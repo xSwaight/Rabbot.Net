@@ -80,11 +80,14 @@ namespace Rabbot.Services
                 {
                     var releaseDate = new DateTime(2020, 7, 3, 20, 0, 0, 0);
                     if (DateTime.Now > releaseDate)
+                    {
+                        await _client.SetGameAsync($"Xero HYPE!", null, ActivityType.Playing);
                         return;
+                    }
 
                     var timeSpan = releaseDate - DateTime.Now;
 
-                    await _client.SetGameAsync($"Xero Beta in {(timeSpan.Days > 0 ? $"{timeSpan.Days}d" : "")} {timeSpan.Hours}h {timeSpan.Minutes}m", "https://xero.gg", ActivityType.Streaming);
+                    await _client.SetGameAsync($"Xero Beta in {(timeSpan.Days > 0 ? $"{timeSpan.Days}d" : "")} {timeSpan.Hours}h {timeSpan.Minutes}m", null, ActivityType.Playing);
                 }
                 catch { }
 
