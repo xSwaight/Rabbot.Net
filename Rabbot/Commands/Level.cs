@@ -223,40 +223,30 @@ namespace Rabbot.Commands
             {
 
                 var roles = db.Roles.AsQueryable().Where(p => p.GuildId == Context.Guild.Id);
-                if (roles.FirstOrDefault(p => p.Description == "S4") == null)
+                if (roles.FirstOrDefault(p => p.Description == "Grandmaster") == null)
                 {
-                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S4", null, new Color(239, 69, 50), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S4" });
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("Grandmaster", null, new Color(48, 45, 37), true, false);
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "Grandmaster" });
                 }
-                if (roles.FirstOrDefault(p => p.Description == "S3") == null)
+                if (roles.FirstOrDefault(p => p.Description == "Master") == null)
                 {
-                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S3", null, new Color(239, 69, 50), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S3" });
+                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("Master", null, new Color(239, 69, 50), true, false);
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "Master" });
                 }
-                if (roles.FirstOrDefault(p => p.Description == "S2") == null)
+                if (roles.FirstOrDefault(p => p.Description == "Expert") == null)
                 {
-                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S2", null, new Color(239, 69, 50), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S2" });
-                }
-                if (roles.FirstOrDefault(p => p.Description == "S1") == null)
-                {
-                    Discord.Rest.RestRole roleS4 = await Context.Guild.CreateRoleAsync("S1", null, new Color(239, 69, 50), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleS4.Id, Description = "S1" });
+                    Discord.Rest.RestRole rolePro = await Context.Guild.CreateRoleAsync("Expert", null, new Color(239, 69, 50), true, false);
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = rolePro.Id, Description = "Expert" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Pro") == null)
                 {
-                    Discord.Rest.RestRole rolePro = await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = rolePro.Id, Description = "Pro" });
+                    Discord.Rest.RestRole roleSemi = await Context.Guild.CreateRoleAsync("Pro", null, new Color(94, 137, 255), true, false);
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleSemi.Id, Description = "Pro" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Semi") == null)
                 {
-                    Discord.Rest.RestRole roleSemi = await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleSemi.Id, Description = "Semi" });
-                }
-                if (roles.FirstOrDefault(p => p.Description == "Amateur") == null)
-                {
-                    Discord.Rest.RestRole roleAmateur = await Context.Guild.CreateRoleAsync("Amateur", null, new Color(232, 160, 34), true, false);
-                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleAmateur.Id, Description = "Amateur" });
+                    Discord.Rest.RestRole roleAmateur = await Context.Guild.CreateRoleAsync("Semi", null, new Color(21, 216, 102), true, false);
+                    await db.Roles.AddAsync(new RoleEntity { GuildId = Context.Guild.Id, RoleId = roleAmateur.Id, Description = "Semi" });
                 }
                 if (roles.FirstOrDefault(p => p.Description == "Rookie") == null)
                 {
