@@ -567,19 +567,6 @@ namespace Rabbot.Commands
             }
         }
 
-        [Command("howlong", RunMode = RunMode.Async)]
-        [Cooldown(20)]
-        public async Task HowLong()
-        {
-            var releaseDate = new DateTime(2020, 7, 3, 20, 0, 0, 0);
-            if (DateTime.Now > releaseDate)
-                return;
-
-            var timeSpan = releaseDate - DateTime.Now;
-
-            await ReplyAsync($"**Xero will be released in: {timeSpan.Days} {(timeSpan.Days == 1 ? "day" : "days")} {timeSpan.Hours}h {timeSpan.Minutes}m**");
-        }
-
         [Command("streaks", RunMode = RunMode.Async)]
         [BotCommand]
         [Cooldown(15)]
