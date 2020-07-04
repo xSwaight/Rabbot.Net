@@ -515,7 +515,7 @@ namespace Rabbot.Commands
         [Summary("Berechnet die Maus Sensitivity für S4 Xero.")]
         public async Task CalculateXeroSensitivity(string sensitivity)
         {
-            if (!double.TryParse(sensitivity.Replace(',', '.'), out double result))
+            if (!double.TryParse(sensitivity.Replace('.', ','), out double result))
             {
                 await ReplyAsync("Invalid Input");
                 return;
