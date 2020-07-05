@@ -95,7 +95,7 @@ namespace Rabbot.Services
 
         private async Task NewVideo(RabbotContext db, YouTubeVideoDto video)
         {
-            foreach (var dbGuild in db.Guilds)
+            foreach (var dbGuild in db.Guilds.AsQueryable().Where(p => p.GuildId == 432908323042623508))
             {
                 try
                 {
