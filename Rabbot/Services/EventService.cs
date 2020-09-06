@@ -696,13 +696,8 @@ namespace Rabbot.Services
                 {
                     try
                     {
-                        var remnantsPlayers = _apiService.GetRemnantsPlayerCount();
                         var officialPlayers = _apiService.GetOfficialPlayerCount();
                         await db.OfficialPlayers.AddAsync(new OfficialPlayerEntity { Playercount = officialPlayers, Date = DateTime.Now });
-                        if (int.TryParse(remnantsPlayers, out int count))
-                        {
-                            await db.RemnantsPlayers.AddAsync(new RemnantsPlayerEntity { Playercount = count, Date = DateTime.Now });
-                        }
                         await db.SaveChangesAsync();
                     }
                     catch (Exception e)

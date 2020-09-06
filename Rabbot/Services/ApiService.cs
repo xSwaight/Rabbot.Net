@@ -108,14 +108,6 @@ namespace Rabbot.Services
             return null;
         }
 
-        public string GetRemnantsPlayerCount()
-        {
-            var (payload, success) = ApiRequest(Constants.RemnantsPlayerApi);
-            if (success)
-                return payload;
-            return "";
-        }
-
         public int GetOfficialPlayerCount()
         {
             var (payload, success) = ApiRequest(Config.Bot.OfficialPlayerURL);

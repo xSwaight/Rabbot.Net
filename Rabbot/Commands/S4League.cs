@@ -30,7 +30,6 @@ namespace Rabbot.Commands
         {
             IUserMessage message = null;
             message = await InlineReactionReplyAsync(new ReactionCallbackData("**Wähle über die Reactions aus, welche Stats angezeigt werden sollen.**", null, true, true, false, TimeSpan.FromSeconds(5))
-                .WithCallback(Constants.Remnants, c => SetRemnantsStats(c, message))
                 .WithCallback(Constants.Official, c => SetOfficialStats(c, message))
                 );
         }
