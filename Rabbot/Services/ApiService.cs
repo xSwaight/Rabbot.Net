@@ -108,14 +108,6 @@ namespace Rabbot.Services
             return null;
         }
 
-        public int GetOfficialPlayerCount()
-        {
-            var (payload, success) = ApiRequest(Config.Bot.OfficialPlayerURL);
-            if (success)
-                return DeserializeJson<OfficialPlayerCountDto>(payload).PlayerCount;
-            return 0;
-        }
-
         public static (string payload, bool success) ApiRequest(string url, Dictionary<string, string> headers = null)
         {
             try

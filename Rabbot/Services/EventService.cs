@@ -55,7 +55,6 @@ namespace Rabbot.Services
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
-            new Task(async () => await CheckPlayers(), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(EventService)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
@@ -685,27 +684,6 @@ namespace Rabbot.Services
                     await db.Guilds.AddAsync(new GuildEntity { GuildId = guild.Id, GuildName = guild.Name });
                     await db.SaveChangesAsync();
                 }
-            }
-        }
-
-        private async Task CheckPlayers()
-        {
-            while (true)
-            {
-                using (var db = Database.Open())
-                {
-                    try
-                    {
-                        var officialPlayers = _apiService.GetOfficialPlayerCount();
-                        await db.OfficialPlayers.AddAsync(new OfficialPlayerEntity { Playercount = officialPlayers, Date = DateTime.Now });
-                        await db.SaveChangesAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, $"Error while checking playercounts");
-                    }
-                }
-                await Task.Delay(60000);
             }
         }
 
