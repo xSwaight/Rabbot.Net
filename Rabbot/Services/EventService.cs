@@ -28,6 +28,7 @@ namespace Rabbot.Services
         private readonly WarnService _warnService;
         private readonly MuteService _muteService;
         private readonly ApiService _apiService;
+        private readonly DiscordApiService _discordApiService;
         private DatabaseService Database => DatabaseService.Instance;
         private readonly EasterEventService _easterEventService;
         private static readonly ILogger _logger = Log.ForContext(Serilog.Core.Constants.SourceContextPropertyName, nameof(EventService));
@@ -42,6 +43,7 @@ namespace Rabbot.Services
             _warnService = services.GetRequiredService<WarnService>();
             _muteService = services.GetRequiredService<MuteService>();
             _apiService = services.GetRequiredService<ApiService>();
+            _discordApiService = services.GetRequiredService<DiscordApiService>();
             _easterEventService = services.GetRequiredService<EasterEventService>();
             _client = services.GetRequiredService<DiscordShardedClient>();
             InitializeAsync();
@@ -55,6 +57,7 @@ namespace Rabbot.Services
             new Task(async () => await CheckDate(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckAttacks(), TaskCreationOptions.LongRunning).Start();
             new Task(async () => await CheckItems(), TaskCreationOptions.LongRunning).Start();
+            new Task(async () => await CheckAvatar(), TaskCreationOptions.LongRunning).Start();
             _logger.Information($"{nameof(EventService)}: Loaded successfully");
             _client.UserJoined += UserJoined;
             _client.UserLeft += UserLeft;
@@ -68,6 +71,38 @@ namespace Rabbot.Services
             _client.UserUpdated += UserUpdated;
             _client.ChannelCreated += ChannelCreated;
             _client.GuildUpdated += GuildUpdated;
+        }
+
+        private async Task CheckAvatar()
+        {
+            while (true)
+            {
+                try
+                {
+                    await Task.Delay(60000);
+                    var user = _discordApiService.GetUserData(693073310787043328);
+                    if (user == null)
+                        continue;
+
+                    using (var db = Database.Open())
+                    {
+                        var lastAvatar = db.Avatars.AsQueryable().Where(p => p.UserId == user.Id).OrderByDescending(p => p.ChangeDate).FirstOrDefault();
+                        if (lastAvatar != null)
+                        {
+                            if (lastAvatar.AvatarId != (user.Avatar ?? "-"))
+                            {
+                                await db.Avatars.AddAsync(new AvatarLogEntity { UserId = user.Id, AvatarId = user.Avatar ?? "-", ChangeDate = DateTime.Now });
+                            }
+                        }
+                        else
+                        {
+                            await db.Avatars.AddAsync(new AvatarLogEntity { UserId = user.Id, AvatarId = user.Avatar ?? "-", ChangeDate = DateTime.Now });
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+                catch { }
+            }
         }
 
         private async Task GuildUpdated(SocketGuild oldGuild, SocketGuild newGuild)

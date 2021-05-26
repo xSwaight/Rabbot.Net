@@ -42,7 +42,7 @@ namespace Rabbot.Services
 
         public string GetShibeImage()
         {
-            var (payload, success) = ApiRequest(Constants.ShibeApi);
+            var (payload, success) = GetRequest(Constants.ShibeApi);
             if (success)
             {
                 var link = payload.Replace("[\"", string.Empty).Replace("\"]", string.Empty);
@@ -56,7 +56,7 @@ namespace Rabbot.Services
 
         public string GetFoxImage()
         {
-            var (payload, success) = ApiRequest(Constants.FoxApi);
+            var (payload, success) = GetRequest(Constants.FoxApi);
             if (success)
             {
                 var fox = DeserializeJson<FoxDto>(payload);
@@ -67,7 +67,7 @@ namespace Rabbot.Services
 
         public string GetDogImage()
         {
-            var (payload, success) = ApiRequest(Constants.DogApi);
+            var (payload, success) = GetRequest(Constants.DogApi);
             if (success)
             {
                 var dog = DeserializeJson<DogDto>(payload);
@@ -79,7 +79,7 @@ namespace Rabbot.Services
 
         public string GetCatImage()
         {
-            var (payload, success) = ApiRequest(Constants.CatApi);
+            var (payload, success) = GetRequest(Constants.CatApi);
             if (success)
             {
                 var cat = DeserializeJson<CatDto>(payload);
@@ -90,7 +90,7 @@ namespace Rabbot.Services
 
         public List<CoronaStatsDto> GetCoronaRanking(int count)
         {
-            var (payload, success) = ApiRequest(Constants.CoronaApi);
+            var (payload, success) = GetRequest(Constants.CoronaApi);
             if (success)
             {
                 return DeserializeJson<CoronaStatsDto[]>(payload).OrderByDescending(p => p.Cases).Take(count).ToList();
@@ -100,7 +100,7 @@ namespace Rabbot.Services
 
         public CoronaStatsDto GetCoronaCountry(string country)
         {
-            var (payload, success) = ApiRequest(Constants.CoronaApi);
+            var (payload, success) = GetRequest(Constants.CoronaApi);
             if (success)
             {
                 return DeserializeJson<CoronaStatsDto[]>(payload).FirstOrDefault(p => p.Country.Contains(country, StringComparison.InvariantCultureIgnoreCase));
@@ -108,7 +108,7 @@ namespace Rabbot.Services
             return null;
         }
 
-        public static (string payload, bool success) ApiRequest(string url, Dictionary<string, string> headers = null)
+        public static (string payload, bool success) GetRequest(string url, Dictionary<string, string> headers = null)
         {
             try
             {
@@ -137,7 +137,7 @@ namespace Rabbot.Services
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Something went wrong in {nameof(ApiRequest)}");
+                _logger.Error(ex, $"Something went wrong in {nameof(GetRequest)}");
                 return (string.Empty, false);
             }
         }

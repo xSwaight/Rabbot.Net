@@ -71,6 +71,7 @@ namespace Rabbot
                     .AddSingleton<WarnService>()
                     .AddSingleton<EventService>()
                     .AddSingleton<ApiService>()
+                    .AddSingleton<DiscordApiService>()
                     .AddSingleton<InteractiveService>()
                     .AddSingleton<EasterEventService>()
                     .AddSingleton<ImageService>()

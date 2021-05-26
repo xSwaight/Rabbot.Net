@@ -32,6 +32,7 @@ namespace Rabbot.Database
         public DbSet<EasterEventEntity> EasterEvents { get; set; }
         public DbSet<TwitchChannelEntity> TwitchChannels { get; set; }
         public DbSet<RulesAcceptEntity> Rule { get; set; }
+        public DbSet<AvatarLogEntity> Avatars { get; set; }
 
         public RabbotContext(DbContextOptions<RabbotContext> options)
             : base(options)
@@ -180,7 +181,8 @@ namespace Rabbot.Database
             });
 
             //Musicranks
-            modelBuilder.Entity<MusicrankEntity>(entity => {
+            modelBuilder.Entity<MusicrankEntity>(entity =>
+            {
                 entity.Property(x => x.Seconds)
                 .HasDefaultValue(0);
 
@@ -194,7 +196,8 @@ namespace Rabbot.Database
             });
 
             //Inventorys
-            modelBuilder.Entity<InventoryEntity>(entity => { 
+            modelBuilder.Entity<InventoryEntity>(entity =>
+            {
                 entity.Property(x => x.Durability)
                 .HasDefaultValue(0);
 
@@ -208,7 +211,8 @@ namespace Rabbot.Database
             });
 
             //Combis
-            modelBuilder.Entity<CombiEntity>(entity => {
+            modelBuilder.Entity<CombiEntity>(entity =>
+            {
                 entity.Property(x => x.Accepted)
                 .HasDefaultValue(false);
 
@@ -227,7 +231,8 @@ namespace Rabbot.Database
             });
 
             //Attacks
-            modelBuilder.Entity<AttackEntity>(entity => {
+            modelBuilder.Entity<AttackEntity>(entity =>
+            {
                 entity.HasOne(d => d.Target)
                     .WithMany(p => p.AttackTargets)
                     .HasForeignKey(x => x.TargetId);
@@ -242,21 +247,24 @@ namespace Rabbot.Database
             });
 
             //Badwords
-            modelBuilder.Entity<BadWordEntity>(entity => {
+            modelBuilder.Entity<BadWordEntity>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.BadWords)
                     .HasForeignKey(x => x.GuildId);
             });
 
             //Goodwords
-            modelBuilder.Entity<GoodWordEntry>(entity => {
+            modelBuilder.Entity<GoodWordEntry>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.GoodWords)
                     .HasForeignKey(x => x.GuildId);
             });
 
             //Warnings
-            modelBuilder.Entity<WarningEntity>(entity => {
+            modelBuilder.Entity<WarningEntity>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.Warnings)
                     .HasForeignKey(x => x.GuildId);
@@ -267,28 +275,32 @@ namespace Rabbot.Database
             });
 
             //EasterEvents
-            modelBuilder.Entity<EasterEventEntity>(entity => {
+            modelBuilder.Entity<EasterEventEntity>(entity =>
+            {
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.EasterEvents)
                     .HasForeignKey(x => x.UserId);
             });
 
             //TwitchChannel
-            modelBuilder.Entity<TwitchChannelEntity>(entity => {
+            modelBuilder.Entity<TwitchChannelEntity>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.TwitchChannels)
                     .HasForeignKey(x => x.GuildId);
             });
 
             //Streams
-            modelBuilder.Entity<StreamEntity>(entity => {
+            modelBuilder.Entity<StreamEntity>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.Streams)
                     .HasForeignKey(x => x.AnnouncedGuildId);
             });
 
             //Rules
-            modelBuilder.Entity<RulesAcceptEntity>(entity => {
+            modelBuilder.Entity<RulesAcceptEntity>(entity =>
+            {
                 entity.HasOne(d => d.Guild)
                     .WithMany(p => p.Rules)
                     .HasForeignKey(x => x.GuildId);

@@ -650,5 +650,33 @@ namespace Rabbot.Commands
             }
         }
 
+        [Command("wieoft", RunMode = RunMode.Async)]
+        public async Task AvatarStats()
+        {
+            if (!Context.IsPrivate)
+                return;
+
+            ulong uid = 693073310787043328;
+
+            EmbedBuilder embed = new EmbedBuilder();
+            using (var db = Database.Open())
+            {
+                var count = db.Avatars.AsQueryable().Where(p => p.UserId == uid).Count();
+                var lastChange = db.Avatars.AsQueryable().Where(p => p.UserId == uid).OrderByDescending(p => p.ChangeDate).FirstOrDefault();
+
+                if (lastChange == null)
+                    return;
+
+                var currentTime = DateTime.Now - lastChange.ChangeDate;
+
+                embed.WithDescription($"Avatar Statistiken von Marija. (Seit 26.05.2021)");
+                embed.AddField("Neue Avatare", $"{count}");
+                embed.AddField("Zeit seit letzter Änderung", $"{currentTime.Days} Tage {currentTime.Hours} Stunden {currentTime.Minutes} Minuten");
+                embed.WithFooter($"Letzte Avatar Änderung war am {lastChange.ChangeDate.ToFormattedString()} Uhr");
+                embed.Color = new Color(4, 255, 0);
+            }
+
+            await Context.Channel.SendMessageAsync(null, false, embed.Build());
+        }
     }
 }

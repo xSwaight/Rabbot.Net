@@ -36,17 +36,20 @@ namespace Rabbot
             if (!(s is SocketUserMessage msg))
                 return;
             var context = new ShardedCommandContext(_client, msg);
-            if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.Bot.CmdPrefix + "hdf")))
+            if (context.User.IsBot || (context.IsPrivate && !msg.Content.Contains(Config.Bot.CmdPrefix + "hdf") && !msg.Content.Contains(Config.Bot.CmdPrefix + "wieoft")))
                 return;
             int argPos = 0;
             IResult result = null;
             if (msg.HasStringPrefix(Config.Bot.CmdPrefix, ref argPos))
             {
-                using RabbotContext db = Database.Open();
-                if (db.Rule.Any(p => p.GuildId == context.Guild.Id))
+                if (!msg.Content.Contains(Config.Bot.CmdPrefix + "hdf") && !msg.Content.Contains(Config.Bot.CmdPrefix + "wieoft"))
                 {
-                    if (context.Channel.Id == db.Rule.First(p => p.GuildId == context.Guild.Id).ChannelId)
-                        return;
+                    using RabbotContext db = Database.Open();
+                    if (db.Rule.Any(p => p.GuildId == context.Guild.Id))
+                    {
+                        if (context.Channel.Id == db.Rule.First(p => p.GuildId == context.Guild.Id).ChannelId)
+                            return;
+                    }
                 }
 
                 result = await _commands.ExecuteAsync(context, argPos, _provider);
