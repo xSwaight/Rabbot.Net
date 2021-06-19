@@ -542,6 +542,18 @@ namespace Rabbot.Commands
             await channel.SendMessageAsync(message);
         }
 
+        [Command("pride", RunMode = RunMode.Async)]
+        [Cooldown(20)]
+        public async Task Pride(SocketGuildUser user = null)
+        {
+            user ??= Context.User as SocketGuildUser;
+
+            using (var image = await _imageService.DrawPrideAvatar(user.GetAvatarUrl(Discord.ImageFormat.Png, 1024) ?? user.GetDefaultAvatarUrl()))
+            {
+                await Context.Channel.SendFileAsync(image, $"{user.Nickname ?? user.Username}_pride.png");
+            }
+        }
+
         [Command("pet", RunMode = RunMode.Async)]
         [Cooldown(20)]
         public async Task Pet(SocketGuildUser user = null)

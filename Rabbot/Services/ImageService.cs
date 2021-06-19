@@ -233,10 +233,34 @@ namespace Rabbot.Services
             return outputStream;
         }
 
+
+        public async Task<MemoryStream> DrawPrideAvatar(string avatarUrl)
+        {
+            MemoryStream outputStream = new MemoryStream();
+            var prideFlag = _cacheService.GetOrAddImage(Path.Combine(AppContext.BaseDirectory, "Resources", "Templates", "assets", "pride_flag.png"));
+            Image avatar = await GetAvatarAsync(avatarUrl);
+
+            using (var output = new Image<Rgba32>(500, 500))
+            {
+
+                prideFlag.Mutate(x => x
+                            .Resize(500, 500));
+                avatar.Mutate(x => x
+                            .Resize(500, 500)
+                            .DrawImage(prideFlag, new Point(0, 0), 0.5f));
+
+                output.Frames.InsertFrame(0, avatar.Frames.RootFrame);
+                output.SaveAsPng(outputStream);
+            }
+
+            outputStream.Position = 0;
+            return outputStream;
+        }
+
         private int CalculateWidth(int frameCount, int width)
         {
             int stepSize = 2;
-            if(frameCount < 4)
+            if (frameCount < 4)
             {
                 width -= stepSize * (frameCount + 1);
             }
